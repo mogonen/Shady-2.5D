@@ -208,6 +208,7 @@ void Shape::frezeT(){
     applyT(_tM);
     _tM.identity();
     centerPivot();
+    Renderable::update();
 }
 
 void Shape::getBBox(BBox &bbox) const{
