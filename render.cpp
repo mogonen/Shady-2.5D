@@ -87,7 +87,7 @@ void Canvas::setImagePlane(const string &filename){
 
 void Canvas::render() const{
 
-    if (MODE == SHADED_M)
+    if (Canvas::get()->isShadingOn && Canvas::get()->isDragMode)
     {
         _lights[0]->renderNamed();
     }
@@ -416,7 +416,7 @@ void Patch4::render() const{
             if (Canvas::MODE == Canvas::SHADED_M || Canvas::get()->isShadingOn ){
                 glEnable(GL_LIGHTING);
                 Point light0_p = Canvas::get()->lightPos(0);
-                GLfloat light0_pf[] = { light0_p.x, light0_p.y, -4.0, 0.0 };
+                GLfloat light0_pf[] = { light0_p.x, light0_p.y, 5.0, 0.0 };
                 glLightfv(GL_LIGHT0, GL_POSITION, light0_pf);
             }else
                 glDisable(GL_LIGHTING);
@@ -495,7 +495,7 @@ void EllipseShape::render() const {
             if (Canvas::get()->isShadingOn ){
                 glEnable(GL_LIGHTING);
                 Point light0_p = Canvas::get()->lightPos(0);
-                GLfloat light0_pf[] = { light0_p.x, light0_p.y, 3.0, 0.0 };
+                GLfloat light0_pf[] = { light0_p.x, light0_p.y, 5.0, 0.0 };
                 glLightfv(GL_LIGHT0, GL_POSITION, light0_pf);
             }else
                 glDisable(GL_LIGHTING);

@@ -66,6 +66,7 @@ public:
     void setShape(Shape_p pShape){
         _pShape = pShape;
         _pShape->pTransform()->identity();
+        _pShape->centerPivot();
         _pShape->getBBox(_bbox_0);
         _bbox = _bbox_0;
         //_rvec0 = (Vec2((_bbox_0.P[1].x, _bbox_0.P[0].y)) - _bbox_0.pivot()).normalize();

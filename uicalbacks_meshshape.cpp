@@ -58,3 +58,12 @@ void MainWindow::newSpine()
 #endif
     glWidget->updateGL();
 }
+
+
+void MainWindow::newTorus()
+{
+    //createCustomDialog("Create NGon", "input1","input2","input3");
+    MeshShape* pMS = MeshShape::insertTorus(Point(0,0), 12, 0.3);
+    Canvas::get()->insert(pMS);
+    glWidget->updateGL();
+}

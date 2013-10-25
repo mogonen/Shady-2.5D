@@ -198,7 +198,9 @@ void Shape::applyT(const Matrix3x3& M){
     FOR_ALL_ITEMS(SVList, _vertices){
         ShapeVertex_p sv = (*it);
         Vec3 p = M*Vec3(sv->P.x, sv->P.y, 1);
+        Vec3 n = M*Vec3(sv->N.x, sv->N.y, 0);
         sv->P.set(p.x/p.z, p.y/p.z);
+        sv->N.set(Vec3(n.x, n.y,sv->N.z).normalize());
     }
     onApplyT(M);
     Renderable::update();
@@ -208,7 +210,6 @@ void Shape::frezeT(){
     applyT(_tM);
     _tM.identity();
     centerPivot();
-    Renderable::update();
 }
 
 void Shape::getBBox(BBox &bbox) const{
@@ -243,4 +244,5 @@ void Shape::centerPivot(){
         sv->P = sv->P - piv;
     }
     _t0 = _t0 + piv;
+    Renderable::update();
 }

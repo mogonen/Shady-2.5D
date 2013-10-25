@@ -82,6 +82,7 @@ private slots:
 
     void newGrid();
     void new2NGon();
+    void newTorus();
     void newSpine();
     void insertEllipse();
 
@@ -147,6 +148,7 @@ private:
     QAction * deleteFaceAct;
 
     //Shape Menu Actions
+    QAction * shapeInsertTorusAct;
     QAction * shapeInsertEllipseAct;
     QAction * shapeInsert2NGonAct;
     QAction * shapeInsertSpineAct;

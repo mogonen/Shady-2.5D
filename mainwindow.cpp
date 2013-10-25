@@ -191,6 +191,9 @@ void MainWindow::createActions()
     deleteFaceAct->setActionGroup(toolset);
 
     //SHAPE ACTIONS
+    shapeInsertTorusAct = new QAction(tr("Torus"), this);
+    connect(shapeInsertTorusAct, SIGNAL(triggered()), this, SLOT(newTorus()));
+
     shapeInsertEllipseAct = new QAction(tr("Ellipse"), this);
     connect(shapeInsertEllipseAct, SIGNAL(triggered()), this, SLOT(insertEllipse()));
 
@@ -275,6 +278,7 @@ void MainWindow::createMenus()
     insertMenu->addAction(shapeInsertEllipseAct);
     insertMenu->addAction(shapeInsertGridAct);
     insertMenu->addAction(shapeInsert2NGonAct);
+    insertMenu->addAction(shapeInsertTorusAct);
     insertMenu->addAction(shapeInsertSpineAct);
 
     toolsMenu  = menuBar()->addMenu(tr("Tools"));
