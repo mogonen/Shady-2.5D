@@ -50,6 +50,8 @@
 #include "ellipseshape.h"
 #include "shapecontrol.h"
 
+#include <QtWidgets>
+
 MainWindow::MainWindow()
 {
     centralWidget = new QWidget;
@@ -66,20 +68,9 @@ MainWindow::MainWindow()
     glWidgetArea->setMinimumSize(50, 50);
 
     createActions();
-	
-    // creating a dock
-    toolsWidgetDock = new QDockWidget(QString("Options"), this);
-    toolsWidgetDock->setVisible(false);
-    //toolsWidgetDock->destroy(true,true);
-    this->addDockWidget(Qt::LeftDockWidgetArea, toolsWidgetDock);
-    createAllOptionsWidgets();
-
     createMenus();
 
-	
-	
-    
-	initTools();
+    initTools();
 
     QGridLayout *centralLayout = new QGridLayout;
     centralLayout->addWidget(glWidgetArea, 0, 0);
