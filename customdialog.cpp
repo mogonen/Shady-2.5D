@@ -52,7 +52,7 @@ void ColorButton::pickColor()
 //-- Default construtor
 
 CustomDialog::CustomDialog(QString title, QWidget *parent, btnset btnSet)
-  : QDialog(parent)
+  : QDockWidget(parent)
 {
   setWindowTitle(title);
 
@@ -1100,7 +1100,7 @@ void CustomDialog::customBtnAccept()
 
   }
 
-  QDialog::accept();
+  //QDialog::accept();
 }
 
 //------------------------
@@ -1112,7 +1112,7 @@ void CustomDialog::customBtnAccept()
 void CustomDialog::customBtnReject()
 {
   updateBtnClicked(QObject::sender());    // updates the value of "customBtnClicked"
-  QDialog::reject();
+  //QDialog::reject();
 }
 
 //------------------------
@@ -1156,7 +1156,8 @@ void CustomDialog::customBtnOpenUrl()
 int CustomDialog::exec()
 {
   adjustSize();
-  return QDialog::exec();
+  //return QDialog::exec();
+  return 0;
 }
 
 //------------------------
@@ -1166,7 +1167,8 @@ int CustomDialog::exec()
 
 bool CustomDialog::wasCancelled()
 {
-  return (result() == QDialog::Rejected);
+   return 0;
+  //return (result() == QDialog::Rejected);
 }
 
 

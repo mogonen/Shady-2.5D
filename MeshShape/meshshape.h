@@ -33,7 +33,7 @@ public:
 
     //primitives
     static MeshShape*       insertGrid(const Point& p, double len, int n, int m, MeshShape* pMS = 0);
-    static MeshShape*       insertNGon(const Point& p, int n, double rad, MeshShape* pMS = 0);
+    static MeshShape*       insertNGon(const Point& p, int n, int segv, double rad, MeshShape* pMS = 0);
     static MeshShape*       insertTorus(const Point& p, int n, double rad, MeshShape* pMS = 0);
 
 

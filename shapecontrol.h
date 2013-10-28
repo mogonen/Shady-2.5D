@@ -43,7 +43,7 @@ protected:
         Vec2 diag  = _bbox.diag();
         Vec2 diag0 = _bbox_0.diag();
         Vec2 scale(diag.x/diag0.x, diag.y/diag0.y);
-        Vec2 t = _bbox.pivot();
+        Vec2 t = (_bbox.pivot()-_bbox_0.pivot());
 
         /*Vec2 rvec1 = (_rot - t).normalize();
         double cosa = _rvec0*rvec1;
@@ -60,7 +60,7 @@ public:
         _pShape = 0;
         _handles[0] = new ControlPoint(&_bbox.P[0],this);
         _handles[1] = new ControlPoint(&_bbox.P[1],this);
-        _rotHandle  = new ControlPoint(&_rot, this);
+       // _rotHandle  = new ControlPoint(&_rot, this);
     }
 
     void setShape(Shape_p pShape){

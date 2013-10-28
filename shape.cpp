@@ -209,7 +209,7 @@ void Shape::applyT(const Matrix3x3& M){
 void Shape::frezeT(){
     applyT(_tM);
     _tM.identity();
-    centerPivot();
+    //centerPivot();
 }
 
 void Shape::getBBox(BBox &bbox) const{
