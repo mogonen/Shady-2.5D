@@ -42,6 +42,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "customdialog.h"
 
 QT_BEGIN_NAMESPACE
 class QLabel;
@@ -97,6 +98,9 @@ private slots:
     void deleteShape();
 
 private:
+
+
+    CustomDialog*   _options;
 
     void createActions();
     void createMenus();

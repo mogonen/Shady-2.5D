@@ -67,6 +67,9 @@ MainWindow::MainWindow()
     glWidgetArea->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     glWidgetArea->setMinimumSize(50, 50);
 
+    _options = new CustomDialog("Options", this);
+    //_options->setModal(false);
+
     createActions();
     createMenus();
 
@@ -217,7 +220,6 @@ void MainWindow::createActions()
     shapeMoveBackAct = new QAction(tr("Move Back"), this);
     shapeMoveBackAct->setShortcut(Qt::Key_PageDown);
     connect(shapeMoveBackAct, SIGNAL(triggered()), this, SLOT(moveShapeToBack()));
-
 
     shapeSendFrontAct = new QAction(tr("Send &Front"), this);
     shapeSendFrontAct->setShortcut(tr("Ctrl+F"));
@@ -468,20 +470,20 @@ void MainWindow::insertEllipse(){
 void MainWindow::createCustomDialog(QString title, QString input1,QString input2,QString input3)
 {
     string  Value0 = "Value";            // NOTE: these lines of code (the variables you wish to change)
-    bool    Value1  = true;                //  probably exist in your program already and so it is only
-    int     Value2      = 20;                  //  the seven lines below needed to "create and display"
+    bool    Value1 = true;                //  probably exist in your program already and so it is only
+    int     Value2 = 20;                  //  the seven lines below needed to "create and display"
     int     Value3 = 1;                   //  your custom dialog.
 
-    CustomDialog d(title, this);                            // We want our custom dialog called "Registration".
-    d.addLabel    ("Please enter the details below ...");           // The first element is just a text label (non interactive).
-    d.addLineEdit (input1+"  ", &Value0, "No middle name!");             // Here's a line edit.
-    d.addCheckBox (input2+"  ", &Value1, "my tooltip");       // Here's a checkbox with a tooltip (optional last argument).
-    d.addSpinBox  (input3+"  ", 1, 120, &Value2, 1);                   // Here's a number spin box for age.
-    d.addComboBox ("Value: ", "Value1|Value2|Value3", &Value3);   // And here's a combo box with three options (separated by '|').
+    // We want our custom dialog called "Registration".
+    _options->addLabel    ("Please enter the details below ...");           // The first element is just a text label (non interactive).
+    _options->addLineEdit (input1+"  ", &Value0, "No middle name!");             // Here's a line edit.
+    _options->addCheckBox (input2+"  ", &Value1, "my tooltip");       // Here's a checkbox with a tooltip (optional last argument).
+    _options->addSpinBox  (input3+"  ", 1, 120, &Value2, 1);                   // Here's a number spin box for age.
+    _options->addComboBox ("Value: ", "Value1|Value2|Value3", &Value3);   // And here's a combo box with three options (separated by '|').
 
-    d.exec();                             // Execution stops here until user closes dialog
+    _options->show();                             // Execution stops here until user closes dialog
 
-    if(d.wasCancelled())                // If the user hit cancel, your values stay the same
+    if(_options->wasCancelled())                // If the user hit cancel, your values stay the same
         return;                           // and you probably don't need to do anything
-//     cout << "Thanks " << name << end;   // and here it's up to you to do stuff with your new values!
+    //     cout << "Thanks " << name << end;   // and here it's up to you to do stuff with your new values!
 }

@@ -34,7 +34,7 @@ void MainWindow::selectInsertSegment()
 void MainWindow::new2NGon()
 {
     createCustomDialog("Create NGon", "input1","input2","input3");
-    MeshShape* pMS = MeshShape::insertNGon(Point(0,0), 2, 0.1);
+    MeshShape* pMS = MeshShape::insertNGon(Point(0,0), 4,2, 0.1);
     Canvas::get()->insert(pMS);
     glWidget->updateGL();
 }

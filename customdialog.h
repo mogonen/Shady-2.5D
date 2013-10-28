@@ -99,6 +99,7 @@
 
 using namespace std;
 
+#include <QDockWidget>
 #include <qdialog.h>
 #include <qobject.h>
 #include <qvariant.h>
@@ -213,7 +214,7 @@ struct DialogElement
 //** GuiDialogCustomizable is used to present a customizable gui
 //** dialog and retrieve user input with minimal code!
 
-class CustomDialog : public QDialog
+class CustomDialog : public QDockWidget
 {
   Q_OBJECT
 

@@ -170,19 +170,16 @@ public:
     Point lightPos(int i)const {return _lights[i]->P();}
 
     bool isDragMode;
-    bool isShadingOn;
 
+    bool isShadingOn;
     bool isNormalsOn;
     bool isWireframeOn;
 
-    bool canDragShape(){ return isDragMode && (MODE == POINT_NORMAL_SHAPE_M || MODE == SHAPE_M); }
-
+    bool canDragShape(){ return isDragMode;}
     void flipMode(){isDragMode=!isDragMode;}
 
 	//statics
     static Canvas* get(){return _canvas;}
-    enum EditMode_e {POINT_NORMAL_SHAPE_M, POINT_NORMAL_M, POINT_M, NORMAL_M, SHAPE_M, SHADED_M, TEXTURED_M, VIEW_M};
-    static EditMode_e MODE;
 
     static void apply(const Matrix3x3& tM){
         _tM[0] = tM[0].x;

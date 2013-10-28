@@ -1,8 +1,6 @@
 #include <qgl.h>
 #include "Canvas.h"
 #include "SampleShape.h"
-
-
 #include "meshshape/spineshape.h"
 #include "meshshape/meshshape.h"
 
@@ -25,7 +23,6 @@ SelectableMap_p Selectable::_selectables;
 SelectionSet Selectable::_selection;
 bool Selectable::isSelect;
 ControlPoint_p ControlPoint::_pTheActive = 0;
-Canvas::EditMode_e Canvas::MODE = Canvas::POINT_NORMAL_SHAPE_M;
 double Canvas::_tM[16];
 double EllipseShape::Radius = 0.1;
 GLuint texture[1];
@@ -255,7 +252,7 @@ void SpineShape::render() const{
 
 void MeshShape::render() const {
 
-    if ( Canvas::MODE!=Canvas::SHADED_M && (isInRenderMode() || IsSelectMode(EDGE) )){
+    if ( (isInRenderMode() || IsSelectMode(EDGE) )){
         EdgeList edges = _control->edges();
         FOR_ALL_CONST_ITEMS(EdgeList, edges){
             render(*it);
@@ -386,7 +383,7 @@ void Patch4::render() const{
 
             if (Canvas::get()->isWireframeOn){
 
-                if (Canvas::MODE == Canvas::NORMAL_M || Canvas::get()->isNormalsOn)
+                if (Canvas::get()->isNormalsOn)
                 {
                     //drawNormals
                     glColor3f(1,1,1);
@@ -413,7 +410,7 @@ void Patch4::render() const{
 
             }
 
-            if (Canvas::MODE == Canvas::SHADED_M || Canvas::get()->isShadingOn ){
+            if (Canvas::get()->isShadingOn ){
                 glEnable(GL_LIGHTING);
                 Point light0_p = Canvas::get()->lightPos(0);
                 GLfloat light0_pf[] = { light0_p.x, light0_p.y, 5.0, 0.0 };
@@ -423,7 +420,7 @@ void Patch4::render() const{
 
             glBegin(GL_POLYGON);
             for(int k=0; k<4; k++){                
-                if (Canvas::MODE == Canvas::SHADED_M || Canvas::get()->isShadingOn)
+                if (Canvas::get()->isShadingOn)
                     glNormal3f(n[k].x, n[k].y, n[k].z );
                 else
                     glColor3f((n[k].x+1)/2, (n[k].y+1)/2, n[k].z );
@@ -465,7 +462,7 @@ void EllipseShape::render() const {
 
             if (Canvas::get()->isWireframeOn){
 
-                if (Canvas::MODE == Canvas::NORMAL_M || Canvas::get()->isNormalsOn)
+                if (Canvas::get()->isNormalsOn)
                 {
                     //drawNormals
                     glColor3f(1,1,1);
