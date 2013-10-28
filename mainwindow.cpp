@@ -39,9 +39,6 @@
 ****************************************************************************/
 #include "glwidget.h"
 #include "mainwindow.h"
-
-#include "customdialog.h"
-
 #include "sampleshape.h"
 #include "canvas.h"
 #include "meshshape/Patch.h"
@@ -49,8 +46,6 @@
 #include "meshshape/meshshape.h"
 #include "ellipseshape.h"
 #include "shapecontrol.h"
-
-#include <QtWidgets>
 
 MainWindow::MainWindow()
 {
@@ -71,6 +66,13 @@ MainWindow::MainWindow()
     //_options->setModal(false);
 
     createActions();
+	// creating a dock
+    toolsWidgetDock = new QDockWidget(QString("Options"), this);
+    toolsWidgetDock->setVisible(false);
+    //toolsWidgetDock->destroy(true,true);
+    this->addDockWidget(Qt::LeftDockWidgetArea, toolsWidgetDock);
+    createAllOptionsWidgets();
+	
     createMenus();
 
     initTools();

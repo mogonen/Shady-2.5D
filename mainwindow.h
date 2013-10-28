@@ -42,6 +42,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QtWidgets>
 #include "customdialog.h"
 
 QT_BEGIN_NAMESPACE
@@ -107,6 +108,25 @@ private:
     void initScene();
     void initTools();
     void createCustomDialog(QString title, QString input1,QString input2,QString input3);
+	
+	// for dockable widgets window
+    void createAllOptionsWidgets();
+    void createNgonOptions();
+    void createGridOptions();
+    void createSpineOptions();
+
+    QStackedWidget *stackedWidget;
+    QDockWidget     *toolsWidgetDock;
+    QMainWindow     *toolsWindow;
+    QGridLayout     *layNgon;
+    QGridLayout     *layGrid;
+    QGridLayout     *laySpine;
+    QWidget         *ngonWidget;
+    QWidget         *gridWidget;
+    QWidget         *spineWidget;
+
+    enum CREATE {NGON, GRID, SPINE};
+	
     QSize getSize();
 
     QWidget         *centralWidget;
