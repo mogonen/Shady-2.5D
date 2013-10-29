@@ -49,9 +49,6 @@ void MeshShape::execOP(const Point &p){
          pMS = ((MeshShape*)f->mesh()->caller());
     }
 
-    if ( !e && !f)
-        return;
-
     switch(_OPMODE){
 
         case MeshShape::NONE:
@@ -98,7 +95,9 @@ Vertex_p MeshShape::addMeshVertex(const Point& p){
 }
 
 MeshShape::SELECTION_e MeshShape::GetSelectMode(){
-    static const SELECTION_e SELECTMODE[] = {NOSELECT, EDGE, FACE, FACE, CORNER, EDGE};
+    static const SELECTION_e SELECTMODE[] = {NOSELECT, EDGE, FACE, FACE, CORNER, EDGE, NOSELECT};
+    if (_OPMODE > 6)
+        return NOSELECT;
     return SELECTMODE[(int)_OPMODE];
 }
 

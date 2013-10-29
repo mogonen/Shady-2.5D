@@ -66,13 +66,6 @@ MainWindow::MainWindow()
     //_options->setModal(false);
 
     createActions();
-	// creating a dock
-    toolsWidgetDock = new QDockWidget(QString("Options"), this);
-    toolsWidgetDock->setVisible(false);
-    //toolsWidgetDock->destroy(true,true);
-    this->addDockWidget(Qt::LeftDockWidgetArea, toolsWidgetDock);
-    createAllOptionsWidgets();
-	
     createMenus();
 
     initTools();
@@ -106,6 +99,22 @@ void MainWindow::initTools()
     toolbar->addAction(deleteFaceAct);
 
     toolbar->addSeparator();
+
+    //init tool options dock
+    optionsDockWidget = new QDockWidget(QString("Options"), this);
+    optionsDockWidget->setVisible(false);
+
+    this->addDockWidget(Qt::LeftDockWidgetArea, optionsDockWidget);
+
+    optionsStackedWidget = new QStackedWidget(optionsDockWidget);
+    QVBoxLayout *layout = new QVBoxLayout;
+    layout->addWidget(optionsStackedWidget);
+
+    optionsDockWidget->setWidget(optionsStackedWidget);
+    optionsDockWidget->setLayout(layout);
+    optionsDockWidget->setVisible(false);
+
+    createAllOptionsWidgets();
 }
 
 void MainWindow::initScene(){
@@ -117,6 +126,18 @@ void MainWindow::initScene(){
 void MainWindow::about()
 {
     QMessageBox::about(this, tr("About Shady"), tr("<b>Shady</b> is an application in progress that implements theoretical framework developed atTexas A&M University for rendering 2D scenes as if they are part of 3D."));
+}
+
+int MainWindow::addOptionsWidget(QWidget* widget, char* label){
+    int id = optionsStackedWidget->addWidget(widget);
+    _optionWidgetIDs[label] = id;
+    return id;
+}
+
+void MainWindow::setOptionsWidget(char *label){
+    int id = _optionWidgetIDs[label];
+    optionsStackedWidget->setCurrentIndex(id);
+    optionsDockWidget->setVisible(true); //modify later
 }
 
 void MainWindow::createActions()
@@ -461,31 +482,4 @@ void MainWindow::deleteShape(){
 void MainWindow::insertEllipse(){
     Canvas::get()->insert(new EllipseShape());
     glWidget->updateGL();
-}
-
-
-
-
-
-
-
-void MainWindow::createCustomDialog(QString title, QString input1,QString input2,QString input3)
-{
-    string  Value0 = "Value";            // NOTE: these lines of code (the variables you wish to change)
-    bool    Value1 = true;                //  probably exist in your program already and so it is only
-    int     Value2 = 20;                  //  the seven lines below needed to "create and display"
-    int     Value3 = 1;                   //  your custom dialog.
-
-    // We want our custom dialog called "Registration".
-    _options->addLabel    ("Please enter the details below ...");           // The first element is just a text label (non interactive).
-    _options->addLineEdit (input1+"  ", &Value0, "No middle name!");             // Here's a line edit.
-    _options->addCheckBox (input2+"  ", &Value1, "my tooltip");       // Here's a checkbox with a tooltip (optional last argument).
-    _options->addSpinBox  (input3+"  ", 1, 120, &Value2, 1);                   // Here's a number spin box for age.
-    _options->addComboBox ("Value: ", "Value1|Value2|Value3", &Value3);   // And here's a combo box with three options (separated by '|').
-
-    _options->show();                             // Execution stops here until user closes dialog
-
-    if(_options->wasCancelled())                // If the user hit cancel, your values stay the same
-        return;                           // and you probably don't need to do anything
-    //     cout << "Thanks " << name << end;   // and here it's up to you to do stuff with your new values!
 }

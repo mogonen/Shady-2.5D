@@ -214,18 +214,18 @@ struct DialogElement
 //** GuiDialogCustomizable is used to present a customizable gui
 //** dialog and retrieve user input with minimal code!
 
-class CustomDialog : public QDockWidget
+class CustomDialog : public QWidget
 {
   Q_OBJECT
 
 public:     //## METHODS:
 
-  CustomDialog(QString title, QWidget *parent = 0, btnset=BS_CANCEL_OKAY);
-  ~CustomDialog() {};
+  CustomDialog(QString title, QWidget *parent = 0, char* execLabel =0);
+  ~CustomDialog() {}
   bool setDialogElements();
   bool wasCancelled();
 
-  bool addCustomButton(QString buttonStr, btnbehav buttonBehav=BB_ACCEPT, QString tooltip="");
+  bool addCustomButton(QString buttonStr, btnbehav buttonBehav=BB_ACCEPT, QString tooltip="", void (*callback)()=0);
 
 
   DialogElement& addNewElement(DlgType _type, QString caption, QString tooltip, bool makeLabel);

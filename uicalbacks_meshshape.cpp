@@ -33,8 +33,7 @@ void MainWindow::selectInsertSegment()
 
 void MainWindow::new2NGon()
 {
-    toolsWidgetDock->setVisible(true);
-    stackedWidget->setCurrentIndex(NGON);
+    setOptionsWidget("2NGON");
     MeshShape* pMS = MeshShape::insertNGon(Point(0,0), 4,2, 0.1);
     Canvas::get()->insert(pMS);
     glWidget->updateGL();
@@ -42,8 +41,7 @@ void MainWindow::new2NGon()
 
 void MainWindow::newGrid()
 {
-    toolsWidgetDock->setVisible(true);
-    stackedWidget->setCurrentIndex(GRID);
+    setOptionsWidget("GRID");
     MeshShape* pMS = MeshShape::insertGrid(Point(0,0), 0.1, 2, 2);
     Canvas::get()->insert(pMS);
     glWidget->updateGL();
@@ -51,8 +49,6 @@ void MainWindow::newGrid()
 
 void MainWindow::newSpine()
 {
-    toolsWidgetDock->setVisible(true);
-    stackedWidget->setCurrentIndex(SPINE);
     //MeshShape* pM = MeshShape::newMeshShape(Point(0,0),MeshShape::SPINE);
     //Canvas::get()->insert(pM);
 #ifdef FACIAL_SHAPE
@@ -65,35 +61,16 @@ void MainWindow::newSpine()
 
 void MainWindow::newTorus()
 {
-    //createCustomDialog("Create NGon", "input1","input2","input3");
+    setOptionsWidget("TORUS");
     MeshShape* pMS = MeshShape::insertTorus(Point(0,0), 12, 0.3);
     Canvas::get()->insert(pMS);
     glWidget->updateGL();
 }
 
-void MainWindow::createAllOptionsWidgets()
+QWidget* createNgonOptions()
 {
-    stackedWidget = new QStackedWidget(toolsWidgetDock);
-    layNgon = new QGridLayout;
-    layGrid = new QGridLayout;
-    laySpine = new QGridLayout;
-    gridWidget = new QWidget;
-    ngonWidget = new QWidget;
-    spineWidget = new QWidget;
-    createNgonOptions();
-    createGridOptions();
-    createSpineOptions();
 
-    QVBoxLayout *layout = new QVBoxLayout;
-    layout->addWidget(stackedWidget);
-
-    toolsWidgetDock->setWidget(stackedWidget);
-    toolsWidgetDock->setLayout(layout);
-    toolsWidgetDock->setVisible(false);
-}
-
-void MainWindow::createNgonOptions()
-{
+    QWidget * ngonWidget = new QWidget;
     int rowNumber = 0;
 
     // slider
@@ -102,10 +79,10 @@ void MainWindow::createNgonOptions()
     qs->setValue(10);
 
     // label1
-    QLabel *enterDet = new QLabel(tr("Enter options below:"), ngonWidget);
-    QLabel *label = new QLabel(tr("Enter value of N:"), ngonWidget);
+    QLabel *enterDet = new QLabel(QWidget::tr("Enter options below:"), ngonWidget);
+    QLabel *label = new QLabel(QWidget::tr("Enter value of N:"), ngonWidget);
 //    QLabel *label1 = new QLabel(tr("Enter value 2:"), ngonWidget);
-    QPushButton *createNgonButton = new QPushButton(tr("Create Ngon"),ngonWidget);
+    QPushButton *createNgonButton = new QPushButton(QWidget::tr("Create Ngon"),ngonWidget);
 
     // spin box
     QDoubleSpinBox       *spnBox = new QDoubleSpinBox(ngonWidget);
@@ -114,6 +91,8 @@ void MainWindow::createNgonOptions()
 //    QSpinBox       *spnBox1 = new QSpinBox(ngonWidget);
 //    spnBox1->setValue(30);
 
+    QGridLayout * layNgon = new QGridLayout;
+
     layNgon->addWidget(enterDet,rowNumber++,0);
     rowNumber++;
 
@@ -121,32 +100,30 @@ void MainWindow::createNgonOptions()
     layNgon->addWidget(spnBox,rowNumber++,1);
 //    layNgon->addWidget(label1,rowNumber,0);
 //    layNgon->addWidget(spnBox1,rowNumber++,1);
-    layNgon->addWidget(new QLabel(tr("Scale value: ")),rowNumber++,0);
+    layNgon->addWidget(new QLabel(QWidget::tr("Scale value: ")),rowNumber++,0);
     layNgon->addWidget(qs,rowNumber++,0,1,2);
     layNgon->addWidget(createNgonButton ,rowNumber++,0,1,2);
     //    layNgon->addWidget(pageComboBox,4,0);
     layNgon->setRowStretch(rowNumber,1);
 
     ngonWidget->setLayout(layNgon);
-
-    stackedWidget->addWidget(ngonWidget);
-
-
+    return ngonWidget;
 }
 
-void MainWindow::createGridOptions()
+QWidget* createGridOptions()
 {
     int rowNumber = 0;
 
-    // slider
+    QWidget * gridWidget = new QWidget;
+    // slider;
     QSlider *qs = new QSlider(Qt::Horizontal,gridWidget);
     qs->setRange(1,20);
     qs->setValue(10);
 
     // label1
-    QLabel *enterDet = new QLabel(tr("Enter options below:"), gridWidget);
-    QLabel *label = new QLabel(tr("Number of rows:"), gridWidget);
-    QLabel *label1 = new QLabel(tr("Number of columns:"), gridWidget);
+    QLabel *enterDet = new QLabel(QWidget::tr("Enter options below:"), gridWidget);
+    QLabel *label = new QLabel(QWidget::tr("Number of rows:"), gridWidget);
+    QLabel *label1 = new QLabel(QWidget::tr("Number of columns:"), gridWidget);
 
     // spin box
     QDoubleSpinBox       *spnBox = new QDoubleSpinBox(gridWidget);
@@ -155,7 +132,9 @@ void MainWindow::createGridOptions()
     QSpinBox       *spnBox1 = new QSpinBox(gridWidget);
     spnBox1->setValue(30);
 
-    QPushButton *createGridButton = new QPushButton(tr("Create Grid"),gridWidget);
+    QPushButton *createGridButton = new QPushButton(QWidget::tr("Create Grid"),gridWidget);
+
+    QGridLayout* layGrid = new QGridLayout;
 
     layGrid->addWidget(enterDet,rowNumber++,0);
     rowNumber++;
@@ -164,7 +143,7 @@ void MainWindow::createGridOptions()
     layGrid->addWidget(spnBox,rowNumber++,1);
     layGrid->addWidget(label1,rowNumber,0);
     layGrid->addWidget(spnBox1,rowNumber++,1);
-    layGrid->addWidget(new QLabel(tr("Scale value: ")),rowNumber++,0);
+    layGrid->addWidget(new QLabel(QWidget::tr("Scale value: ")),rowNumber++,0);
     layGrid->addWidget(qs,rowNumber++,0,1,2);
     layGrid->addWidget(createGridButton ,rowNumber++,0,1,2);
     //    layGrid->addWidget(pageComboBox,4,0);
@@ -173,48 +152,13 @@ void MainWindow::createGridOptions()
 
     gridWidget->setLayout(layGrid);
 
-    stackedWidget->addWidget(gridWidget);
-
+    return gridWidget;
 }
 
-void MainWindow::createSpineOptions()
+
+void MainWindow::createAllOptionsWidgets()
 {
-    int rowNumber = 0;
-
-    // slider
-    QSlider *qs = new QSlider(Qt::Horizontal,spineWidget);
-    qs->setRange(1,20);
-    qs->setValue(10);
-
-    // label1
-    QLabel *enterDet = new QLabel(tr("Enter options below:"), spineWidget);
-    QLabel *label = new QLabel(tr("Number of points:"), spineWidget);
-    QLabel *label1 = new QLabel(tr("Other option:"), spineWidget);
-
-    // spin box
-    QDoubleSpinBox       *spnBox = new QDoubleSpinBox(spineWidget);
-    spnBox->setValue(30);
-
-    QSpinBox       *spnBox1 = new QSpinBox(spineWidget);
-    spnBox1->setValue(30);
-
-    QPushButton *createGridButton = new QPushButton(tr("Create Spine"),spineWidget);
-
-    laySpine->addWidget(enterDet,rowNumber++,0);
-    rowNumber++;
-
-    laySpine->addWidget(label,rowNumber,0);
-    laySpine->addWidget(spnBox,rowNumber++,1);
-    laySpine->addWidget(label1,rowNumber,0);
-    laySpine->addWidget(spnBox1,rowNumber++,1);
-    laySpine->addWidget(new QLabel(tr("Scale value: ")),rowNumber++,0);
-    laySpine->addWidget(qs,rowNumber++,0,1,2);
-    laySpine->addWidget(createGridButton ,rowNumber++,0,1,2);
-    //    laySpine->addWidget(pageComboBox,4,0);
-
-    laySpine->setRowStretch(rowNumber,1);
-
-    spineWidget->setLayout(laySpine);
-
-    stackedWidget->addWidget(spineWidget);
+    addOptionsWidget(createGridOptions(),"GRID");
+    addOptionsWidget(createNgonOptions(),"2NGON");
 }
+

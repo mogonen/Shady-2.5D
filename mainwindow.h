@@ -41,6 +41,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <map>
 #include <QMainWindow>
 #include <QtWidgets>
 #include "customdialog.h"
@@ -61,6 +62,9 @@ class MainWindow : public QMainWindow
 public:
     MainWindow();
     void  keyPressEvent(QKeyEvent *event);
+
+    int  addOptionsWidget(QWidget* widget, char * label);
+    void setOptionsWidget(char* label);
 
 private slots:
 
@@ -107,25 +111,12 @@ private:
     void createMenus();
     void initScene();
     void initTools();
-    void createCustomDialog(QString title, QString input1,QString input2,QString input3);
 	
 	// for dockable widgets window
     void createAllOptionsWidgets();
-    void createNgonOptions();
-    void createGridOptions();
-    void createSpineOptions();
 
-    QStackedWidget *stackedWidget;
-    QDockWidget     *toolsWidgetDock;
-    QMainWindow     *toolsWindow;
-    QGridLayout     *layNgon;
-    QGridLayout     *layGrid;
-    QGridLayout     *laySpine;
-    QWidget         *ngonWidget;
-    QWidget         *gridWidget;
-    QWidget         *spineWidget;
-
-    enum CREATE {NGON, GRID, SPINE};
+    QStackedWidget  *optionsStackedWidget;
+    QDockWidget     *optionsDockWidget;
 	
     QSize getSize();
 
@@ -185,6 +176,8 @@ private:
     QAction * shapeParentAct;
     QAction * shapeTransformAct;
     QAction * shapeDeleteAct;
+
+    std::map<char*, int> _optionWidgetIDs;
 
 };
 

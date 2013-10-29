@@ -51,8 +51,8 @@ void ColorButton::pickColor()
 //------------------------
 //-- Default construtor
 
-CustomDialog::CustomDialog(QString title, QWidget *parent, btnset btnSet)
-  : QDockWidget(parent)
+CustomDialog::CustomDialog(QString title, QWidget *parent, char *execLabel)
+  : QWidget(parent)
 {
   setWindowTitle(title);
 
@@ -73,21 +73,9 @@ CustomDialog::CustomDialog(QString title, QWidget *parent, btnset btnSet)
   hbtnLayout->setSpacing(5);
   hbtnLayout->setMargin(8);
 
+  if (execLabel)
+      addCustomButton(execLabel,   BB_ACCEPT);
 
-  if(btnSet == BS_CANCEL_OKAY)
-  {
-    addCustomButton("Cancel", BB_REJECT);
-    addCustomButton("Okay",   BB_ACCEPT);
-  }
-  else if(btnSet == BS_OKAY_ONLY)
-  {
-    addCustomButton("Okay", BB_ACCEPT);
-  }
-  else if(btnSet == BS_NO_YES)
-  {
-    addCustomButton("No",  BB_REJECT);
-    addCustomButton("Yes", BB_ACCEPT);
-  }
 
   vboxLayoutMain->addLayout(vboxLayout);
   vboxLayoutMain->addLayout(hbtnLayout);
@@ -110,7 +98,7 @@ CustomDialog::CustomDialog(QString title, QWidget *parent, btnset btnSet)
 //-- @ tooltip  = optional tooltip
 
 bool CustomDialog::addCustomButton(QString buttonStr, btnbehav buttonBehav,
-                                    QString tooltip)
+                                    QString tooltip, void (*callback)())
 {
   customBtn.push_back(new QPushButton(buttonStr, this));
 
