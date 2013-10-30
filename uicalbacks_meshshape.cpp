@@ -7,8 +7,27 @@
 #endif
 
 
+void createGrid(){
+    MeshShape* pMS =MeshShape::insertGrid(Point(), MeshShape::GRID_LEN, MeshShape::GRID_M, MeshShape::GRID_N);
+    Canvas::get()->insert(pMS);
+    MainWindow::updateGL();
+}
+
+void createNGon(){
+    MeshShape* pMS = MeshShape::insertNGon(Point(), MeshShape::NGON_N, MeshShape::NGON_SEG_V, MeshShape::NGON_RAD);
+    Canvas::get()->insert(pMS);
+    MainWindow::updateGL();
+}
+
+void createTorus(){
+    MeshShape* pMS = MeshShape::insertTorus(Point(), MeshShape::TORUS_N, MeshShape::TORUS_RAD);
+    Canvas::get()->insert(pMS);
+    MainWindow::updateGL();
+}
+
 void MainWindow::selectExtrudeEdge()
 {
+    setOptionsWidget(Options::EXTRUDE_E);
     MeshShape::setOPMODE(MeshShape::EXTRUDE_EDGE);
     unselectDrag();
 }
@@ -33,18 +52,12 @@ void MainWindow::selectInsertSegment()
 
 void MainWindow::new2NGon()
 {
-    setOptionsWidget("2NGON");
-    MeshShape* pMS = MeshShape::insertNGon(Point(0,0), 4,2, 0.1);
-    Canvas::get()->insert(pMS);
-    glWidget->updateGL();
+    setOptionsWidget(Options::NGON);
 }
 
 void MainWindow::newGrid()
 {
-    setOptionsWidget("GRID");
-    MeshShape* pMS = MeshShape::insertGrid(Point(0,0), 0.1, 2, 2);
-    Canvas::get()->insert(pMS);
-    glWidget->updateGL();
+    setOptionsWidget(Options::GRID);
 }
 
 void MainWindow::newSpine()
@@ -61,104 +74,64 @@ void MainWindow::newSpine()
 
 void MainWindow::newTorus()
 {
-    setOptionsWidget("TORUS");
-    MeshShape* pMS = MeshShape::insertTorus(Point(0,0), 12, 0.3);
-    Canvas::get()->insert(pMS);
-    glWidget->updateGL();
+    setOptionsWidget(Options::TORUS);
 }
 
 QWidget* createNgonOptions()
 {
-
-    QWidget * ngonWidget = new QWidget;
-    int rowNumber = 0;
-
-    // slider
-    QSlider *qs = new QSlider(Qt::Horizontal,ngonWidget);
-    qs->setRange(1,20);
-    qs->setValue(10);
-
-    // label1
-    QLabel *enterDet = new QLabel(QWidget::tr("Enter options below:"), ngonWidget);
-    QLabel *label = new QLabel(QWidget::tr("Enter value of N:"), ngonWidget);
-//    QLabel *label1 = new QLabel(tr("Enter value 2:"), ngonWidget);
-    QPushButton *createNgonButton = new QPushButton(QWidget::tr("Create Ngon"),ngonWidget);
-
-    // spin box
-    QDoubleSpinBox       *spnBox = new QDoubleSpinBox(ngonWidget);
-    spnBox->setValue(30);
-
-//    QSpinBox       *spnBox1 = new QSpinBox(ngonWidget);
-//    spnBox1->setValue(30);
-
-    QGridLayout * layNgon = new QGridLayout;
-
-    layNgon->addWidget(enterDet,rowNumber++,0);
-    rowNumber++;
-
-    layNgon->addWidget(label,rowNumber,0);
-    layNgon->addWidget(spnBox,rowNumber++,1);
-//    layNgon->addWidget(label1,rowNumber,0);
-//    layNgon->addWidget(spnBox1,rowNumber++,1);
-    layNgon->addWidget(new QLabel(QWidget::tr("Scale value: ")),rowNumber++,0);
-    layNgon->addWidget(qs,rowNumber++,0,1,2);
-    layNgon->addWidget(createNgonButton ,rowNumber++,0,1,2);
-    //    layNgon->addWidget(pageComboBox,4,0);
-    layNgon->setRowStretch(rowNumber,1);
-
-    ngonWidget->setLayout(layNgon);
-    return ngonWidget;
+    CustomDialog * widget = new CustomDialog("2NGon Options", 0, "Insert", createNGon);
+    widget->addSpinBox("Sides:", 1, 8, &MeshShape::NGON_N, 1, "Sides of 2NGon");
+    widget->addSpinBox("Segments:", 1, 4, &MeshShape::NGON_SEG_V, 1, "Rows");
+    widget->addDblSpinBoxF("Radius:", 0.01, 0.5, &MeshShape::NGON_RAD, 2, 0.01, "");
+    return widget;
 }
 
 QWidget* createGridOptions()
 {
-    int rowNumber = 0;
+    CustomDialog * widget = new CustomDialog("Grid Options",0, "Insert", createGrid);
+    widget->addSpinBox("Rows:", 1, 8, &MeshShape::GRID_N, 1, "Rows");
+    widget->addSpinBox("Coloumns:", 1, 8, &MeshShape::GRID_M, 1, "Coloumns");
+    widget->addDblSpinBoxF("Edge Length:", 0.01, 0.5, &MeshShape::GRID_LEN, 2, 0.01, "");
+    return widget;
+}
 
-    QWidget * gridWidget = new QWidget;
-    // slider;
-    QSlider *qs = new QSlider(Qt::Horizontal,gridWidget);
-    qs->setRange(1,20);
-    qs->setValue(10);
-
-    // label1
-    QLabel *enterDet = new QLabel(QWidget::tr("Enter options below:"), gridWidget);
-    QLabel *label = new QLabel(QWidget::tr("Number of rows:"), gridWidget);
-    QLabel *label1 = new QLabel(QWidget::tr("Number of columns:"), gridWidget);
-
-    // spin box
-    QDoubleSpinBox       *spnBox = new QDoubleSpinBox(gridWidget);
-    spnBox->setValue(30);
-
-    QSpinBox       *spnBox1 = new QSpinBox(gridWidget);
-    spnBox1->setValue(30);
-
-    QPushButton *createGridButton = new QPushButton(QWidget::tr("Create Grid"),gridWidget);
-
-    QGridLayout* layGrid = new QGridLayout;
-
-    layGrid->addWidget(enterDet,rowNumber++,0);
-    rowNumber++;
-
-    layGrid->addWidget(label,rowNumber,0);
-    layGrid->addWidget(spnBox,rowNumber++,1);
-    layGrid->addWidget(label1,rowNumber,0);
-    layGrid->addWidget(spnBox1,rowNumber++,1);
-    layGrid->addWidget(new QLabel(QWidget::tr("Scale value: ")),rowNumber++,0);
-    layGrid->addWidget(qs,rowNumber++,0,1,2);
-    layGrid->addWidget(createGridButton ,rowNumber++,0,1,2);
-    //    layGrid->addWidget(pageComboBox,4,0);
-
-    layGrid->setRowStretch(rowNumber,1);
-
-    gridWidget->setLayout(layGrid);
-
-    return gridWidget;
+QWidget* createTorusOptions()
+{
+    CustomDialog * widget = new CustomDialog("Torus Options",0, "Insert", createTorus);
+    widget->addSpinBox("Sides:", 1, 8, &MeshShape::TORUS_N, 1, "Sides of 2NGon");
+    widget->addDblSpinBoxF("Radius:", 0.01, 0.5, &MeshShape::TORUS_RAD, 2, 0.01, "");
+    return widget;
 }
 
 
+QWidget* createExtrudeEdgeOptions()
+{
+    CustomDialog * widget = new CustomDialog("Extrusion Options",0, "Exture", executeOperation);
+
+    bool * val = new bool(true);
+    widget->addDblSpinBoxF("Extrusion Amount:", 0, 0.5, &MeshShape::EXTRUDE_T, 2, 0.01, "");
+    widget->addCheckBox ("Execute On Click", val, "Executes the operation on left mouse click");
+    // We want our custom dialog called "Registration".
+    /*d.addLineEdit (input1+"  ", &Value0, "No middle name!");             // Here's a line edit.
+    d.addCheckBox (input2+"  ", &Value1, "my tooltip");       // Here's a checkbox with a tooltip (optional last argument).
+    d.addSpinBox  (input3+"  ", 1, 120, &Value2, 1);                   // Here's a number spin box for age.
+    d.addComboBox ("Value: ", "Value1|Value2|Value3", &Value3);   // And here's a combo box with three options (separated by '|').
+
+    // We want our custom dialog called "Registration".
+    _options->addLabel    ("Please enter the details below ...");           // The first element is just a text label (non interactive).
+    _options->addLineEdit (input1+"  ", &Value0, "No middle name!");             // Here's a line edit.
+    _options->addCheckBox (input2+"  ", &Value1, "my tooltip");       // Here's a checkbox with a tooltip (optional last argument).
+    _options->addSpinBox  (input3+"  ", 1, 120, &Value2, 1);                   // Here's a number spin box for age.
+    _options->addComboBox ("Value: ", "Value1|Value2|Value3", &Value3);   // And here's a combo box with three options (separated by '|').
+    */
+    return widget;
+}
+
 void MainWindow::createAllOptionsWidgets()
 {
-    addOptionsWidget(createGridOptions(),"GRID");
-    addOptionsWidget(createNgonOptions(),"2NGON");
+    addOptionsWidget(createGridOptions(), Options::GRID);
+    addOptionsWidget(createNgonOptions(), Options::NGON);
+    addOptionsWidget(createTorusOptions(), Options::TORUS);
+    addOptionsWidget(createExtrudeEdgeOptions(), Options::EXTRUDE_E);
 }
 

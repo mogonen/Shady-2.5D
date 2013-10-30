@@ -181,7 +181,7 @@ struct DialogElement
   int     *returnInt;           // For DLG_SPINBOX, DLG_COMBOBOX & DLG_RADIOGRP.
   int     *returnInt2;          // For DLG_DBLSPINBOX.
   bool    *returnBool;          // For DLG_CHECKBOX.
-  float   *returnFloat;         // For DLG_FLOATEDIT & DLG_DBLSPINBOX.
+  double   *returnFloat;         // For DLG_FLOATEDIT & DLG_DBLSPINBOX.
   QColor  *returnColor;         // For DLG_COLOR.
   bool    *returnChkExtra;      // Fsed if extraChkAdded is true.
 
@@ -220,12 +220,14 @@ class CustomDialog : public QWidget
 
 public:     //## METHODS:
 
-  CustomDialog(QString title, QWidget *parent = 0, char* execLabel =0);
+  CustomDialog(QString title, QWidget *parent = 0, char* execLabel = 0, void (*callback)()=0);
   ~CustomDialog() {}
   bool setDialogElements();
   bool wasCancelled();
 
-  bool addCustomButton(QString buttonStr, btnbehav buttonBehav=BB_ACCEPT, QString tooltip="", void (*callback)()=0);
+  bool addCustomButton(QString buttonStr, btnbehav buttonBehav=BB_ACCEPT, QString tooltip="");
+
+  void updateValues();
 
 
   DialogElement& addNewElement(DlgType _type, QString caption, QString tooltip, bool makeLabel);
@@ -234,9 +236,9 @@ public:     //## METHODS:
   int addCheckBox(QString caption, bool *checked, QString tooltip="");
   int addLineEdit(QString caption, string *stringValue, QString tooltip="");
   int addReadOnlyLineEdit(QString caption, QString text, QString tooltip="");
-  int addLineEditF(QString caption, float min, float max, float *value, float decimals,  QString tooltip="", QString unitsStr="");
+  int addLineEditF(QString caption, float min, float max, double *value, float decimals,  QString tooltip="", QString unitsStr="");
   int addSpinBox(QString caption, int min, int max, int *value, int step, QString tooltip="");
-  int addDblSpinBoxF(QString caption, float min, float max, float *value, int decimals, float step=0.1, QString tooltip="");
+  int addDblSpinBoxF(QString caption, float min, float max, double *value, int decimals, float step=0.1, QString tooltip="");
   int addComboBox(QString caption, QString barSepList, int *selIdx, QString tooltip="");
   int addRadioGrp(QString caption, QString barSepList, int *selIdx, QString tooltip="", QString tooltipArr="", bool checkable=false, bool *checked=0);
   int addColorSel(QString caption, QColor *color, QString tooltip="");
@@ -247,17 +249,17 @@ public:     //## METHODS:
   int addPercentBar(QString caption, QString valueLabel, float percent, int width, QColor colorBar, QString tooltip="", QFrame::Shape shape = QFrame::StyledPanel, QFrame::Shadow shadow = QFrame::Sunken);
   int addVSpacer(int minHeight=0);
 
-  int beginGroupBox(QString caption, bool flat=false, QString tooltip="", bool checkable=false, bool *checked=0);
-  void endGroupBox();
+  int   beginGroupBox(QString caption, bool flat=false, QString tooltip="", bool checkable=false, bool *checked=0);
+  void  endGroupBox();
 
-  int addCheckPrev(QString caption, bool *checked, chkbehav chkBeh, bool removeLabel, QString tooltip="");
-  int addAutoCompletePrev(QStringList wordList, bool caseSensitive=false);
-  bool setStyleElem(int idx, string styleStr, bool bold=false);
-  void setStylePrev(string styleStr, bool bold=false);
+  int   addCheckPrev(QString caption, bool *checked, chkbehav chkBeh, bool removeLabel, QString tooltip="");
+  int   addAutoCompletePrev(QStringList wordList, bool caseSensitive=false);
+  bool  setStyleElem(int idx, string styleStr, bool bold=false);
+  void  setStylePrev(string styleStr, bool bold=false);
 
-  bool setEnabledElem(int idx, bool enabled);
-  void setEnabledPrev(bool enabled);
-  void setEnabledAll(bool enabled);
+  bool  setEnabledElem(int idx, bool enabled);
+  void  setEnabledPrev(bool enabled);
+  void  setEnabledAll(bool enabled);
 
 
 
@@ -278,6 +280,12 @@ private:
   QVBoxLayout *groupBoxLayout;
   QVBoxLayout *layoutNextElement;
 
+  void (*executeCallback)();
+
+private slots:
+
+  void itemChanged();
+
 public slots:   //## SLOTS:
 
   void customBtnAccept();
@@ -287,6 +295,10 @@ public slots:   //## SLOTS:
   void updateBtnClicked(QObject *btnClicked);
   void resizeMe();
   int exec();
+
+protected:
+  void changeEvent(QEvent*);
+
 };
 
 

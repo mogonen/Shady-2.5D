@@ -5,6 +5,11 @@ double MeshShape::EXTRUDE_T = 0.25;
 MeshShape::OPERATION_e MeshShape::_OPMODE = MeshShape::EXTRUDE_EDGE;
 bool MeshShape::isSMOOTH = true;
 
+void executeOperation(){
+
+}
+
+
 MeshShape::MeshShape(Mesh_p control)
 {
     _control = control;
@@ -71,7 +76,7 @@ void MeshShape::execOP(const Point &p){
 
         case MeshShape::DELETE_FACE:
             if (f)
-                pMS->deleteFace(f);
+                 pMS->deleteFace(f);
         break;
 
     }

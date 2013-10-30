@@ -47,6 +47,13 @@
 #include "ellipseshape.h"
 #include "shapecontrol.h"
 
+GLWidget* MainWindow::glWidget = 0;
+
+void MainWindow::updateGL(){
+    if (glWidget)
+        glWidget->updateGL();
+}
+
 MainWindow::MainWindow()
 {
     centralWidget = new QWidget;
@@ -62,7 +69,7 @@ MainWindow::MainWindow()
     glWidgetArea->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     glWidgetArea->setMinimumSize(50, 50);
 
-    _options = new CustomDialog("Options", this);
+    //_options = new CustomDialog("Options", this);
     //_options->setModal(false);
 
     createActions();
@@ -128,14 +135,14 @@ void MainWindow::about()
     QMessageBox::about(this, tr("About Shady"), tr("<b>Shady</b> is an application in progress that implements theoretical framework developed atTexas A&M University for rendering 2D scenes as if they are part of 3D."));
 }
 
-int MainWindow::addOptionsWidget(QWidget* widget, char* label){
+int MainWindow::addOptionsWidget(QWidget* widget,int key){
     int id = optionsStackedWidget->addWidget(widget);
-    _optionWidgetIDs[label] = id;
+    _optionWidgetIDs[key] = id;
     return id;
 }
 
-void MainWindow::setOptionsWidget(char *label){
-    int id = _optionWidgetIDs[label];
+void MainWindow::setOptionsWidget(int key){
+    int id = _optionWidgetIDs[key];
     optionsStackedWidget->setCurrentIndex(id);
     optionsDockWidget->setVisible(true); //modify later
 }

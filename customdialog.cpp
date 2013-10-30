@@ -51,7 +51,7 @@ void ColorButton::pickColor()
 //------------------------
 //-- Default construtor
 
-CustomDialog::CustomDialog(QString title, QWidget *parent, char *execLabel)
+CustomDialog::CustomDialog(QString title, QWidget *parent, char *execLabel, void (*callback)())
   : QWidget(parent)
 {
   setWindowTitle(title);
@@ -73,8 +73,10 @@ CustomDialog::CustomDialog(QString title, QWidget *parent, char *execLabel)
   hbtnLayout->setSpacing(5);
   hbtnLayout->setMargin(8);
 
+  executeCallback = callback;
+
   if (execLabel)
-      addCustomButton(execLabel,   BB_ACCEPT);
+      addCustomButton(execLabel, BB_ACCEPT);
 
 
   vboxLayoutMain->addLayout(vboxLayout);
@@ -98,7 +100,7 @@ CustomDialog::CustomDialog(QString title, QWidget *parent, char *execLabel)
 //-- @ tooltip  = optional tooltip
 
 bool CustomDialog::addCustomButton(QString buttonStr, btnbehav buttonBehav,
-                                    QString tooltip, void (*callback)())
+                                    QString tooltip)
 {
   customBtn.push_back(new QPushButton(buttonStr, this));
 
@@ -127,9 +129,6 @@ bool CustomDialog::addCustomButton(QString buttonStr, btnbehav buttonBehav,
     newButton->setToolTip(tooltip);
 
   hbtnLayout->addWidget(newButton);
-
-
-
   return true;
 }
 
@@ -285,7 +284,7 @@ int CustomDialog::addReadOnlyLineEdit(QString caption, QString text, QString too
 //-- @ decimal   = number of decimal points to show
 //-- @ tooltip   = optional tooltip
 
-int CustomDialog::addLineEditF(QString caption, float min, float max, float *value,
+int CustomDialog::addLineEditF(QString caption, float min, float max, double *value,
                                 float decimals, QString tooltip, QString unitsStr)
 {
   DialogElement &e = addNewElement(DLG_FLOATEDIT, caption, tooltip, true);
@@ -298,6 +297,8 @@ int CustomDialog::addLineEditF(QString caption, float min, float max, float *val
     e.lineEdit->setToolTip(tooltip);
   e.lineEdit->setValidator(new QDoubleValidator(min, max,
                            decimals, e.lineEdit));
+
+  QObject::connect(e.lineEdit, SIGNAL(valueChanged(int)), this, SLOT(itemChanged()));
 
   QSpacerItem *sp = new QSpacerItem(40,20,QSizePolicy::Expanding,QSizePolicy::Minimum);
   e.layout->addWidget(e.label);
@@ -333,6 +334,10 @@ int CustomDialog::addSpinBox(QString caption, int min, int max, int *value, int 
   e.spnBox->setRange     (min, max);
   e.spnBox->setValue     (*value);
   e.spnBox->setSingleStep(step);
+
+  QObject::connect(e.spnBox, SIGNAL(valueChanged(int)), this, SLOT(itemChanged()));
+
+  //e.spnBox
   if(!tooltip.isEmpty())
     e.spnBox->setToolTip(tooltip);
 
@@ -354,7 +359,7 @@ int CustomDialog::addSpinBox(QString caption, int min, int max, int *value, int 
 //-- @ step     =  the interval the spin box advances when its little arrows are clicked
 //-- @ tooltip  =  optional tooltip
 
-int CustomDialog::addDblSpinBoxF(QString caption, float min, float max, float *value,
+int CustomDialog::addDblSpinBoxF(QString caption, float min, float max, double *value,
                                   int decimals, float step, QString tooltip)
 {
   DialogElement &e = addNewElement(DLG_DBLSPINBOX, caption, tooltip, true);
@@ -368,6 +373,9 @@ int CustomDialog::addDblSpinBoxF(QString caption, float min, float max, float *v
   e.dblSpnBox->setDecimals  (decimals);
   if(!tooltip.isEmpty())
     e.dblSpnBox->setToolTip(tooltip);
+
+  QObject::connect(e.dblSpnBox, SIGNAL(valueChanged(double)), this, SLOT(itemChanged()));
+
 
   QSpacerItem *sp = new QSpacerItem(40,20,QSizePolicy::Expanding,QSizePolicy::Minimum);
   e.layout->addWidget(e.label);
@@ -1020,76 +1028,81 @@ void CustomDialog::resizeMe()
 void CustomDialog::customBtnAccept()
 {
   updateBtnClicked(QObject::sender());    // updates the value of "customBtnClicked"
-
-  for(int i = 0; i<(int)elements.size(); i++)
-  {
-    DialogElement &e = elements[i];
-
-    if(e.extraChkAdded)
-      *e.returnChkExtra = e.chkExtra->isChecked();
-
-    switch (e.type)
-    {
-    case(DLG_LABEL): break;
-    case(DLG_CHECKBOX):
-      *e.returnBool = e.chkBox->isChecked();
-      break;
-
-    case(DLG_LINEEDIT):
-      *e.returnString = e.lineEdit->text().toStdString();
-      break;
-
-    case(DLG_FLOATEDIT):
-      *e.returnFloat = e.lineEdit->text().toFloat();
-      break;
-
-    case(DLG_SPINBOX):
-      *e.returnInt = (int)e.spnBox->value();
-      break;
-
-    case(DLG_DBLSPINBOX):
-      *e.returnFloat = (float)e.dblSpnBox->value();
-      break;
-
-    case(DLG_COMBOBOX):
-      *e.returnInt = (double)e.cmbBox->currentIndex();
-      break;
-
-    case(DLG_RADIOGRP):
-      {
-        *e.returnInt = 0;
-        for(int j=0; j<(int)e.radBtn.size(); j++)
-          if(e.radBtn[j]->isChecked())
-            *e.returnInt = j;
-        if(e.grpBox->isCheckable())
-          *e.returnInt = e.grpBox->isChecked();
-      }
-      break;
-
-    case(DLG_COLOR):
-      *e.returnColor = e.btnColor->color;
-      break;
-
-    case(DLG_MINMAXSPIN):
-        *e.returnInt = (int)e.spnBox->value();
-        *e.returnInt2 = (int)e.spnBox2->value();
-        break;
-
-    case(DLG_GRPBOX):
-      if(e.grpBox->isCheckable())
-        *e.returnInt = e.grpBox->isChecked();
-      break;
-
-    case(DLG_TEXTEDIT):
-      if(e.textEdit->isReadOnly() == false)
-        *e.returnString = e.textEdit->toPlainText().toStdString();
-      break;
-    }
-
-  }
-
+  if (executeCallback)
+      executeCallback();
   //QDialog::accept();
 }
+
+
+void CustomDialog::updateValues(){
+    for(int i = 0; i<(int)elements.size(); i++)
+    {
+      DialogElement &e = elements[i];
+
+      if(e.extraChkAdded)
+        *e.returnChkExtra = e.chkExtra->isChecked();
+
+      switch (e.type)
+      {
+      case(DLG_LABEL): break;
+      case(DLG_CHECKBOX):
+        *e.returnBool = e.chkBox->isChecked();
+        break;
+
+      case(DLG_LINEEDIT):
+        *e.returnString = e.lineEdit->text().toStdString();
+        break;
+
+      case(DLG_FLOATEDIT):
+        *e.returnFloat = e.lineEdit->text().toFloat();
+        break;
+
+      case(DLG_SPINBOX):
+        *e.returnInt = (int)e.spnBox->value();
+        break;
+
+      case(DLG_DBLSPINBOX):
+        *e.returnFloat = (float)e.dblSpnBox->value();
+        break;
+
+      case(DLG_COMBOBOX):
+        *e.returnInt = (double)e.cmbBox->currentIndex();
+        break;
+
+      case(DLG_RADIOGRP):
+        {
+          *e.returnInt = 0;
+          for(int j=0; j<(int)e.radBtn.size(); j++)
+            if(e.radBtn[j]->isChecked())
+              *e.returnInt = j;
+          if(e.grpBox->isCheckable())
+            *e.returnInt = e.grpBox->isChecked();
+        }
+        break;
+
+      case(DLG_COLOR):
+        *e.returnColor = e.btnColor->color;
+        break;
+
+      case(DLG_MINMAXSPIN):
+          *e.returnInt = (int)e.spnBox->value();
+          *e.returnInt2 = (int)e.spnBox2->value();
+          break;
+
+      case(DLG_GRPBOX):
+        if(e.grpBox->isCheckable())
+          *e.returnInt = e.grpBox->isChecked();
+        break;
+
+      case(DLG_TEXTEDIT):
+        if(e.textEdit->isReadOnly() == false)
+          *e.returnString = e.textEdit->toPlainText().toStdString();
+        break;
+      }
+
+    }
+}
+
 
 //------------------------
 //-- Called when the user clicks "Cancel" or any other button set as "BB_REJECT".
@@ -1159,6 +1172,13 @@ bool CustomDialog::wasCancelled()
   //return (result() == QDialog::Rejected);
 }
 
+void CustomDialog::itemChanged(){
+    updateValues();
+}
+
+void CustomDialog::changeEvent(QEvent*){
+    updateValues();
+}
 
 //############################################################
 

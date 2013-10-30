@@ -50,13 +50,13 @@ public:
     inline static bool      IsSelectMode(SELECTION_e eMode);
     void                    makeSmoothTangents();
 
-    static float GRID_LEN;
+    static double GRID_LEN;
     static int GRID_N;
     static int GRID_M;
     static int NGON_N;
     static int NGON_SEG_V;
     static double NGON_RAD;
-    static double TORUS_N;
+    static int    TORUS_N;
     static double TORUS_RAD;
 
 private:
@@ -79,6 +79,10 @@ private:
 void                        onInsertEdge(Edge_p);
 void                        onAddFace(Face_p);
 Bezier*                     initCurve(Edge_p);
+
+
+void                        executeOperation();
+
 
 
 #endif // MESHSHAPE_H

@@ -63,8 +63,10 @@ public:
     MainWindow();
     void  keyPressEvent(QKeyEvent *event);
 
-    int  addOptionsWidget(QWidget* widget, char * label);
-    void setOptionsWidget(char* label);
+    int  addOptionsWidget(QWidget* widget, int key);
+    void setOptionsWidget(int);
+
+    static void updateGL();
 
 private slots:
 
@@ -124,7 +126,7 @@ private:
     QScrollArea     *glWidgetArea;
     QScrollArea     *pixmapLabelArea;
 
-    GLWidget        *glWidget;
+    static GLWidget        *glWidget;
 
     //Menu Pointers
     QMenu           *fileMenu;
@@ -177,8 +179,12 @@ private:
     QAction * shapeTransformAct;
     QAction * shapeDeleteAct;
 
-    std::map<char*, int> _optionWidgetIDs;
+    std::map<int, int> _optionWidgetIDs;
 
+    //need to improve this
+    struct Options{
+        enum OptionWidget_e {GRID, NGON, TORUS, EXTRUDE_E, EXTRUDE_F};
+    };
 };
 
 #endif // MAINWINDOW_H
