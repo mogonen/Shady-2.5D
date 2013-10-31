@@ -6,6 +6,13 @@
 #include "FacialShape/facialshape.h"
 #endif
 
+void executeMeshShapeOperations(){
+    SelectionSet selects = Selectable::getSelection();
+    FOR_ALL_ITEMS(SelectionSet, selects){
+        MeshShape::execOP(Point(),*it);
+    }
+    MainWindow::updateGL();
+}
 
 void createGrid(){
     MeshShape* pMS =MeshShape::insertGrid(Point(), MeshShape::GRID_LEN, MeshShape::GRID_M, MeshShape::GRID_N);
@@ -34,6 +41,7 @@ void MainWindow::selectExtrudeEdge()
 
 void MainWindow::selectExtrudeFace()
 {
+    setOptionsWidget(Options::EXTRUDE_E);
     MeshShape::setOPMODE(MeshShape::EXTRUDE_FACE);
     unselectDrag();
 }
@@ -82,7 +90,7 @@ QWidget* createNgonOptions()
     CustomDialog * widget = new CustomDialog("2NGon Options", 0, "Insert", createNGon);
     widget->addSpinBox("Sides:", 1, 8, &MeshShape::NGON_N, 1, "Sides of 2NGon");
     widget->addSpinBox("Segments:", 1, 4, &MeshShape::NGON_SEG_V, 1, "Rows");
-    widget->addDblSpinBoxF("Radius:", 0.01, 0.5, &MeshShape::NGON_RAD, 2, 0.01, "");
+    widget->addDblSpinBoxF("Radius:", 0.01, 0.75, &MeshShape::NGON_RAD, 2, 0.01, "");
     return widget;
 }
 
@@ -99,18 +107,18 @@ QWidget* createTorusOptions()
 {
     CustomDialog * widget = new CustomDialog("Torus Options",0, "Insert", createTorus);
     widget->addSpinBox("Sides:", 1, 8, &MeshShape::TORUS_N, 1, "Sides of 2NGon");
-    widget->addDblSpinBoxF("Radius:", 0.01, 0.5, &MeshShape::TORUS_RAD, 2, 0.01, "");
+    widget->addDblSpinBoxF("Radius:", 0.01, 0.75, &MeshShape::TORUS_RAD, 2, 0.01, "");
     return widget;
 }
 
 
-QWidget* createExtrudeEdgeOptions()
+QWidget* createExtrudeOptions()
 {
-    CustomDialog * widget = new CustomDialog("Extrusion Options",0, "Exture", executeOperation);
+    CustomDialog * widget = new CustomDialog("Extrusion Options",0, "Exture", executeMeshShapeOperations, &MeshShape::EXEC_ONCLICK);
 
     bool * val = new bool(true);
     widget->addDblSpinBoxF("Extrusion Amount:", 0, 0.5, &MeshShape::EXTRUDE_T, 2, 0.01, "");
-    widget->addCheckBox ("Execute On Click", val, "Executes the operation on left mouse click");
+    widget->addCheckBox ("Keep Tangents Smooth", &MeshShape::isSMOOTH,"");
     // We want our custom dialog called "Registration".
     /*d.addLineEdit (input1+"  ", &Value0, "No middle name!");             // Here's a line edit.
     d.addCheckBox (input2+"  ", &Value1, "my tooltip");       // Here's a checkbox with a tooltip (optional last argument).
@@ -132,6 +140,6 @@ void MainWindow::createAllOptionsWidgets()
     addOptionsWidget(createGridOptions(), Options::GRID);
     addOptionsWidget(createNgonOptions(), Options::NGON);
     addOptionsWidget(createTorusOptions(), Options::TORUS);
-    addOptionsWidget(createExtrudeEdgeOptions(), Options::EXTRUDE_E);
+    addOptionsWidget(createExtrudeOptions(), Options::EXTRUDE_E);
 }
 

@@ -51,7 +51,7 @@ void ColorButton::pickColor()
 //------------------------
 //-- Default construtor
 
-CustomDialog::CustomDialog(QString title, QWidget *parent, char *execLabel, void (*callback)())
+CustomDialog::CustomDialog(QString title, QWidget *parent, char *execLabel, void (*callback)(), bool *ischeck)
   : QWidget(parent)
 {
   setWindowTitle(title);
@@ -74,14 +74,27 @@ CustomDialog::CustomDialog(QString title, QWidget *parent, char *execLabel, void
   hbtnLayout->setMargin(8);
 
   executeCallback = callback;
+  isExecCheck  = ischeck;
+  execButton = 0;
 
-  if (execLabel)
+  if (execLabel){
       addCustomButton(execLabel, BB_ACCEPT);
-
-
+      execButton = customBtn[0];
+  }
   vboxLayoutMain->addLayout(vboxLayout);
-  vboxLayoutMain->addLayout(hbtnLayout);
 
+  if (ischeck){
+      QVBoxLayout * checkLayout = new QVBoxLayout(this);
+      checkLayout->setMargin(8);
+      QCheckBox* checkbox = new  QCheckBox("Execute On Click");
+      checkbox->setChecked(*ischeck);
+      QObject::connect(checkbox, SIGNAL(stateChanged(int)), this, SLOT(execCheck(int)));
+      checkLayout->addWidget(checkbox);
+      execButton->setDisabled(*ischeck);
+      vboxLayoutMain->addLayout(checkLayout);
+  }
+
+  vboxLayoutMain->addLayout(hbtnLayout);
   this->setLayout(vboxLayoutMain);
 }
 
@@ -222,6 +235,8 @@ int CustomDialog::addCheckBox(QString caption, bool *checked, QString tooltip)
   e.chkBox->setChecked(*checked);
   if(!tooltip.isEmpty())
     e.chkBox->setToolTip(tooltip);
+
+  QObject::connect(e.chkBox, SIGNAL(stateChanged(int)), this, SLOT(itemChanged()));
 
   e.layout->addWidget(e.chkBox);
   layoutNextElement->addLayout(e.layout);
@@ -1178,6 +1193,15 @@ void CustomDialog::itemChanged(){
 
 void CustomDialog::changeEvent(QEvent*){
     updateValues();
+}
+
+void CustomDialog::execCheck(int state){
+    bool checked = (state==Qt::Checked);
+   *isExecCheck = checked;
+    if (checked)
+        execButton->setDisabled(true);
+    else
+        execButton->setEnabled(true);
 }
 
 //############################################################

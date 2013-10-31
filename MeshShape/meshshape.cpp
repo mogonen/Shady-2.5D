@@ -5,10 +5,9 @@ double MeshShape::EXTRUDE_T = 0.25;
 MeshShape::OPERATION_e MeshShape::_OPMODE = MeshShape::EXTRUDE_EDGE;
 bool MeshShape::isSMOOTH = true;
 
-void executeOperation(){
 
+void MeshShape::executeStackOperation(){
 }
-
 
 MeshShape::MeshShape(Mesh_p control)
 {
@@ -24,8 +23,15 @@ MeshShape::MeshShape(Mesh_p control)
 
 void MeshShape::onClick(const Point & p, Click_e eClick){
 
+    if (!EXEC_ONCLICK)
+        return;
+
     if (eClick == UP){
-        execOP(p);
+        Selectable_p obj = Selectable::getLastSelected();
+
+        if (!obj || obj->type() != Renderable::SHAPE)
+            return;
+        execOP(p, obj);
     }
 }
 
@@ -34,57 +40,7 @@ void MeshShape::setOPMODE(OPERATION_e eMode){
     _OPMODE = eMode;
 }
 
-//all operations on meshshape needs to be made static to allow operation on all layers
-void MeshShape::execOP(const Point &p){
 
-    Selectable_p obj = Selectable::getLastSelected();
-
-    if (!obj || obj->type() != Renderable::SHAPE)
-        return;
-
-    Edge_p e = (Edge_p)obj->pRef;
-    Face_p f = (Face_p)obj->pRef;
-
-    MeshShape* pMS = 0;
-
-    //there might be a better way for this
-    if (_OPMODE == EXTRUDE_EDGE || _OPMODE == INSERT_SEGMENT){
-         pMS = ((MeshShape*)e->mesh()->caller());
-    }else if (_OPMODE == EXTRUDE_FACE || _OPMODE == DELETE_FACE){
-         pMS = ((MeshShape*)f->mesh()->caller());
-    }
-
-    switch(_OPMODE){
-
-        case MeshShape::NONE:
-        break;
-
-        case MeshShape::EXTRUDE_EDGE:
-            if (e)
-                pMS->extrude(e, EXTRUDE_T);
-        break;
-
-        case MeshShape::INSERT_SEGMENT:
-            if (e)
-                pMS->insertSegment(e, p);
-        break;
-
-        case MeshShape::EXTRUDE_FACE:
-            if (f)
-                pMS->extrude(f, EXTRUDE_T);
-        break;
-
-        case MeshShape::DELETE_FACE:
-            if (f)
-                 pMS->deleteFace(f);
-        break;
-
-    }
-
-    if (pMS)
-        pMS->Renderable::update();
-
-}
 
 Vertex_p MeshShape::addMeshVertex(){
     ShapeVertex_p sv = addVertex();

@@ -220,7 +220,7 @@ class CustomDialog : public QWidget
 
 public:     //## METHODS:
 
-  CustomDialog(QString title, QWidget *parent = 0, char* execLabel = 0, void (*callback)()=0);
+  CustomDialog(QString title, QWidget *parent = 0, char* execLabel = 0, void (*callback)()=0, bool * ischeck = 0);
   ~CustomDialog() {}
   bool setDialogElements();
   bool wasCancelled();
@@ -281,10 +281,13 @@ private:
   QVBoxLayout *layoutNextElement;
 
   void (*executeCallback)();
+  bool* isExecCheck;
+  QPushButton* execButton;
 
 private slots:
 
   void itemChanged();
+  void execCheck(int);
 
 public slots:   //## SLOTS:
 

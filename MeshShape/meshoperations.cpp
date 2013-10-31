@@ -1,5 +1,56 @@
 #include "meshshape.h"
 
+bool MeshShape::EXEC_ONCLICK = true;
+
+//all operations on meshshape needs to be made static to allow operation on all layers
+void MeshShape::execOP(const Point &p, Selectable_p obj){
+
+    Edge_p pE = (Edge_p)obj->pRef;
+    Face_p pF = (Face_p)obj->pRef;
+
+    MeshShape* pMS = 0;
+
+    //there might be a better way for this
+    if (_OPMODE == EXTRUDE_EDGE || _OPMODE == INSERT_SEGMENT){
+         pMS = ((MeshShape*)pE->mesh()->caller());
+    }else if (_OPMODE == EXTRUDE_FACE || _OPMODE == DELETE_FACE){
+         pMS = ((MeshShape*)pF->mesh()->caller());
+    }
+
+    if (!pE && !pF)
+        return;
+
+    switch(_OPMODE){
+
+        case MeshShape::NONE:
+        break;
+
+        case MeshShape::EXTRUDE_EDGE:
+            if (pE)
+                pMS->extrude(pE, EXTRUDE_T);
+        break;
+
+        case MeshShape::INSERT_SEGMENT:
+            if (pE)
+                pMS->insertSegment(pE, p);
+        break;
+
+        case MeshShape::EXTRUDE_FACE:
+            if (pF)
+                pMS->extrude(pF, EXTRUDE_T);
+        break;
+
+        case MeshShape::DELETE_FACE:
+            if (pF)
+                 pMS->deleteFace(pF);
+        break;
+
+    }
+
+    if (pMS)
+        pMS->Renderable::update();
+
+}
 
 void MeshShape::insertSegment(Edge_p e, const Point & p){
 
@@ -90,6 +141,15 @@ Face_p MeshShape::extrude(Face_p f0, double t){
     e3->set(f_side_0->C(3),1);
     f1->update();
 
+    if (isSMOOTH){
+        for(int i=0; i<f1->size(); i++){
+            Corner_p pC = f1->C(i);
+            ShapeVertex_p sv = pC->E()->pData->getTangentSV(pC);
+            sv->setPair(pC->prev()->E()->pData->getTangentSV(pC));
+            Vec2 tan = P0(pC->next()) - P0(pC->prev());
+            sv->setTangent(tan/6.0, false, true);
+        }
+    }
     pMesh->remove(f0);
     //*f0 = *f_side_0; //replace 1st side face with the old face
     return f1;
@@ -121,6 +181,10 @@ Edge_p MeshShape::extrude(Edge_p e0, double t){
     pMesh->addEdge(f->C(3), 0); //e3
 
     f->Face::update();
+    if (isSMOOTH){
+        makeSmoothTangents(e2->C0());
+        makeSmoothTangents(e2->C0()->next());
+    }
 
     return e2;
 }

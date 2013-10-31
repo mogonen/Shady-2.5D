@@ -290,9 +290,14 @@ void MainWindow::createMenus()
     viewMenu->addAction(ambientOnAct);
     viewMenu->addAction(shadowOnAct);
 
-    shapeMenu  = menuBar()->addMenu(tr("&Shape"));
+    insertMenu = menuBar()->addMenu("Create");
+    insertMenu->addAction(shapeInsertEllipseAct);
+    insertMenu->addAction(shapeInsertGridAct);
+    insertMenu->addAction(shapeInsert2NGonAct);
+    insertMenu->addAction(shapeInsertTorusAct);
+    insertMenu->addAction(shapeInsertSpineAct);
 
-    insertMenu =  shapeMenu->addMenu("Insert");
+    shapeMenu  = menuBar()->addMenu(tr("&Shape"));
     shapeMenu->addAction(shapeLockAct);
     shapeMenu->addAction(shapeDeleteAct);
 
@@ -306,12 +311,6 @@ void MainWindow::createMenus()
     shapeMenu->addAction(shapeDeleteAct);
     shapeMenu->addAction("Group");
     shapeMenu->addAction("Rasterize");
-
-    insertMenu->addAction(shapeInsertEllipseAct);
-    insertMenu->addAction(shapeInsertGridAct);
-    insertMenu->addAction(shapeInsert2NGonAct);
-    insertMenu->addAction(shapeInsertTorusAct);
-    insertMenu->addAction(shapeInsertSpineAct);
 
     toolsMenu  = menuBar()->addMenu(tr("Tools"));
     QMenu * GeoTool = toolsMenu->addMenu("Geometry Tools");

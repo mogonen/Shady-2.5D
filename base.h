@@ -105,6 +105,7 @@ public:
         (*_selectables)[_name] = this;
         _isDraggable = false;
         _COUNT++;
+        pRef = 0;
     }
 
     virtual ~Selectable(){
