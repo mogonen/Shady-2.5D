@@ -136,6 +136,7 @@ private:
     QMenu           *selectMenu;
     QMenu           *constructMenu;
     QMenu           *renderMenu;
+    QMenu           *windowMenu;
     QMenu           *helpMenu;
 
     QMenu           *insertMenu;
@@ -183,7 +184,7 @@ private:
 
     //need to improve this
     struct Options{
-        enum OptionWidget_e {GRID, NGON, TORUS, EXTRUDE_E, EXTRUDE_F};
+        enum OptionWidget_e {NONE, ELLIPSE, GRID, NGON, TORUS, SPINE, EXTRUDE, INSERT_SEGMENT, DELETE_FACE};
     };
 };
 

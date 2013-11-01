@@ -26,12 +26,12 @@ struct EdgeData
        if (!pE->pData->pCurve)
            return 0;
 
-       bool isForward = (pE->pData->pCurve->pCV(0) == pE->C0()->V()->pData->pP());
        if (pE->C0() == pC){
-           return pSV[isForward?1:2];
+           return pSV[1];
        }else if (pE->C0()->next() == pC){
-           return pSV[isForward?2:1];
+           return pSV[2];
        }
+       return 0;
    }
 };
 

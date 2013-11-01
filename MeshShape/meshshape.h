@@ -26,9 +26,12 @@ protected:
     Vertex_p addMeshVertex();
     Vertex_p addMeshVertex(const Point&);
 
+    friend class SpineShape;
+
 public:
 
-    MeshShape(Mesh_p control = 0);
+    MeshShape();
+    Mesh_p                  mesh() const {return _control;}
 
     //primitives
     static MeshShape*       insertGrid(const Point& p, double len, int n, int m, MeshShape* pMS = 0);
@@ -75,7 +78,6 @@ private:
 
     //helper functions
     void                    onSplitEdge(Corner_p, double t);
-
 
 };
 

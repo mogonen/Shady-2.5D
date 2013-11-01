@@ -2,6 +2,7 @@
 #include "glwidget.h"
 #include "canvas.h"
 #include "MeshShape/meshshape.h"
+#include "MeshShape/spineshape.h"
 #ifdef FACIAL_SHAPE
 #include "FacialShape/facialshape.h"
 #endif
@@ -32,28 +33,40 @@ void createTorus(){
     MainWindow::updateGL();
 }
 
+void createSpine(){
+    Shape_p shape = Canvas::get()->active();
+    SpineShape* spine = dynamic_cast<SpineShape*>(shape);
+    if (spine==0)
+        return;
+    Canvas::get()->insert(spine->buildMeshShape());
+    MainWindow::updateGL();
+}
+
+
 void MainWindow::selectExtrudeEdge()
 {
-    setOptionsWidget(Options::EXTRUDE_E);
+    setOptionsWidget(Options::EXTRUDE);
     MeshShape::setOPMODE(MeshShape::EXTRUDE_EDGE);
     unselectDrag();
 }
 
 void MainWindow::selectExtrudeFace()
 {
-    setOptionsWidget(Options::EXTRUDE_E);
+    setOptionsWidget(Options::EXTRUDE);
     MeshShape::setOPMODE(MeshShape::EXTRUDE_FACE);
     unselectDrag();
 }
 
 void MainWindow::selectDeleteFace()
 {
+    setOptionsWidget(Options::NONE);
     MeshShape::setOPMODE(MeshShape::DELETE_FACE);
     unselectDrag();
 }
 
 void MainWindow::selectInsertSegment()
 {
+    setOptionsWidget(Options::INSERT_SEGMENT);
     MeshShape::setOPMODE(MeshShape::INSERT_SEGMENT);
     unselectDrag();
 }
@@ -70,6 +83,14 @@ void MainWindow::newGrid()
 
 void MainWindow::newSpine()
 {
+    setOptionsWidget(Options::SPINE);
+    Canvas::get()->insert(new SpineShape());
+    unselectDrag();
+}
+
+/*
+void MainWindow::newSpine()
+{
     //MeshShape* pM = MeshShape::newMeshShape(Point(0,0),MeshShape::SPINE);
     //Canvas::get()->insert(pM);
 #ifdef FACIAL_SHAPE
@@ -78,7 +99,7 @@ void MainWindow::newSpine()
 #endif
     glWidget->updateGL();
 }
-
+*/
 
 void MainWindow::newTorus()
 {
@@ -91,6 +112,7 @@ QWidget* createNgonOptions()
     widget->addSpinBox("Sides:", 1, 8, &MeshShape::NGON_N, 1, "Sides of 2NGon");
     widget->addSpinBox("Segments:", 1, 4, &MeshShape::NGON_SEG_V, 1, "Rows");
     widget->addDblSpinBoxF("Radius:", 0.01, 0.75, &MeshShape::NGON_RAD, 2, 0.01, "");
+    widget->addCheckBox ("Keep Tangents Smooth", &MeshShape::isSMOOTH,"");
     return widget;
 }
 
@@ -100,6 +122,7 @@ QWidget* createGridOptions()
     widget->addSpinBox("Rows:", 1, 8, &MeshShape::GRID_N, 1, "Rows");
     widget->addSpinBox("Coloumns:", 1, 8, &MeshShape::GRID_M, 1, "Coloumns");
     widget->addDblSpinBoxF("Edge Length:", 0.01, 0.5, &MeshShape::GRID_LEN, 2, 0.01, "");
+    widget->addCheckBox ("Keep Tangents Smooth", &MeshShape::isSMOOTH,"");
     return widget;
 }
 
@@ -107,16 +130,22 @@ QWidget* createTorusOptions()
 {
     CustomDialog * widget = new CustomDialog("Torus Options",0, "Insert", createTorus);
     widget->addSpinBox("Sides:", 1, 8, &MeshShape::TORUS_N, 1, "Sides of 2NGon");
+    widget->addCheckBox ("Keep Tangents Smooth", &MeshShape::isSMOOTH,"");
     widget->addDblSpinBoxF("Radius:", 0.01, 0.75, &MeshShape::TORUS_RAD, 2, 0.01, "");
     return widget;
 }
 
+QWidget* createSpineOptions()
+{
+    CustomDialog * widget = new CustomDialog("Spine Options",0, "Insert", createSpine);
+    widget->addDblSpinBoxF("Radius:", 0.01, 0.75, &SpineShape::RAD, 2, 0.01, "");
+    widget->addCheckBox ("Keep Tangents Smooth", &MeshShape::isSMOOTH,"");
+    return widget;
+}
 
 QWidget* createExtrudeOptions()
 {
     CustomDialog * widget = new CustomDialog("Extrusion Options",0, "Exture", executeMeshShapeOperations, &MeshShape::EXEC_ONCLICK);
-
-    bool * val = new bool(true);
     widget->addDblSpinBoxF("Extrusion Amount:", 0, 0.5, &MeshShape::EXTRUDE_T, 2, 0.01, "");
     widget->addCheckBox ("Keep Tangents Smooth", &MeshShape::isSMOOTH,"");
     // We want our custom dialog called "Registration".
@@ -135,11 +164,21 @@ QWidget* createExtrudeOptions()
     return widget;
 }
 
+QWidget* createInsertSegmentOptions()
+{
+    CustomDialog * widget = new CustomDialog("InsertSegment Options");
+    widget->addCheckBox ("Keep Tangents Smooth", &MeshShape::isSMOOTH,"");
+    return widget;
+}
+
 void MainWindow::createAllOptionsWidgets()
 {
+    addOptionsWidget(new QWidget(), Options::NONE);
     addOptionsWidget(createGridOptions(), Options::GRID);
     addOptionsWidget(createNgonOptions(), Options::NGON);
     addOptionsWidget(createTorusOptions(), Options::TORUS);
-    addOptionsWidget(createExtrudeOptions(), Options::EXTRUDE_E);
+    addOptionsWidget(createSpineOptions(), Options::SPINE);
+    addOptionsWidget(createExtrudeOptions(), Options::EXTRUDE);
+    addOptionsWidget(createInsertSegmentOptions(), Options::INSERT_SEGMENT);
 }
 

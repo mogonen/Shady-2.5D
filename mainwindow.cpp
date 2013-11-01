@@ -94,8 +94,10 @@ void MainWindow::initTools()
     toolbar->addAction(dragAct);
     toolbar->addSeparator();
 
+    toolbar->addAction(shapeInsertEllipseAct);
     toolbar->addAction(shapeInsertGridAct);
     toolbar->addAction(shapeInsert2NGonAct);
+    toolbar->addAction(shapeInsertTorusAct);
     toolbar->addAction(shapeInsertSpineAct);
 
     toolbar->addSeparator();
@@ -132,7 +134,7 @@ void MainWindow::initScene(){
 
 void MainWindow::about()
 {
-    QMessageBox::about(this, tr("About Shady"), tr("<b>Shady</b> is an application in progress that implements theoretical framework developed atTexas A&M University for rendering 2D scenes as if they are part of 3D."));
+    QMessageBox::about(this, tr("About Shady"), tr("<b>Shady</b> is an application in progress that implements theoretical framework developed atTexas A&M University for rendering 2D shapes as if they are part of 3D scene."));
 }
 
 int MainWindow::addOptionsWidget(QWidget* widget,int key){
@@ -142,6 +144,10 @@ int MainWindow::addOptionsWidget(QWidget* widget,int key){
 }
 
 void MainWindow::setOptionsWidget(int key){
+
+    if (key==Options::NONE && (!optionsDockWidget->isVisible() || !optionsStackedWidget->isVisible()))
+        return;
+
     int id = _optionWidgetIDs[key];
     optionsStackedWidget->setCurrentIndex(id);
     optionsDockWidget->setVisible(true); //modify later
@@ -283,7 +289,7 @@ void MainWindow::createMenus()
     fileMenu->addSeparator();
     fileMenu->addAction(exitAct);
 
-    viewMenu  = menuBar()->addMenu(tr("&View"));
+    viewMenu  = menuBar()->addMenu(tr("Display"));
     viewMenu->addAction(normalsOnAct);
     viewMenu->addAction(patchesOnAct);
     viewMenu->addAction(shadingOnAct);
@@ -297,7 +303,7 @@ void MainWindow::createMenus()
     insertMenu->addAction(shapeInsertTorusAct);
     insertMenu->addAction(shapeInsertSpineAct);
 
-    shapeMenu  = menuBar()->addMenu(tr("&Shape"));
+    shapeMenu  = menuBar()->addMenu(tr("Shape"));
     shapeMenu->addAction(shapeLockAct);
     shapeMenu->addAction(shapeDeleteAct);
 
@@ -339,6 +345,8 @@ void MainWindow::createMenus()
     renderMenu->addAction("Filter Size");
     renderMenu->addAction("Toggle Point Light");
     renderMenu->addAction("Enviroment Map");
+
+    windowMenu  = menuBar()->addMenu(tr("Window"));
 
     helpMenu    = menuBar()->addMenu(tr("Help"));
     helpMenu->addAction(aboutAct);

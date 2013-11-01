@@ -280,7 +280,7 @@ private:
   QVBoxLayout *groupBoxLayout;
   QVBoxLayout *layoutNextElement;
 
-  void (*executeCallback)();
+  void  (*executeCallback)();
   bool* isExecCheck;
   QPushButton* execButton;
 

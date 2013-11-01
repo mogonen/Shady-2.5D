@@ -51,7 +51,7 @@ void ColorButton::pickColor()
 //------------------------
 //-- Default construtor
 
-CustomDialog::CustomDialog(QString title, QWidget *parent, char *execLabel, void (*callback)(), bool *ischeck)
+CustomDialog::CustomDialog(QString title, QWidget *parent, char *execLabel, void (*callback)(),bool *ischeck)
   : QWidget(parent)
 {
   setWindowTitle(title);

@@ -57,12 +57,14 @@ void MeshShape::makeSmoothTangents(){
 
 void MeshShape::makeSmoothTangents(Corner_p pC){
 
-    Corner_p c0 = pC->isC0()?pC:pC->next()->vPrev();
+    Corner_p c0 = pC; //pC->isC0()?pC:pC->next()->vPrev();
 
     Corner_p vprev = c0->vPrev();
     Corner_p vnext = c0->vNext();
 
     ShapeVertex_p sv_tan0 = c0->E()->pData->getTangentSV(c0);
+    if (sv_tan0==0) return; //assertion error
+
     if (vprev){
        sv_tan0->setPair(vprev->prev()->E()->pData->getTangentSV(vprev));
        Vec2 tan = P0(c0->next()) - P0(vprev->prev());

@@ -234,9 +234,21 @@ void ShapeControl::renderControls(Shape_p shape) const{
 
 void SpineShape::render() const{
 
+    if(isInRenderMode()){
+        glPointSize(5.0);
+        glBegin(GL_POINTS);
+            FOR_ALL_CONST_ITEMS(SVertexList, _verts){
+                if (!(*it)->pSV)
+                    continue;
+                Point p = (*it)->P();
+                glVertex2f(p.x, p.y);
+            }
+        glEnd();
+    }
+
     glBegin(GL_LINES);
         FOR_ALL_CONST_ITEMS(SVertexList, _verts){
-            if (!(*it)->pP)
+            if (!(*it)->pSV)
                 continue;
 
             Point p0 = (*it)->P();

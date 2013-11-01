@@ -5,20 +5,12 @@ double MeshShape::EXTRUDE_T = 0.25;
 MeshShape::OPERATION_e MeshShape::_OPMODE = MeshShape::EXTRUDE_EDGE;
 bool MeshShape::isSMOOTH = true;
 
-
-void MeshShape::executeStackOperation(){
-}
-
-MeshShape::MeshShape(Mesh_p control)
+MeshShape::MeshShape()
 {
-    _control = control;
-    if (!_control){ 
-        //insert a quad face only
-        _control = new Mesh();
-        _control->setInsertEdgeCB(onInsertEdge);
-        _control->setAddFaceCB(onAddFace);
-        _control->setCaller((void*)this);
-    }
+    _control = new Mesh();
+    _control->setInsertEdgeCB(onInsertEdge);
+    _control->setAddFaceCB(onAddFace);
+    _control->setCaller((void*)this);
 }
 
 void MeshShape::onClick(const Point & p, Click_e eClick){
@@ -31,6 +23,7 @@ void MeshShape::onClick(const Point & p, Click_e eClick){
 
         if (!obj || obj->type() != Renderable::SHAPE)
             return;
+
         execOP(p, obj);
     }
 }

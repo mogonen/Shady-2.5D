@@ -6,6 +6,10 @@ double SpineShape::RAD = 0.1;
 
 void SpineShape::onClick(const Point & p, Click_e eClick){
 
+    if (eClick == DOWN || eClick == R_DOWN)
+        return;
+
+    //This could be improved
     SVertex_p pV = 0;
 
     for(SVertexList::iterator it = _verts.begin(); it != _verts.end(); it++)
@@ -18,9 +22,9 @@ void SpineShape::onClick(const Point & p, Click_e eClick){
         _lastV = 0;
 
     if (!pV){
-        Point_p pP = new Point(p);
+        ShapeVertex_p pSV = addVertex(p);
         pV = new SVertex();
-        pV->pP = pP;
+        pV->pSV = pSV;
         _verts.push_back(pV);
        // getController()->addControl(pP);
     }
@@ -33,33 +37,23 @@ void SpineShape::onClick(const Point & p, Click_e eClick){
     _lastV = pV;
 }
 
-dlfl::Vertex_p* SpineShape::getOutlineVerts(const Point& o, const Point& tan, dlfl::Mesh_p m, double rad, bool control){
-
-    ShapeVertex_p sv0 = addVertex();
-    ShapeVertex_p sv1 = addVertex();
-
+dlfl::Vertex_p* SpineShape::getOutlineVerts(const Point& o, const Point& tan, MeshShape *pMS, double rad){
     Point n = ( Vec3(0,0,1) % Vec3(tan.x, tan.y, 0) ).normalize();
-    sv0->P = o + n*rad;
-    sv1->P = o - n*rad;
-
     dlfl::Vertex_p* vs = new dlfl::Vertex_p[2];
-    vs[0] = m->addVertex(sv0);
-    vs[1] = m->addVertex(sv1);
-
-    /*if (control){
-        ControlPoint::create(this, p0);
-        ControlPoint::create(this, p1);
-    }*/
-
+    vs[0] = pMS->addMeshVertex(o + n*rad);
+    vs[1] = pMS->addMeshVertex(o - n*rad);
     return vs;
 }
 
 
-dlfl::Mesh_p SpineShape::buildOutline(){
+MeshShape* SpineShape::buildMeshShape(MeshShape* pMS){
+
+    if (!pMS)
+        pMS = new MeshShape();
 
     using namespace dlfl;
 
-    Mesh_p omesh = new Mesh();
+    Mesh_p omesh = pMS->mesh();
 
     int id = 0;
     for(std::list<SVertex_p>::iterator it = _verts.begin(); it != _verts.end(); it++)
@@ -83,10 +77,8 @@ dlfl::Mesh_p SpineShape::buildOutline(){
 
             for(int i = 0; i < sz; i++){
                 Point n = (branches[i]->P() - v->P()).normalize()*0.5 + (branches[(i-1+sz)%sz]->P() - v->P()).normalize()*0.5;
-                Point * p = new Point( v->P() + n*RAD*2 );
-                Vertex_p vn = omesh->addVertex();//fix it !!
+                Vertex_p vn = pMS->addMeshVertex(v->P() + n*RAD*2);//fix it !!
                 fmid->set(vn, i);
-                //ControlPoint::create(this, p);
             }
 
             fmid->update();
@@ -108,8 +100,7 @@ dlfl::Mesh_p SpineShape::buildOutline(){
             SVertex_p v0 = ( v->val() == 2 )? v->links.back() : v;
             SVertex_p v1 = v->links.front();
             Point tan = (v1->P() - v0->P()).normalize();
-            Vertex** vs = this->getOutlineVerts(v->P(), tan, omesh, RAD);
-            int e = 0;
+            Vertex** vs = this->getOutlineVerts(v->P(), tan, pMS, RAD);
             if (Vertex** vs1 = omap[edgeId(v1,v)])
                 omesh->addQuad(vs[0], vs1[1], vs1[0], vs[1]);
             else
@@ -130,7 +121,13 @@ dlfl::Mesh_p SpineShape::buildOutline(){
     }
     omesh->buildEdges();
 
-    return omesh;
+    if (MeshShape::isSMOOTH)
+        pMS->makeSmoothTangents();
+
+    pMS->Renderable::update();
+    pMS->pP()->set(P());
+
+    return pMS;
 }
 
 SpineShape::SVertex_p* SpineShape::sortLinks(SVertex_p v, SVertex_p v0){//sorts linked verticies with respet to v0
