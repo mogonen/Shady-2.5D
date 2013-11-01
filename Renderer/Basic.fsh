@@ -311,22 +311,22 @@ void main()
     vec3 light_dir_n = normalize(light_dir);
 
 
-    if(toggle_ShaAmbCos == 0)
-        center_cos = 0;
-    else if(toggle_ShaAmbCos == 1)
-        center_cos = center_cos;
-    else if(toggle_ShaAmbCos == 2)
-        center_cos = Amb;
-    else if(toggle_ShaAmbCos == 4)
-        center_cos = Sha;
-    else if(toggle_ShaAmbCos == 3)
-        center_cos = center_cos*Amb;
-    else if(toggle_ShaAmbCos == 5)
-        center_cos = center_cos*Sha;
-    else if(toggle_ShaAmbCos == 6)
-        center_cos=Sha*Amb;
-    else if(toggle_ShaAmbCos == 7)
-        center_cos=center_cos*Sha*Amb;
+//    if(toggle_ShaAmbCos == 0)
+//        center_cos = 0;
+//    else if(toggle_ShaAmbCos == 1)
+//        center_cos = center_cos;
+//    else if(toggle_ShaAmbCos == 2)
+//        center_cos = Amb;
+//    else if(toggle_ShaAmbCos == 4)
+//        center_cos = Sha;
+//    else if(toggle_ShaAmbCos == 3)
+//        center_cos = center_cos*Amb;
+//    else if(toggle_ShaAmbCos == 5)
+//        center_cos = center_cos*Sha;
+//    else if(toggle_ShaAmbCos == 6)
+//        center_cos=Sha*Amb;
+//    else if(toggle_ShaAmbCos == 7)
+//        center_cos=center_cos*Sha*Amb;
 
     //blend Diffusion image 1 and 2 based on shadow strength
     vec4 Shadow_blend = mix( texture2D(tex_DI_Dark, gl_TexCoord[0].st),  texture2D(tex_DI_Bright, gl_TexCoord[0].st), center_cos);

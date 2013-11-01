@@ -41,7 +41,10 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <map>
 #include <QMainWindow>
+#include <QtWidgets>
+#include "customdialog.h"
 
 QT_BEGIN_NAMESPACE
 class QLabel;
@@ -59,6 +62,11 @@ class MainWindow : public QMainWindow
 public:
     MainWindow();
     void  keyPressEvent(QKeyEvent *event);
+
+    int  addOptionsWidget(QWidget* widget, int key);
+    void setOptionsWidget(int);
+
+    static void updateGL();
 
 private slots:
 
@@ -84,6 +92,7 @@ private slots:
     void new2NGon();
     void newTorus();
     void newSpine();
+    void newFacial();
     void insertEllipse();
 
     void toggleLockShape();
@@ -98,18 +107,27 @@ private slots:
 
 private:
 
+
+    CustomDialog*   _options;
+
     void createActions();
     void createMenus();
     void initScene();
     void initTools();
-    void createCustomDialog(QString title, QString input1,QString input2,QString input3);
+	
+	// for dockable widgets window
+    void createAllOptionsWidgets();
+
+    QStackedWidget  *optionsStackedWidget;
+    QDockWidget     *optionsDockWidget;
+	
     QSize getSize();
 
     QWidget         *centralWidget;
     QScrollArea     *glWidgetArea;
     QScrollArea     *pixmapLabelArea;
 
-    GLWidget        *glWidget;
+    static GLWidget        *glWidget;
 
     //Menu Pointers
     QMenu           *fileMenu;
@@ -119,6 +137,7 @@ private:
     QMenu           *selectMenu;
     QMenu           *constructMenu;
     QMenu           *renderMenu;
+    QMenu           *windowMenu;
     QMenu           *helpMenu;
 
     QMenu           *insertMenu;
@@ -153,6 +172,7 @@ private:
     QAction * shapeInsert2NGonAct;
     QAction * shapeInsertSpineAct;
     QAction * shapeInsertGridAct;
+    QAction * shapeInsertFacialAct;
     QAction * shapeLockAct;
     QAction * shapeMoveFrontAct;
     QAction * shapeMoveBackAct;
@@ -162,6 +182,13 @@ private:
     QAction * shapeTransformAct;
     QAction * shapeDeleteAct;
 
+    std::map<int, int> _optionWidgetIDs;
+
+    //need to improve this
+    struct Options{
+        enum OptionWidget_e {NONE, ELLIPSE, GRID, NGON, TORUS, SPINE, EXTRUDE, INSERT_SEGMENT, DELETE_FACE};
+    };
 };
+
 
 #endif // MAINWINDOW_H

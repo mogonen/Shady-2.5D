@@ -1,12 +1,67 @@
 #include "meshshape.h"
+#include "../canvas.h"
 
+bool MeshShape::EXEC_ONCLICK = true;
+
+//all operations on meshshape needs to be made static to allow operation on all layers
+void MeshShape::execOP(const Point &p, Selectable_p obj){
+
+    if (!obj->pRef)
+        return;
+
+    Edge_p pE = 0;
+    Face_p pF = 0;
+    MeshShape* pMS = 0;
+
+    //there might be a better way for this
+    if (_OPMODE == EXTRUDE_EDGE || _OPMODE == INSERT_SEGMENT){
+         pE = dynamic_cast<Edge_p>((Edge_p)obj->pRef);
+         if (!pE) return;
+         pMS = ((MeshShape*)pE->mesh()->caller());
+    }else if (_OPMODE == EXTRUDE_FACE || _OPMODE == DELETE_FACE){
+         pF = dynamic_cast<Face_p>((Face_p)obj->pRef);
+         if(!pF) return;
+         pMS = ((MeshShape*)pF->mesh()->caller());
+    }
+
+    if (!pMS) return; //this is kinda redundant
+
+    switch(_OPMODE){
+
+        case MeshShape::NONE:
+        break;
+
+        case MeshShape::EXTRUDE_EDGE:
+                pMS->extrude(pE, EXTRUDE_T);
+        break;
+
+        case MeshShape::INSERT_SEGMENT:
+                pMS->insertSegment(pE, p);
+        break;
+
+        case MeshShape::EXTRUDE_FACE:
+                pMS->extrude(pF, EXTRUDE_T);
+        break;
+
+        case MeshShape::DELETE_FACE:
+                 pMS->deleteFace(pF);
+        break;
+
+    }
+
+    if (_OPMODE != MeshShape::DELETE_FACE)
+        pMS->Renderable::update();
+
+}
 
 void MeshShape::insertSegment(Edge_p e, const Point & p){
 
-    if (!e || !e->isBorder())
+    if (!e )
         return;
 
     Mesh_p pMesh = e->mesh();
+
+    //list<Corner_p> clist;
 
     double t = 0.5;
     Corner* c0 = pMesh->splitEdge(e, addMeshVertex());
@@ -21,18 +76,27 @@ void MeshShape::insertSegment(Edge_p e, const Point & p){
         onSplitEdge(c01, (1-t));
         Corner* c0n = c01->vNext();
         pMesh->insertEdge(c0, c01);
+        //clist.push_back(c0);
         c0 = c0n;
     }
 
-    if (c0 && c0->F() == endf)
+    if (c0 && c0->F() == endf){
         (pMesh->insertEdge(c0, c0->next()->next()->next()));
-    else while(c1){
+    }else while(c1){
         Corner* c11 = pMesh->splitEdge(c1->next()->next()->E(), addMeshVertex(), c1->F());
         onSplitEdge(c11, 1-t);
         Corner* c1n = c11->vNext();
-         pMesh->insertEdge(c1, c11);
+        pMesh->insertEdge(c1, c11);
+        //clist.push_back(c1);
         c1 = c1n;
     }
+
+    /*if (MeshShape::isSMOOTH){
+        FOR_ALL_ITEMS(list<Corner_p>, clist){
+            makeSmoothTangents(*it);
+            makeSmoothTangents((*it)->vNext());
+        }
+    }*/
 
 }
 
@@ -90,6 +154,15 @@ Face_p MeshShape::extrude(Face_p f0, double t){
     e3->set(f_side_0->C(3),1);
     f1->update();
 
+    if (isSMOOTH){
+        for(int i=0; i<f1->size(); i++){
+            Corner_p pC = f1->C(i);
+            ShapeVertex_p sv = pC->E()->pData->getTangentSV(pC);
+            sv->setPair(pC->prev()->E()->pData->getTangentSV(pC));
+            Vec2 tan = P0(pC->next()) - P0(pC->prev());
+            sv->setTangent(tan/6.0, false, true);
+        }
+    }
     pMesh->remove(f0);
     //*f0 = *f_side_0; //replace 1st side face with the old face
     return f1;
@@ -121,6 +194,10 @@ Edge_p MeshShape::extrude(Edge_p e0, double t){
     pMesh->addEdge(f->C(3), 0); //e3
 
     f->Face::update();
+    if (isSMOOTH){
+        makeSmoothTangents(e2->C0());
+        makeSmoothTangents(e2->C0()->next());
+    }
 
     return e2;
 }
@@ -141,5 +218,10 @@ void MeshShape::deleteFace(Face_p f){
         }
     }
 
-    f->mesh()->remove(f);
+    Mesh_p mesh = f->mesh();
+    mesh->remove(f);
+    if (mesh->sizeF()==0){
+        Canvas::get()->remove((Shape_p)mesh->caller());
+    }
+
 }

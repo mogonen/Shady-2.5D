@@ -22,32 +22,48 @@ protected:
 
     void render(Edge_p) const;
     void render(Face_p) const;
-    void execOP(const Point&);
 
     Vertex_p addMeshVertex();
     Vertex_p addMeshVertex(const Point&);
 
+    friend class SpineShape;
+
 public:
 
-    MeshShape(Mesh_p control = 0);
+    MeshShape();
+    Mesh_p                  mesh() const {return _control;}
 
     //primitives
     static MeshShape*       insertGrid(const Point& p, double len, int n, int m, MeshShape* pMS = 0);
-    static MeshShape*       insertNGon(const Point& p, int n, double rad, MeshShape* pMS = 0);
+    static MeshShape*       insertNGon(const Point& p, int n, int segv, double rad, MeshShape* pMS = 0);
     static MeshShape*       insertTorus(const Point& p, int n, double rad, MeshShape* pMS = 0);
 
 
-    static bool             isSMOOTH;
-    static double           EXTRUDE_T;
+    enum OPERATION_e        {NONE, EXTRUDE_EDGE, EXTRUDE_FACE, DELETE_FACE, SPLIT_FACE,
+                             INSERT_SEGMENT, INSERT_GRID, INSERT_2NGON, INSERT_TORUS, INSERT_SPINE};
 
-    enum OPERATION_e        {NONE, EXTRUDE_EDGE, EXTRUDE_FACE, DELETE_FACE, SPLIT_FACE, INSERT_SEGMENT};
     enum SELECTION_e        {NOSELECT, EDGE, FACE, CORNER, EDGE_EDGE};
-    enum PRIMITIVE_e        {SQUARE, GRID, NGON, SPINE};
 
     static void             setOPMODE(OPERATION_e eMode);
     static SELECTION_e      GetSelectMode();
     inline static bool      IsSelectMode(SELECTION_e eMode);
     void                    makeSmoothTangents();
+    void                    makeSmoothTangents(Corner_p);
+
+    static void             executeStackOperation();
+    static void             execOP(const Point&, Selectable_p obj);
+
+    static double           GRID_LEN;
+    static int              GRID_N;
+    static int              GRID_M;
+    static int              NGON_N;
+    static int              NGON_SEG_V;
+    static double           NGON_RAD;
+    static int              TORUS_N;
+    static double           TORUS_RAD;
+    static bool             EXEC_ONCLICK;
+    static bool             isSMOOTH;
+    static double           EXTRUDE_T;
 
 private:
 
@@ -69,6 +85,10 @@ private:
 void                        onInsertEdge(Edge_p);
 void                        onAddFace(Face_p);
 Bezier*                     initCurve(Edge_p);
+
+
+//void                        executeMeshShapeOperation();
+
 
 
 #endif // MESHSHAPE_H

@@ -51,15 +51,28 @@ void MeshShape::makeSmoothTangents(){
     EdgeList edges = _control->edges();
     FOR_ALL_ITEMS(EdgeList, edges){
         Edge_p e = (*it);
-        Corner_p vprev = e->C0()->vPrev();
-        Corner_p vnext = e->C0()->vNext();
+        makeSmoothTangents(e->C0());
+    }
+}
 
-        ShapeVertex_p tan0 = e->pData->getTangentSV(e->C0());
-        if (vprev){
-           tan0->setPair(vprev->prev()->E()->pData->getTangentSV(vprev),e->isBorder(), e->isBorder());
-        }else if(!vnext){
-            tan0->setPair(e->C0()->prev()->E()->pData->getTangentSV(e->C0()), true, true);
-        }
+void MeshShape::makeSmoothTangents(Corner_p pC){
+
+    Corner_p c0 = pC; //pC->isC0()?pC:pC->next()->vPrev();
+
+    Corner_p vprev = c0->vPrev();
+    Corner_p vnext = c0->vNext();
+
+    ShapeVertex_p sv_tan0 = c0->E()->pData->getTangentSV(c0);
+    if (sv_tan0==0) return; //assertion error
+
+    if (vprev){
+       sv_tan0->setPair(vprev->prev()->E()->pData->getTangentSV(vprev));
+       Vec2 tan = P0(c0->next()) - P0(vprev->prev());
+       sv_tan0->setTangent(tan/6.0,c0->E()->isBorder(), true);
+    }else if(!vnext){
+        sv_tan0->setPair(c0->prev()->E()->pData->getTangentSV(c0));
+        Vec2 tan = P0(c0->next()) - P0(c0->prev());
+        sv_tan0->setTangent(tan/6.0, c0->E()->isBorder(), true);
     }
 }
 

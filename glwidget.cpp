@@ -56,6 +56,7 @@ GLWidget::GLWidget(QWidget *parent)
     /*QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(advance()));
     timer->start(20);*/
+
 }
 
 GLdouble MvMatrix[16];

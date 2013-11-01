@@ -111,6 +111,26 @@ void ShapeVertex::drag(const Vec2 &t, bool isNormal){
     _pShape->update(this);
 }
 
+void   ShapeVertex::setTangent(const Vec2& tan, bool isnormal, bool ispair){
+    if (!_parent)
+        return;
+
+    P.set(_parent->P + tan);
+
+    if (isnormal)
+        _parent->N = Vec3(0,0,1)%Vec3(tan).normalize();
+
+    if (ispair&&_pair)
+        _pair->P.set(_parent->P - tan);
+}
+
+Vec2 ShapeVertex::getTangent(){
+    if (_parent)
+        return (P - _parent->P);
+
+    return Vec2(0,0);
+}
+
 
 
 //Shape////////////////////////////////////////////////////////////////////////////////////
@@ -211,7 +231,7 @@ void Shape::applyT(const Matrix3x3& M){
 void Shape::frezeT(){
     applyT(_tM);
     _tM.identity();
-    centerPivot();
+    //centerPivot();
 }
 
 void Shape::getBBox(BBox &bbox) const{

@@ -2,8 +2,6 @@
 #include <QDebug>
 #include "Canvas.h"
 #include "SampleShape.h"
-
-
 #include "meshshape/spineshape.h"
 #include "meshshape/meshshape.h"
 
@@ -26,7 +24,6 @@ SelectableMap_p Selectable::_selectables;
 SelectionSet Selectable::_selection;
 bool Selectable::isSelect;
 ControlPoint_p ControlPoint::_pTheActive = 0;
-Canvas::EditMode_e Canvas::MODE = Canvas::POINT_NORMAL_SHAPE_M;
 double Canvas::_tM[16];
 double EllipseShape::Radius = 0.1;
 GLuint texture[30];
@@ -330,9 +327,21 @@ void ShapeControl::renderControls(Shape_p shape) const{
 
 void SpineShape::render() const{
 
+    if(isInRenderMode()){
+        glPointSize(5.0);
+        glBegin(GL_POINTS);
+            FOR_ALL_CONST_ITEMS(SVertexList, _verts){
+                if (!(*it)->pSV)
+                    continue;
+                Point p = (*it)->P();
+                glVertex2f(p.x, p.y);
+            }
+        glEnd();
+    }
+
     glBegin(GL_LINES);
         FOR_ALL_CONST_ITEMS(SVertexList, _verts){
-            if (!(*it)->pP)
+            if (!(*it)->pSV)
                 continue;
 
             Point p0 = (*it)->P();
@@ -348,7 +357,7 @@ void SpineShape::render() const{
 
 void MeshShape::render() const {
 
-    if ( Canvas::MODE!=Canvas::SHADED_M && (isInRenderMode() || IsSelectMode(EDGE) )){
+    if ( (isInRenderMode() || IsSelectMode(EDGE) )){
         EdgeList edges = _control->edges();
         FOR_ALL_CONST_ITEMS(EdgeList, edges){
             render(*it);
@@ -479,7 +488,7 @@ void Patch4::render() const{
 
             if (Canvas::get()->isWireframeOn){
 
-                if (Canvas::MODE == Canvas::NORMAL_M || Canvas::get()->isNormalsOn)
+                if (Canvas::get()->isNormalsOn)
                 {
                     //drawNormals
                     glColor3f(1,1,1);
@@ -506,6 +515,7 @@ void Patch4::render() const{
 
             }
 
+
 //            if (Canvas::MODE == Canvas::SHADED_M || Canvas::get()->isShadingOn ){
 //                glEnable(GL_LIGHTING);
 //                Point light0_p = Canvas::get()->lightPos(0);
@@ -519,6 +529,7 @@ void Patch4::render() const{
 //                if (Canvas::MODE == Canvas::SHADED_M || Canvas::get()->isShadingOn)
 //                    glNormal3f(n[k].x, n[k].y, n[k].z );
 //                else
+
                     glColor3f((n[k].x+1)/2, (n[k].y+1)/2, n[k].z );
                glVertex3f(p[k].x, p[k].y, 0);
                glTexCoord2d((p[k].x+1)/2, (p[k].y+1)/2);
@@ -558,7 +569,7 @@ void EllipseShape::render() const {
 
             if (Canvas::get()->isWireframeOn){
 
-                if (Canvas::MODE == Canvas::NORMAL_M || Canvas::get()->isNormalsOn)
+                if (Canvas::get()->isNormalsOn)
                 {
                     //drawNormals
                     glColor3f(1,1,1);

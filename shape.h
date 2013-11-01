@@ -56,6 +56,8 @@ struct ShapeVertex {
     void adopt(ShapeVertex_p sv);
     void setPair(ShapeVertex_p sv, bool isSetTangent =false , bool isSetNormal = false);
     void unpair();
+    void setTangent(const Vec2&, bool isnormal=false, bool ispair=false);
+    Vec2 getTangent();
 
     inline Point_p       pP()                 {return &P;}
     inline Normal_p      pN()                 {return &N;}

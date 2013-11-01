@@ -1,5 +1,14 @@
 #include "meshshape.h"
 
+double   MeshShape::GRID_LEN = 0.2;
+int     MeshShape::GRID_N  = 2;
+int     MeshShape::GRID_M  = 2;
+int     MeshShape::NGON_N  = 3;
+int     MeshShape::NGON_SEG_V   = 1;
+double  MeshShape::NGON_RAD     = 0.2;
+int     MeshShape::TORUS_N      = 8;
+double  MeshShape::TORUS_RAD    = 0.2;
+
 MeshShape* MeshShape::insertGrid(const Point& p, double len, int n, int m, MeshShape *pMS){
 
     if (!pMS)
@@ -24,22 +33,38 @@ MeshShape* MeshShape::insertGrid(const Point& p, double len, int n, int m, MeshS
     return pMS;
 }
 
-MeshShape* MeshShape::insertNGon(const Point& p, int n, double rad, MeshShape *pMS){
+MeshShape* MeshShape::insertNGon(const Point& p, int n, int segv, double rad, MeshShape *pMS){
 
     if (!pMS)
         pMS = new MeshShape();
 
+    CLAMP(segv, 1, 4);
+    CLAMP(n, 2, 8);
+
     int nn = 2*n;
     Vertex_p vmid = pMS->addMeshVertex();
-    Vertex_p* vs = new Vertex_p[nn];
+    Vertex_p* vs = new Vertex_p[nn*segv];
 
-    for(int i=0; i<nn; i++){
-        double ang = -i*PI/n;
-        vs[i] = pMS->addMeshVertex(p + Point(1,0)*rad*cos(ang) + Point(0,1)*rad*sin(ang) );
+    for(int j=0; j<segv; j++){
+        for(int i=0; i<nn; i++){
+            double ang = -i*PI/n;
+            double angv = j*PI/(2*segv);
+            vs[i + j*nn] = pMS->addMeshVertex(p + Point(rad*cos(ang), rad*sin(ang))*cos(angv));
+        }
     }
 
+    if (segv > 1){
+        for(int j=0; j<segv-1; j++){
+            for(int i=0; i<nn; i++){
+                pMS->_control->addQuad(vs[i + j*nn], vs[(i+1)%nn + j*nn], vs[(i+1)%nn + (j+1)*nn], vs[i + (j+1)*nn] );
+            }
+
+        }
+    }
+
+    int mid_off = (segv-1)*nn;
     for(int i=0; i<n; i++)
-        pMS->_control->addQuad(vmid, vs[i*2], vs[i*2+1], vs[(i*2+2)%nn]);
+        pMS->_control->addQuad(vmid, vs[i*2+mid_off], vs[i*2+1+mid_off], vs[(i*2+2)%nn+mid_off]);
 
     delete vs;
 

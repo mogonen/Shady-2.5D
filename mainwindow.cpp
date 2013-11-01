@@ -39,9 +39,6 @@
 ****************************************************************************/
 #include "glwidget.h"
 #include "mainwindow.h"
-
-#include "customdialog.h"
-
 #include "sampleshape.h"
 #include "canvas.h"
 #include "meshshape/Patch.h"
@@ -50,7 +47,12 @@
 #include "ellipseshape.h"
 #include "shapecontrol.h"
 
-#include <QtWidgets>
+GLWidget* MainWindow::glWidget = 0;
+
+void MainWindow::updateGL(){
+    if (glWidget)
+        glWidget->updateGL();
+}
 
 MainWindow::MainWindow()
 {
@@ -66,6 +68,9 @@ MainWindow::MainWindow()
     glWidgetArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     glWidgetArea->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     glWidgetArea->setMinimumSize(50, 50);
+
+    //_options = new CustomDialog("Options", this);
+    //_options->setModal(false);
 
     createActions();
     createMenus();
@@ -89,8 +94,10 @@ void MainWindow::initTools()
     toolbar->addAction(dragAct);
     toolbar->addSeparator();
 
+    toolbar->addAction(shapeInsertEllipseAct);
     toolbar->addAction(shapeInsertGridAct);
     toolbar->addAction(shapeInsert2NGonAct);
+    toolbar->addAction(shapeInsertTorusAct);
     toolbar->addAction(shapeInsertSpineAct);
 
     toolbar->addSeparator();
@@ -101,6 +108,22 @@ void MainWindow::initTools()
     toolbar->addAction(deleteFaceAct);
 
     toolbar->addSeparator();
+
+    //init tool options dock
+    optionsDockWidget = new QDockWidget(QString("Options"), this);
+    optionsDockWidget->setVisible(false);
+
+    this->addDockWidget(Qt::LeftDockWidgetArea, optionsDockWidget);
+
+    optionsStackedWidget = new QStackedWidget(optionsDockWidget);
+    QVBoxLayout *layout = new QVBoxLayout;
+    layout->addWidget(optionsStackedWidget);
+
+    optionsDockWidget->setWidget(optionsStackedWidget);
+    optionsDockWidget->setLayout(layout);
+    optionsDockWidget->setVisible(false);
+
+    createAllOptionsWidgets();
 }
 
 void MainWindow::initScene(){
@@ -111,7 +134,23 @@ void MainWindow::initScene(){
 
 void MainWindow::about()
 {
-    QMessageBox::about(this, tr("About Shady"), tr("<b>Shady</b> is an application in progress that implements theoretical framework developed atTexas A&M University for rendering 2D scenes as if they are part of 3D."));
+    QMessageBox::about(this, tr("About Shady"), tr("<b>Shady</b> is an application in progress that implements theoretical framework developed atTexas A&M University for rendering 2D shapes as if they are part of 3D scene."));
+}
+
+int MainWindow::addOptionsWidget(QWidget* widget,int key){
+    int id = optionsStackedWidget->addWidget(widget);
+    _optionWidgetIDs[key] = id;
+    return id;
+}
+
+void MainWindow::setOptionsWidget(int key){
+
+    if (key==Options::NONE && (!optionsDockWidget->isVisible() || !optionsStackedWidget->isVisible()))
+        return;
+
+    int id = _optionWidgetIDs[key];
+    optionsStackedWidget->setCurrentIndex(id);
+    optionsDockWidget->setVisible(true); //modify later
 }
 
 void MainWindow::createActions()
@@ -206,6 +245,9 @@ void MainWindow::createActions()
     shapeInsertSpineAct = new QAction(tr("Spine"), this);
     connect(shapeInsertSpineAct, SIGNAL(triggered()), this, SLOT(newSpine()));
 
+    shapeInsertFacialAct = new QAction(tr("Facial Shape"), this);
+    connect(shapeInsertFacialAct, SIGNAL(triggered()), this, SLOT(newFacial()));
+
     shapeLockAct = new QAction(tr("&Lock"), this);
     shapeLockAct->setShortcut(tr("Ctrl+L"));
     connect(shapeLockAct, SIGNAL(triggered()), this, SLOT(toggleLockShape()));
@@ -217,7 +259,6 @@ void MainWindow::createActions()
     shapeMoveBackAct = new QAction(tr("Move Back"), this);
     shapeMoveBackAct->setShortcut(Qt::Key_PageDown);
     connect(shapeMoveBackAct, SIGNAL(triggered()), this, SLOT(moveShapeToBack()));
-
 
     shapeSendFrontAct = new QAction(tr("Send &Front"), this);
     shapeSendFrontAct->setShortcut(tr("Ctrl+F"));
@@ -251,16 +292,22 @@ void MainWindow::createMenus()
     fileMenu->addSeparator();
     fileMenu->addAction(exitAct);
 
-    viewMenu  = menuBar()->addMenu(tr("&View"));
+    viewMenu  = menuBar()->addMenu(tr("Display"));
     viewMenu->addAction(normalsOnAct);
     viewMenu->addAction(patchesOnAct);
     viewMenu->addAction(shadingOnAct);
     viewMenu->addAction(ambientOnAct);
     viewMenu->addAction(shadowOnAct);
 
-    shapeMenu  = menuBar()->addMenu(tr("&Shape"));
+    insertMenu = menuBar()->addMenu("Create");
+    insertMenu->addAction(shapeInsertEllipseAct);
+    insertMenu->addAction(shapeInsertGridAct);
+    insertMenu->addAction(shapeInsert2NGonAct);
+    insertMenu->addAction(shapeInsertTorusAct);
+    insertMenu->addAction(shapeInsertSpineAct);
+    insertMenu->addAction(shapeInsertFacialAct);
 
-    insertMenu =  shapeMenu->addMenu("Insert");
+    shapeMenu  = menuBar()->addMenu(tr("Shape"));
     shapeMenu->addAction(shapeLockAct);
     shapeMenu->addAction(shapeDeleteAct);
 
@@ -274,12 +321,6 @@ void MainWindow::createMenus()
     shapeMenu->addAction(shapeDeleteAct);
     shapeMenu->addAction("Group");
     shapeMenu->addAction("Rasterize");
-
-    insertMenu->addAction(shapeInsertEllipseAct);
-    insertMenu->addAction(shapeInsertGridAct);
-    insertMenu->addAction(shapeInsert2NGonAct);
-    insertMenu->addAction(shapeInsertTorusAct);
-    insertMenu->addAction(shapeInsertSpineAct);
 
     toolsMenu  = menuBar()->addMenu(tr("Tools"));
     QMenu * GeoTool = toolsMenu->addMenu("Geometry Tools");
@@ -308,6 +349,8 @@ void MainWindow::createMenus()
     renderMenu->addAction("Filter Size");
     renderMenu->addAction("Toggle Point Light");
     renderMenu->addAction("Enviroment Map");
+
+    windowMenu  = menuBar()->addMenu(tr("Window"));
 
     helpMenu    = menuBar()->addMenu(tr("Help"));
     helpMenu->addAction(aboutAct);
@@ -458,27 +501,4 @@ void MainWindow::deleteShape(){
 void MainWindow::insertEllipse(){
     Canvas::get()->insert(new EllipseShape());
     glWidget->updateGL();
-}
-
-
-
-void MainWindow::createCustomDialog(QString title, QString input1,QString input2,QString input3)
-{
-    string  Value0 = "Value";            // NOTE: these lines of code (the variables you wish to change)
-    bool    Value1  = true;                //  probably exist in your program already and so it is only
-    int     Value2      = 20;                  //  the seven lines below needed to "create and display"
-    int     Value3 = 1;                   //  your custom dialog.
-
-    CustomDialog d(title, this);                            // We want our custom dialog called "Registration".
-    d.addLabel    ("Please enter the details below ...");           // The first element is just a text label (non interactive).
-    d.addLineEdit (input1+"  ", &Value0, "No middle name!");             // Here's a line edit.
-    d.addCheckBox (input2+"  ", &Value1, "my tooltip");       // Here's a checkbox with a tooltip (optional last argument).
-    d.addSpinBox  (input3+"  ", 1, 120, &Value2, 1);                   // Here's a number spin box for age.
-    d.addComboBox ("Value: ", "Value1|Value2|Value3", &Value3);   // And here's a combo box with three options (separated by '|').
-
-    d.exec();                             // Execution stops here until user closes dialog
-
-    if(d.wasCancelled())                // If the user hit cancel, your values stay the same
-        return;                           // and you probably don't need to do anything
-//     cout << "Thanks " << name << end;   // and here it's up to you to do stuff with your new values!
 }

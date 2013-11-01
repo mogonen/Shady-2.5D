@@ -5,9 +5,6 @@
 
 class EllipseShape:public Shape{
 
-    //ShapeVertex_p           _pSVa;
-    //ShapeVertex_p           _pSVb;
-
     int                     _segU, _segV;
 
     Point*                  _ps;
@@ -20,9 +17,6 @@ class EllipseShape:public Shape{
 protected:
 
     void onUpdate(){
-
-        //double radX = _pSVa->P.norm();
-        //double radY = _pSVb->P.norm();
 
         double step_u = 2*PI / _segU;
         double step_v = PI / (2*_segV);

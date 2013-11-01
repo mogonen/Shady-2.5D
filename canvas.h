@@ -200,14 +200,13 @@ public:
 
     int width, height;
 
-    bool canDragShape(){ return isDragMode && (MODE == POINT_NORMAL_SHAPE_M || MODE == SHAPE_M); }
-
+    bool canDragShape(){ return isDragMode;}
     void flipMode(){isDragMode=!isDragMode;}
 
 	//statics
     static Canvas* get(){return _canvas;}
-    enum EditMode_e {POINT_NORMAL_SHAPE_M, POINT_NORMAL_M, POINT_M, NORMAL_M, SHAPE_M, SHADED_M, TEXTURED_M, VIEW_M};
-    static EditMode_e MODE;
+//    enum EditMode_e {POINT_NORMAL_SHAPE_M, POINT_NORMAL_M, POINT_M, NORMAL_M, SHAPE_M, SHADED_M, TEXTURED_M, VIEW_M};
+//    static EditMode_e MODE;
     void setSize(int w, int h){width = w; height = h;}
 
     static void apply(const Matrix3x3& tM){
