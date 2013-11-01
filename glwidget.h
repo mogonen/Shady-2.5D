@@ -61,11 +61,12 @@ public:
     ~GLWidget();
 
     int xRotation() const { return xRot; }
-    Point toWorld(int, int);
+    static Point toWorld(int, int);
+    static Vec3 toCamera(float wx, float wy, float wz);
+    static void loadCameraParameters();
 
 public slots:
     void setXRotation(int angle);
-
 signals:
     void xRotationChanged(int angle);
 
@@ -96,8 +97,9 @@ private:
 
     QPoint _lastP;
     Point  _lastWorldP;
-
+    Vec3 _mouseLightPos;
     Vec2 _cam;
+
 };
 
 #endif // GLWIDGET_H

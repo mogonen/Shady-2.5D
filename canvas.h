@@ -5,6 +5,7 @@
 #include <hash_set>
 #include <algorithm>
 #include "Shape.h"
+#include "Renderer/shaderprogram.h"
 
 #define UNITZ 0.01
 
@@ -31,12 +32,29 @@ public:
     Canvas():Renderable(NONE){
        _active = 0;
        isDragMode = true;
+
        isShadingOn = false;
+       isAmbientOn = false;
+       isShadowOn = false;
 
        isNormalsOn   = false;
        isWireframeOn = false;
+
+       m_GLSLShader = new ShaderProgram();
     }
 
+    void initialize()
+    {
+        m_GLSLShader->Initialize();
+    }
+
+    void updateShaderMouseClick(Vec3 light_pos)
+    {
+        m_GLSLShader->bind();
+        m_GLSLShader->setUniformValue("light_dir", -QVector3D(light_pos.x, light_pos.y, light_pos.z));
+        qDebug()<<light_pos.x;//, light_pos.y, light_pos.z);
+        m_GLSLShader->release();
+    }
     void setImagePlane(const string &filename);
     void render() const;
     void render(Shape_p) const;
@@ -47,7 +65,7 @@ public:
     }
 
     void remove(Shape_p sp){
-        _shapes.remove(sp);
+//        m_GLSLShader->RemoveParamSet(sp->getShaderParam());
 		_shapes.remove(sp);
 		delete sp;
     }
@@ -170,10 +188,17 @@ public:
     Point lightPos(int i)const {return _lights[i]->P();}
 
     bool isDragMode;
+
     bool isShadingOn;
+    bool isAmbientOn;
+    bool isShadowOn;
+
+    ShaderProgram *m_GLSLShader;
 
     bool isNormalsOn;
     bool isWireframeOn;
+
+    int width, height;
 
     bool canDragShape(){ return isDragMode && (MODE == POINT_NORMAL_SHAPE_M || MODE == SHAPE_M); }
 
@@ -183,6 +208,7 @@ public:
     static Canvas* get(){return _canvas;}
     enum EditMode_e {POINT_NORMAL_SHAPE_M, POINT_NORMAL_M, POINT_M, NORMAL_M, SHAPE_M, SHADED_M, TEXTURED_M, VIEW_M};
     static EditMode_e MODE;
+    void setSize(int w, int h){width = w; height = h;}
 
     static void apply(const Matrix3x3& tM){
         _tM[0] = tM[0].x;

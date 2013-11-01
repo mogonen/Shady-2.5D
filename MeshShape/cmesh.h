@@ -157,7 +157,7 @@ public:
 	
     Corner_p  C(int i) const;
     Vertex_p  V(int i) const;
-    inline int size() const;
+    int size() const;
 
     void set(Corner_p, int i=0);
     void set(Vertex_p, int i=0);

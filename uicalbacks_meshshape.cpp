@@ -33,7 +33,7 @@ void MainWindow::selectInsertSegment()
 
 void MainWindow::new2NGon()
 {
-    createCustomDialog("Create NGon", "input1","input2","input3");
+//    createCustomDialog("Create NGon", "input1","input2","input3");
     MeshShape* pMS = MeshShape::insertNGon(Point(0,0), 2, 0.1);
     Canvas::get()->insert(pMS);
     glWidget->updateGL();
@@ -41,7 +41,7 @@ void MainWindow::new2NGon()
 
 void MainWindow::newGrid()
 {
-    createCustomDialog("Create New Grid", "input1","input2","input3");
+//    createCustomDialog("Create New Grid", "input1","input2","input3");
     MeshShape* pMS = MeshShape::insertGrid(Point(0,0), 0.1, 2, 2);
     Canvas::get()->insert(pMS);
     glWidget->updateGL();
@@ -49,7 +49,7 @@ void MainWindow::newGrid()
 
 void MainWindow::newSpine()
 {
-    createCustomDialog("Create New Grid", "input1","input2","input3");
+//    createCustomDialog("Create New Grid", "input1","input2","input3");
     //MeshShape* pM = MeshShape::newMeshShape(Point(0,0),MeshShape::SPINE);
     //Canvas::get()->insert(pM);
 #ifdef FACIAL_SHAPE

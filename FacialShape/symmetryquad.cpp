@@ -17,21 +17,23 @@ SymmetryQuad::SymmetryQuad()
     string path = "D:/youyou_program/ASM/faces/male/001.jpg";
     m_fileName = path;
     const cv::Mat_<unsigned char> img(cv::imread(path, CV_LOAD_IMAGE_GRAYSCALE));
+    m_rawImage =  cv::imread(path, CV_LOAD_IMAGE_COLOR);
 
     m_width = img.cols;
     m_height = img.rows;
-    float landmarks[2 * stasm_NLANDMARKS]; // x,y coords
+    m_rawLandmakrs = new float[2 * stasm_NLANDMARKS]; // x,y coords
+
     int foundface;
     float estyaw;
     if (!stasm_init("../data", 0))
         Exit("stasm_init failed: %s", stasm_lasterr());
     stasm_open_image((const char*)img.data, img.cols, img.rows,
                      path.data(), true, 55);
-    if (!stasm_search_auto_ext(&foundface, landmarks, &estyaw))
+    if (!stasm_search_auto_ext(&foundface, m_rawLandmakrs, &estyaw))
         Exit("stasm_init failed: %s", stasm_lasterr());
     char s[100]; sprintf(s, "\nFinal with auto init (estyaw %.0f)", estyaw);
 
-    this->SetVertices(landmarks, stasm_NLANDMARKS,Sym_connectivity,24);
+    this->SetVertices(m_rawLandmakrs, stasm_NLANDMARKS,Sym_connectivity,24);
     AddAuxiliaryPoints();
 }
 
@@ -39,16 +41,16 @@ void SymmetryQuad::AddAuxiliaryPoints()
 {
     float int_p;
     Intersect(m_vec2Vertices[11],m_vec2Vertices[12],m_vec2Vertices[13],m_vec2Vertices[14],&int_p);
-    cv::Point2d intersection = ((m_vec2Vertices[14] - m_vec2Vertices[13]) * int_p) + m_vec2Vertices[13];
+    cv::Point2i intersection = ((m_vec2Vertices[14] - m_vec2Vertices[13]) * int_p) + m_vec2Vertices[13];
     intersection = intersection*(6.0f/8.0f)+m_vec2Vertices[13]*(1.0/8.0)+m_vec2Vertices[12]*(1.0/8.0);
-    cv::Point2d intint1 = (intersection+m_vec2Vertices[12])*0.5;
-    cv::Point2d intint2 = (intersection+m_vec2Vertices[13])*0.5;
+    cv::Point2i intint1 = (intersection+m_vec2Vertices[12])*0.5;
+    cv::Point2i intint2 = (intersection+m_vec2Vertices[13])*0.5;
 
     Intersect(m_vec2Vertices[0],m_vec2Vertices[1],m_vec2Vertices[14],m_vec2Vertices[15],&int_p);
     intersection = ((m_vec2Vertices[15] - m_vec2Vertices[14]) * int_p) + m_vec2Vertices[14];
     intersection = intersection*(6.0f/8.0f)+m_vec2Vertices[0]*(1.0/8.0)+m_vec2Vertices[15]*(1.0/8.0);
-    cv::Point2d intint3 = (intersection+m_vec2Vertices[15])*0.5;
-    cv::Point2d intint4 = (intersection+m_vec2Vertices[0])*0.5;
+    cv::Point2i intint3 = (intersection+m_vec2Vertices[15])*0.5;
+    cv::Point2i intint4 = (intersection+m_vec2Vertices[0])*0.5;
 
     m_vec2Vertices.push_back(intint1);
     m_vec2Vertices.push_back(intint2);
@@ -64,16 +66,16 @@ void SymmetryQuad::AddAuxiliaryPoints()
     m_vec2Vertices.push_back((m_vec2Vertices[67]+m_vec2Vertices[70])*0.5);
 }
 
-bool SymmetryQuad::Intersect(cv::Point2d A1, cv::Point2d A2, cv::Point2d B1, cv::Point2d B2, float *out)
+bool SymmetryQuad::Intersect(cv::Point2i A1, cv::Point2i A2, cv::Point2i B1, cv::Point2i B2, float *out)
 {
-    cv::Point2d a(A2-A1);
-    cv::Point2d b(B2-B1);
+    cv::Point2i a(A2-A1);
+    cv::Point2i b(B2-B1);
 
     double f = a.y*b.x-a.x*b.y;
     if(!f)      // lines are parallel
         return false;
 
-    cv::Point2d c(B2-A2);
+    cv::Point2i c(B2-A2);
     double aa = a.y*c.x-a.x*c.y;
     double bb = b.y*c.x-b.x*c.y;
 
@@ -84,7 +86,7 @@ bool SymmetryQuad::Intersect(cv::Point2d A1, cv::Point2d A2, cv::Point2d B1, cv:
 
 void SymmetryQuad::AssignNormalColor()
 {
-//    std::vector<cv::Point2d> outer_contour;
+//    std::vector<cv::Point2i> outer_contour;
 //    outer_contour.insert(outer_contour.begin(), this->m_vec2Vertices.begin(),this->m_vec2Vertices.begin()+13);
 //    cv::Point* elementPoints[1] = { &outer_contour[0] };
 //    int num_p = outer_contour.size();
@@ -132,9 +134,9 @@ void SymmetryQuad::AssignNormalColor()
 }
 
 
-cv::Vec3f SymmetryQuad::CalNormalColor(cv::Point2d a, cv::Point2d b, cv::Point2d c)
+cv::Vec3f SymmetryQuad::CalNormalColor(cv::Point2i a, cv::Point2i b, cv::Point2i c)
 {
-    cv::Point2d diff = b-a;
+    cv::Point2i diff = b-a;
     cv::Vec2f ba = cv::normalize(cv::Vec2f(diff.x,diff.y));
     diff = b-c;
     cv::Vec2f bc = cv::normalize(cv::Vec2f(diff.x,diff.y));

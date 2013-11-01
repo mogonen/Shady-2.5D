@@ -46,7 +46,7 @@ public:
     SymmetryQuad();
     void BuildInnterPoints();
     void AddAuxiliaryPoints();
-    bool Intersect(cv::Point2d A1, cv::Point2d A2, cv::Point2d B1, cv::Point2d B2, float *out);
+    bool Intersect(cv::Point2i A1, cv::Point2i A2, cv::Point2i B1, cv::Point2i B2, float *out);
     void AssignNormalColor();
     void GetColors(float **colors, int &num);
     std::vector<cv::Vec3f> GetColorVector(){return m_NormalColor;}
@@ -56,12 +56,15 @@ public:
     std::string GetFileName(){return m_fileName;}
 
     //For line segment a-b-c, get normal direction at b
-    cv::Vec3f CalNormalColor(cv::Point2d a, cv::Point2d b, cv::Point2d c);
+    cv::Vec3f CalNormalColor(cv::Point2i a, cv::Point2i b, cv::Point2i c);
     std::vector<cv::Vec3f> m_NormalColor;
     std::vector<std::vector<int> > m_gridIndex;
     int m_width;
     int m_height;
     std::string m_fileName;
+
+    cv::Mat m_rawImage;
+    float *m_rawLandmakrs;
 };
 
 #endif // SYMMETRYQUAD_H

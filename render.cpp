@@ -1,4 +1,5 @@
 #include <qgl.h>
+#include <QDebug>
 #include "Canvas.h"
 #include "SampleShape.h"
 
@@ -28,7 +29,13 @@ ControlPoint_p ControlPoint::_pTheActive = 0;
 Canvas::EditMode_e Canvas::MODE = Canvas::POINT_NORMAL_SHAPE_M;
 double Canvas::_tM[16];
 double EllipseShape::Radius = 0.1;
-GLuint texture[1];
+GLuint texture[30];
+GLuint tt;
+
+static bool firstTime;
+
+static unsigned char textureSt[4 * 640 * 640];
+
 
 //selection stuff
 bool isInRenderMode(){
@@ -76,7 +83,7 @@ inline bool selectionColor(Selectable_p pSel){
 // now all renders here
 void Canvas::setImagePlane(const string &filename){
     QImage img_data = QGLWidget::convertToGLFormat(QImage(QString::fromStdString(filename)));
-    glGenTextures(1, texture);
+    glGenTextures(30, texture);
     glBindTexture(GL_TEXTURE_2D, texture[0]);
     glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA,
                   img_data.width(), img_data.height(),
@@ -87,36 +94,123 @@ void Canvas::setImagePlane(const string &filename){
 
 void Canvas::render() const{
 
-    if (Canvas::get()->isShadingOn && Canvas::get()->isDragMode)
+    if(Canvas::get()->isShadingOn||Canvas::get()->isAmbientOn||Canvas::get()->isShadowOn)
     {
-        _lights[0]->renderNamed();
-    }
-    FOR_ALL_CONST_ITEMS(ShapeList, _shapes){ //need to add layers
-        Shape_p s = *it;
-        if (!s->isChild())
-            render(*it);
-    }
+        glReadBuffer(GL_BACK);
+        if(!Canvas::get()->m_GLSLShader->isInitialized())
+        {
+            Canvas::get()->deactivate();
+            Canvas::get()->m_GLSLShader->SetInitialized(true);
+            Canvas::get()->m_GLSLShader->setUniformValue("width", (float)Canvas::get()->width);
+            Canvas::get()->m_GLSLShader->setUniformValue("height", (float)Canvas::get()->height);
+            FOR_ALL_CONST_ITEMS(ShapeList, _shapes){ //need to add layers
+                Shape_p pShape = *it;
+                glPushMatrix();
+                Point p = pShape->P();
+                glTranslatef(p.x, p.y, 0);
+                apply(pShape->getTransform());
+                glMultMatrixd((double*)&_tM);
+                pShape->renderAll();
+                glPopMatrix();
+            }
+            Shape_p pShape = _shapes.front();
+            ShaderParameters *sp;
+            sp = pShape->getShaderParam();
+            if(!sp)
+            {
+                sp = pShape->initializeParam();
+                sp->AssociateToProgram(Canvas::get()->m_GLSLShader);
+            }
+            pShape->setBrightParam();
+            pShape->setDarkParam();
+            sp->GrabShapeMap(Canvas::get()->width,Canvas::get()->height);
+            sp->SetAllLocalParameters();
+        }
+        m_GLSLShader->bind();
+        float aspect = (float)Canvas::get()->height/Canvas::get()->width;
 
-    if(texture[0])
-    {
         glEnable(GL_TEXTURE_2D);
         glBegin(GL_QUADS);
         glColor4f(1.0, 1.0, 1.0, 1.0);
         glTexCoord2d(0.0,0.0);
         glVertex3f(-1.0,-1.0,0);
-        glNormal3f(0.0,0.0,1.0);
         glTexCoord2d(0.0,1.0);
         glVertex3f(-1.0,1.0,0);
-        glNormal3f(0.0,0.0,1.0);
         glTexCoord2d(1.0,1.0);
         glVertex3f(1.0,1.0,0);
-        glNormal3f(0.0,0.0,1.0);
         glTexCoord2d(1.0,0.0);
         glVertex3f(1.0,-1.0,0);
-        glNormal3f(0.0,0.0,1.0);
+        glEnd();
+
+        m_GLSLShader->release();
+
+        glScalef(0.99,0.99,0.9);
+
+        glBegin(GL_LINE_LOOP);
+        glVertex3f(-1.0,-1.0*aspect,0);
+        glVertex3f(-1.0,1.0*aspect,0);
+        glVertex3f(1.0,1.0*aspect,0);
+        glVertex3f(1.0,-1.0*aspect,0);
         glEnd();
         glDisable(GL_TEXTURE_2D);
     }
+    else
+    {
+        m_GLSLShader->release();
+
+
+        if (Canvas::get()->isShadingOn && Canvas::get()->isDragMode)
+        {
+            _lights[0]->renderNamed();
+        }
+        FOR_ALL_CONST_ITEMS(ShapeList, _shapes){ //need to add layers
+            Shape_p s = *it;
+            if (!s->isChild())
+                render(*it);
+        }
+    }
+//    glBindTexture(GL_TEXTURE_2D, tt);
+
+////    if (!firstTime)
+//    {
+//        glCopyTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,0,0,1024,1024,0); // copy whole image to textureimage
+//        firstTime = true;
+//        qDebug()<<"123";
+//        qDebug()<<"222";
+
+//    }
+////    else
+//    {
+//        glReadBuffer(GL_BACK);
+//        glCopyTexSubImage2D(GL_TEXTURE_2D,0,0,50,50,0,640,640);
+//        qDebug()<<glGetError();
+//    }
+
+//    glDisable(GL_TEXTURE_2D);
+
+////    glTexImage2D(GL_TEXTURE_2D, 0 ,4, 640, 640, 0, GL_RGBA8, GL_UNSIGNED_BYTE, textureSt);
+////    QImage tempimg((const unsigned char*)textureSt, 640, 640, QImage::Format_ARGB32);
+////    tempimg.save("test.png");
+
+//    if(tt)
+//    {
+//        glPushMatrix();
+//        glTranslatef(0.5,0.5,0.0);
+//        glScalef(0.25,0.25,0.25);
+
+
+
+//        glColor3f(1.0,1.0,0.0);
+//        glBegin(GL_LINE_LOOP);
+//        glVertex3f(-1.0,-1.0,0);
+//        glVertex3f(-1.0,1.0,0);
+//        glVertex3f(1.0,1.0,0);
+//        glVertex3f(1.0,-1.0,0);
+//        glEnd();
+//        glDisable(GL_TEXTURE_2D);
+//        glPopMatrix();
+
+//    }
 }
 
 void Light::render() const {
@@ -188,7 +282,6 @@ void Shape::renderAll() const
 {
     if(Canvas::get()->isDragMode && this == Canvas::get()->active())
         ShapeControl::get()->renderControls((Shape_p)this);
-
     renderNamed(true);
 }
 void ShapeControl::renderControls(Shape_p shape) const{
@@ -305,36 +398,36 @@ void MeshShape::render(Face_p pFace) const{
 #ifdef FACIAL_SHAPE
 void FacialShape::initBG(){
     QImage img_data = QGLWidget::convertToGLFormat(QImage(QString::fromStdString(m_imgName)));
-    glGenTextures(1, texture);
-    glBindTexture(GL_TEXTURE_2D, texture[0]);
+    glGenTextures(1, &tt);
+    glBindTexture(GL_TEXTURE_2D, tt);
     glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA,
-                  img_data.width(), img_data.height(),
-                  0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.bits() );
+                  0, 0,
+                  0, GL_RGBA, GL_UNSIGNED_BYTE, NULL );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 }
 void FacialShape::render() const{
     MeshShape::render();
-    if(texture[0])
-    {
-        glEnable(GL_TEXTURE_2D);
-        glBegin(GL_QUADS);
-        glColor4f(1.0, 1.0, 1.0, 1.0);
-        glTexCoord2d(0.0,0.0);
-        glVertex3f(-1.0,-1.0,0);
-        glNormal3f(0.0,0.0,1.0);
-        glTexCoord2d(0.0,1.0);
-        glVertex3f(-1.0,1.0,0);
-        glNormal3f(0.0,0.0,1.0);
-        glTexCoord2d(1.0,1.0);
-        glVertex3f(1.0,1.0,0);
-        glNormal3f(0.0,0.0,1.0);
-        glTexCoord2d(1.0,0.0);
-        glVertex3f(1.0,-1.0,0);
-        glNormal3f(0.0,0.0,1.0);
-        glEnd();
-        glDisable(GL_TEXTURE_2D);
-    }
+//    if(texture[0])
+//    {
+//        glEnable(GL_TEXTURE_2D);
+//        glBegin(GL_QUADS);
+//        glColor4f(1.0, 1.0, 1.0, 1.0);
+//        glTexCoord2d(0.0,0.0);
+//        glVertex3f(-1.0,-1.0,0);
+//        glNormal3f(0.0,0.0,1.0);
+//        glTexCoord2d(0.0,1.0);
+//        glVertex3f(-1.0,1.0,0);
+//        glNormal3f(0.0,0.0,1.0);
+//        glTexCoord2d(1.0,1.0);
+//        glVertex3f(1.0,1.0,0);
+//        glNormal3f(0.0,0.0,1.0);
+//        glTexCoord2d(1.0,0.0);
+//        glVertex3f(1.0,-1.0,0);
+//        glNormal3f(0.0,0.0,1.0);
+//        glEnd();
+//        glDisable(GL_TEXTURE_2D);
+//    }
 }
 #endif
 
@@ -413,22 +506,22 @@ void Patch4::render() const{
 
             }
 
-            if (Canvas::MODE == Canvas::SHADED_M || Canvas::get()->isShadingOn ){
-                glEnable(GL_LIGHTING);
-                Point light0_p = Canvas::get()->lightPos(0);
-                GLfloat light0_pf[] = { light0_p.x, light0_p.y, 5.0, 0.0 };
-                glLightfv(GL_LIGHT0, GL_POSITION, light0_pf);
-            }else
-                glDisable(GL_LIGHTING);
+//            if (Canvas::MODE == Canvas::SHADED_M || Canvas::get()->isShadingOn ){
+//                glEnable(GL_LIGHTING);
+//                Point light0_p = Canvas::get()->lightPos(0);
+//                GLfloat light0_pf[] = { light0_p.x, light0_p.y, 5.0, 0.0 };
+//                glLightfv(GL_LIGHT0, GL_POSITION, light0_pf);
+//            }else
+//                glDisable(GL_LIGHTING);
 
             glBegin(GL_POLYGON);
             for(int k=0; k<4; k++){                
-                if (Canvas::MODE == Canvas::SHADED_M || Canvas::get()->isShadingOn)
-                    glNormal3f(n[k].x, n[k].y, n[k].z );
-                else
+//                if (Canvas::MODE == Canvas::SHADED_M || Canvas::get()->isShadingOn)
+//                    glNormal3f(n[k].x, n[k].y, n[k].z );
+//                else
                     glColor3f((n[k].x+1)/2, (n[k].y+1)/2, n[k].z );
-
-                glVertex3f(p[k].x, p[k].y, 0);
+               glVertex3f(p[k].x, p[k].y, 0);
+               glTexCoord2d((p[k].x+1)/2, (p[k].y+1)/2);
             }
             glEnd();
 
@@ -492,22 +585,23 @@ void EllipseShape::render() const {
 
             }
 
-            if (Canvas::get()->isShadingOn ){
-                glEnable(GL_LIGHTING);
-                Point light0_p = Canvas::get()->lightPos(0);
-                GLfloat light0_pf[] = { light0_p.x, light0_p.y, 5.0, 0.0 };
-                glLightfv(GL_LIGHT0, GL_POSITION, light0_pf);
-            }else
-                glDisable(GL_LIGHTING);
+//            if (Canvas::get()->isShadingOn ){
+//                glEnable(GL_LIGHTING);
+//                Point light0_p = Canvas::get()->lightPos(0);
+//                GLfloat light0_pf[] = { light0_p.x, light0_p.y, 5.0, 0.0 };
+//                glLightfv(GL_LIGHT0, GL_POSITION, light0_pf);
+//            }else
+//                glDisable(GL_LIGHTING);
 
 
             glBegin(GL_POLYGON);
             for(int k = 0; k < size; k++){
-                if (Canvas::get()->isShadingOn)
-                    glNormal3f(n[k].x, n[k].y, n[k].z );
-                else
+//                if (Canvas::get()->isShadingOn)
+//                    glNormal3f(n[k].x, n[k].y, n[k].z );
+//                else
                     glColor3f((n[k].x+1)/2, (n[k].y+1)/2, n[k].z );
                 glVertex2f(p[k].x, p[k].y);
+                glTexCoord2d((p[k].x+1)/2, (p[k].y+1)/2);
             }
             glEnd();
 

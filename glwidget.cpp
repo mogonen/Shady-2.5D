@@ -51,6 +51,7 @@ GLWidget::GLWidget(QWidget *parent)
 {
     xRot = 0;
     _scale = 1.0;
+    _mouseLightPos = Vec3(0.0,0.0,1.0);
     //setFocusPolicy(Qt::StrongFocus);
     /*QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(advance()));
@@ -60,7 +61,10 @@ GLWidget::GLWidget(QWidget *parent)
 GLdouble MvMatrix[16];
 GLdouble ProjMatrix[16];
 GLint ViewPort[4];
+bool m_CameraChanged;
 GLuint SelectBuff[SELECT_BUFF_SIZE];
+/// @brief The Origin(0,0,0) screen depth position under current camera coordinates
+double m_ZeroX,m_ZeroY,m_ZeroZ;
 
 GLWidget::~GLWidget()
 {
@@ -109,6 +113,9 @@ void GLWidget::initializeGL()
      glMatrixMode(GL_MODELVIEW);
      glLoadIdentity();
      glTranslated(0, 0, -1.0);
+     Canvas::get()->initialize();
+     m_CameraChanged = true;
+
 }
 
 void GLWidget::paintGL()
@@ -129,6 +136,9 @@ void GLWidget::resizeGL(int width, int height)
 {
     glViewport(0, 0, width, height);
     _aspectR = width*1.0 / height;
+
+    Canvas::get()->setSize(width, height);
+    m_CameraChanged = true;
     /*    glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glTranslated(_cam.x, _cam.y, -1.0);*/
@@ -139,23 +149,34 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     _lastP = event->pos();
     _lastWorldP = toWorld(_lastP.x(), _lastP.y());
 
-    int hit = selectGL(_lastP.x(), _lastP.y());
-    if (hit){
-        Selectable_p pSel = select(hit, SelectBuff);
-        if (Canvas::get()->canDragShape() && pSel->type() == Renderable::SHAPE){
-            Canvas::get()->activate((Shape_p)pSel);
+    if(Canvas::get()->isShadingOn||Canvas::get()->isShadingOn||Canvas::get()->isShadingOn)
+    {
+        if(event->buttons() & Qt::LeftButton)
+        {
+            _mouseLightPos.x = _lastWorldP.x;
+            _mouseLightPos.y = _lastWorldP.y;
+            Canvas::get()->updateShaderMouseClick(_mouseLightPos);
         }
-        Selectable::startSelect(pSel, event->button() == Qt::LeftButton, event->modifiers() & Qt::ControlModifier);
     }
+    else
+    {
+        //send the click to the active shape
+        int hit = selectGL(_lastP.x(), _lastP.y());
+        if (hit){
+            Selectable_p pSel = select(hit, SelectBuff);
+            if (Canvas::get()->canDragShape() && pSel->type() == Renderable::SHAPE){
+                Canvas::get()->activate((Shape_p)pSel);
+            }
+            Selectable::startSelect(pSel, event->button() == Qt::LeftButton, event->modifiers() & Qt::ControlModifier);
+        }
 
-    //send the click to the active shape
-    if (Canvas::get()->active() && !Canvas::get()->isDragMode){
-        if (event->buttons()&Qt::LeftButton)
-            Canvas::get()->active()->sendClick(_lastWorldP, Selectable::DOWN);
-        else if (event->buttons()& Qt::RightButton)
-             Canvas::get()->active()->sendClick(_lastWorldP, Selectable::R_DOWN);
+        if (Canvas::get()->active() && !Canvas::get()->isDragMode){
+            if (event->buttons()&Qt::LeftButton)
+                Canvas::get()->active()->sendClick(_lastWorldP, Selectable::DOWN);
+            else if (event->buttons()& Qt::RightButton)
+                Canvas::get()->active()->sendClick(_lastWorldP, Selectable::R_DOWN);
+        }
     }
-
     updateGL();
 }
 
@@ -177,16 +198,34 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
-{   
+{
     _lastP = event->pos();
     Point p = toWorld(_lastP.x(), _lastP.y());
 
-    if ( event->modifiers() & Qt::AltModifier){
-       _translate = _translate - (p - _lastWorldP);
-    }else if (Canvas::get()->isDragMode){
-        Draggable::dragTheSelected(p - _lastWorldP);
+    if(Canvas::get()->isShadingOn||Canvas::get()->isAmbientOn||Canvas::get()->isShadowOn)
+    {
+        if(event->buttons() & Qt::LeftButton)
+        {
+            _mouseLightPos.x = p.x;
+            _mouseLightPos.y = p.y;
+            Canvas::get()->updateShaderMouseClick(_mouseLightPos);
+        }
+        else
+        {
+            Point pchange = _lastWorldP-p;
+            _mouseLightPos.z  += 2*(pchange.x-pchange.y);
+            Canvas::get()->updateShaderMouseClick(_mouseLightPos);
+        }
     }
-
+    else
+    {
+        if ( event->modifiers() & Qt::AltModifier){
+            _translate = _translate - (p - _lastWorldP);
+            m_CameraChanged = true;
+        }else if (Canvas::get()->isDragMode){
+            Draggable::dragTheSelected(p - _lastWorldP);
+        }
+    }
     _lastWorldP = p;
     updateGL();
 }
@@ -246,15 +285,41 @@ void GLWidget::orthoView(){
 
 Point GLWidget::toWorld(int x, int y){
 
-    glGetIntegerv(GL_VIEWPORT, ViewPort);
-    glGetDoublev(GL_MODELVIEW_MATRIX, MvMatrix);
-    glGetDoublev(GL_PROJECTION_MATRIX, ProjMatrix);
-
+    if(m_CameraChanged)
+        loadCameraParameters();
     double winX = (double)x;
     double winY = (double)ViewPort[3] - (double)y;
-    double winZ = 0;
+    double winZ = m_ZeroZ;
     double wx, wy, wz;
 
     gluUnProject( winX, winY, winZ, MvMatrix, ProjMatrix, ViewPort, &wx, &wy, &wz);
     return Vec2(wx, wy);
+}
+
+Vec3 GLWidget::toCamera(float wx, float wy, float wz)
+{
+    if(m_CameraChanged)
+        loadCameraParameters();
+    double cx,cy,cz;
+    gluProject(wx,wy,wz,MvMatrix,ProjMatrix,ViewPort,&cx,&cy,&cz);
+    return Vec3(cx,cy,cz);
+}
+
+
+
+ void GLWidget::loadCameraParameters()
+ {
+    //Load openGL ModelView/Project/Viewpot parameters
+    glGetIntegerv(GL_VIEWPORT, ViewPort);           // Retrieves The Viewport Values (X, Y, Width, Height)
+    glGetDoublev(GL_MODELVIEW_MATRIX, MvMatrix);       // Retrieve The Modelview Matrix
+    glGetDoublev(GL_PROJECTION_MATRIX, ProjMatrix);     // Retrieve The Projection Matrix
+
+//    //Not know why, but it solves the problem, maybe some issue with QT
+//    if(this->width()<this->height())
+//        m_GLviewport[1] = -m_GLviewport[1];
+
+    //After this function is called, set the CameraChanged to be false to prevent recall of this function
+    m_CameraChanged = false;
+    //calculate the depth value of the origin under current camera setting
+    gluProject(0,0,0, MvMatrix,ProjMatrix,ViewPort,&m_ZeroX,&m_ZeroY,&m_ZeroZ);
 }

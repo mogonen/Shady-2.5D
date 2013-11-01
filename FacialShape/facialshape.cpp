@@ -1,10 +1,25 @@
 #include "facialshape.h"
+
 #include "Canvas.h"
 
 FacialShape::FacialShape()
 {
     SymmetryQuad mSymQuad;
     mSymQuad.AssignNormalColor();
+
+    ShadingColorExtractor mExtractor(mSymQuad);
+    mExtractor.SkinColorSegment();
+    m_darkImg = mExtractor.m_darkImage;
+    m_brightImg = mExtractor.m_brightImage;
+
+    this->m_darkTex.data = m_darkImg.data;
+    this->m_darkTex.width = m_darkImg.cols;
+    this->m_darkTex.height = m_darkImg.rows;
+
+    this->m_brightTex.data = m_brightImg.data;
+    this->m_brightTex.width = m_brightImg.cols;
+    this->m_brightTex.height = m_brightImg.rows;
+
     m_imgName = mSymQuad.GetFileName();
     vector<vector<int> > gridInd = mSymQuad.CreatGridIndices();
     std::vector<std::vector<Point *> > PointsGrid = CvtGrid(mSymQuad.GetVerticesVector(), gridInd, (float)mSymQuad.m_width, (float)mSymQuad.m_height);
@@ -43,7 +58,7 @@ FacialShape::FacialShape()
 
 }
 
-std::vector<std::vector<Point *> > FacialShape::CvtGrid(const std::vector<cv::Point2d> &vertices, const std::vector<std::vector<int> > &grid_ind, float w, float h)
+std::vector<std::vector<Point *> > FacialShape::CvtGrid(const std::vector<cv::Point2i> &vertices, const std::vector<std::vector<int> > &grid_ind, float w, float h)
 {
     std::vector<std::vector<Point *> > VGrid;
     VGrid.resize(grid_ind.size());

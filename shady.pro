@@ -1,6 +1,4 @@
-CONFIG +=
-
-
+CONFIG += FACIAL_SHAPE
 
 HEADERS += glwidget.h \
     mainwindow.h \
@@ -24,7 +22,10 @@ HEADERS += glwidget.h \
     meshshape/meshdata.h \
     meshshape/cMesh.h \
     shapecontrol.h \
-    ellipseshape.h
+    ellipseshape.h \
+    Renderer/shaderprogram.h \
+    Renderer/shaderparameters.h \
+    FacialShape/shadingcolorextractor.h
 
 SOURCES += glwidget.cpp \
     main.cpp \
@@ -48,7 +49,10 @@ SOURCES += glwidget.cpp \
     meshshape/meshoperations.cpp \
     meshshape/meshprimitives.cpp \
     uicalbacks_meshshape.cpp \
-    shapecontrol.cpp
+    shapecontrol.cpp \
+    Renderer/shaderprogram.cpp \
+    Renderer/shaderparameters.cpp \
+    FacialShape/shadingcolorextractor.cpp
 
 QT           += opengl widgets
 
@@ -79,3 +83,11 @@ FACIAL_SHAPE{
     FacialShape/symmetryquad.cpp \
     FacialShape/featurequads.cpp
 }
+
+RESOURCES += \
+    Renderer/Shaders.qrc
+
+OTHER_FILES += \
+    Renderer/Basic.vsh \
+    Renderer/Basic.fsh
+

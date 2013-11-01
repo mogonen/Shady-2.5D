@@ -384,6 +384,7 @@ void MainWindow::togglePathces(){
 }
 
 void MainWindow::toggleShading(){
+    Canvas::get()->m_GLSLShader->SetInitialized(false);
     Canvas::get()->isShadingOn = shadingOnAct->isChecked();
     glWidget->updateGL();
 }
@@ -458,10 +459,6 @@ void MainWindow::insertEllipse(){
     Canvas::get()->insert(new EllipseShape());
     glWidget->updateGL();
 }
-
-
-
-
 
 
 

@@ -1,6 +1,6 @@
 #include "featurequads.h"
 
-void FeatureQuads::SetVertices(const std::vector<cv::Point2d> &vertices, const int *connectivities, int num_quads)
+void FeatureQuads::SetVertices(const std::vector<cv::Point2i> &vertices, const int *connectivities, int num_quads)
 {
     m_vec2Vertices = vertices;
     SetConnectivities(connectivities, num_quads);
@@ -10,7 +10,7 @@ void FeatureQuads::SetVertices(const float *landmarks, int num_lm, const int *co
 {
     m_vec2Vertices.reserve(num_lm);
     for(int i=0;i<num_lm;i++)
-        m_vec2Vertices.push_back(cv::Point2d(landmarks[2*i],landmarks[2*i+1]));
+        m_vec2Vertices.push_back(cv::Point2i(landmarks[2*i],landmarks[2*i+1]));
     SetConnectivities(connectivities, num_quads);
 }
 
@@ -64,7 +64,7 @@ void FeatureQuads::DrawQuad(const int* quad, cv::Mat &img)
     }
 }
 
-cv::Point2d FeatureQuads::Interpolate(cv::Point2d start, cv::Point2d end, float portion)
+cv::Point2i FeatureQuads::Interpolate(cv::Point2i start, cv::Point2i end, float portion)
 {
     return start+(end-start)*portion;
 }

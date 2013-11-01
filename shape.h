@@ -6,6 +6,9 @@
 #include <iostream>
 #include <fstream>
 #include "base.h"
+#include "Renderer/shaderparameters.h"
+
+
 
 #define NORMAL_RAD 0.04
 #define NORMAL_CONTROL_BIT 30
@@ -19,6 +22,17 @@ struct  ShapeVertex;
 typedef ShapeVertex*                    ShapeVertex_p;
 typedef std::list<ShapeVertex_p>        SVList;
 typedef std::map<int, ShapeVertex_p>    SVMap;
+
+
+//4 channel unsigned bytes assumed here.
+struct textureInfo
+{
+    unsigned char *data;
+    int width;
+    int height;
+    textureInfo():data(NULL), width(0), height(0)
+    {}
+};
 
 struct BBox{
     Point P[2];
@@ -83,6 +97,7 @@ class Shape:public Draggable{
 
     unsigned int            _flags;
     SVList                  _vertices;
+    ShaderParameters*       _shaderParam;
 
 protected:
 
@@ -90,7 +105,6 @@ protected:
     virtual void onRotate(double ang){}
     virtual void onScale(const Vec2&){}
     virtual void onApplyT(const Matrix3x3&){}
-
     virtual void onClick(const Point&, Click_e){}
 
 public:
@@ -131,6 +145,26 @@ public:
     void                set(unsigned int bit){_flags |= (1 << bit);}
     void                unset(unsigned int bit){_flags &= ~(1 << bit);}
 
+    //Shader related funcs
+    ShaderParameters*    getShaderParam() {return _shaderParam;}
+    ShaderParameters* initializeParam(){
+        if(_shaderParam)
+            delete _shaderParam;
+        _shaderParam = new ShaderParameters();
+        return _shaderParam;
+    }
+    void setBrightParam()
+    {
+        if(m_brightTex.data)
+            _shaderParam->LoadBrightImage(m_brightTex.data,m_brightTex.width,m_brightTex.height);
+    }
+    void setDarkParam()
+    {
+        if(m_darkTex.data)
+            _shaderParam->LoadDarkImage(m_darkTex.data,m_darkTex.width,m_darkTex.height);
+    }
+    textureInfo m_brightTex;
+    textureInfo m_darkTex;
 	//save&load
     virtual int         load(std::ifstream&){return -1;}
     virtual int         save(std::ofstream&){return -1;}
