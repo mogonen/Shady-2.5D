@@ -21,12 +21,19 @@ class Renderable;
 class Selectable;
 class Draggable;
 
+class Shape;
+class GLWidget;
+class Canvas;
+class ShapeControl;
+
+enum RenderSetting {DRAGMODE_ON, SHADING_ON, AMBIENT_ON, SHADOWS_ON, NORMALS_ON, WIREFRAME_ON};
+
+
 typedef void* Void_p;
 typedef Renderable* Renderable_p;
 typedef Selectable* Selectable_p;
 typedef Draggable* Draggable_p;
 typedef std::map<int, Selectable_p> SelectableMap;
-typedef std::map<int, Selectable_p>* SelectableMap_p;
 typedef std::list<Draggable_p> DraggableList;
 typedef std::set<Selectable_p> SelectionSet;
 
@@ -83,10 +90,13 @@ private:
 };
 
 
+
 class Selectable:public Renderable{
 
     int _name;
     bool _isDraggable;
+
+    friend class SelectionManager;
 
 protected:
 
@@ -97,20 +107,8 @@ public:
 
     enum Click_e{UP, DOWN, R_UP, R_DOWN};
 
-    Selectable(Type_e type):Renderable(type){
-        _name = _COUNT;
-        //_name = (type << TYPE_BIT) | _COUNT;
-        if(_selectables==NULL)
-            _selectables = new SelectableMap();
-        (*_selectables)[_name] = this;
-        _isDraggable = false;
-        _COUNT++;
-        pRef = 0;
-    }
-
-    virtual ~Selectable(){
-        (*_selectables).erase(_name);
-    }
+    Selectable(Type_e type);
+    virtual ~Selectable();
 
     void renderNamed(bool ispush = false) const;
     void renderUnnamed() const{
@@ -121,64 +119,38 @@ public:
     inline void makeDraggable(){_isDraggable = true;}
 
     int name() const{return _name;}
-    inline bool isTheSelected() const {return this == _theSelected;}
-    inline bool isInSelection() const {return _selection.find((Selectable_p)this) != _selection.end();}
+    bool isTheSelected() const;
+    bool isInSelection() const;
 
+};
 
-    //statics
-    static Selectable_p get(int iname){
-        SelectableMap::const_iterator it =(*_selectables).find(iname);
-        if (it == (*_selectables).end())
-            return 0;
-        return it->second;
-    }
+class SelectionManager{
 
-    static Selectable_p getTheSelected(){return _theSelected;}
-    static Selectable_p getLastSelected(){return _lastSelected;}
-    static SelectionSet getSelection(){return _selection;}
-    static int selectionSize(){return _selection.size();}
+    int                 _count;
+    Selectable_p        _theSelected;
+    Selectable_p        _lastSelected;
+    SelectableMap       _selectables;
+    SelectionSet        _selection;
 
-    static void startSelect(Selectable_p pObj, bool isselect, bool isMultiSelect)
-    {
-        isSelect = isselect;
-        _theSelected = pObj;
+public:
+    SelectionManager();
 
-        if (pObj)
-            pObj->onDown();
-        else
-            return;
+    void            insert(Selectable_p pS);
+    void            remove(Selectable_p pS);
+    Selectable_p    get(int iname);
+    Selectable_p    getTheSelected(){return _theSelected;}
+    Selectable_p    getLastSelected(){return _lastSelected;}
+    SelectionSet    getSelection(){return _selection;}
+    int             selectionSize(){return _selection.size();}
 
-        if (isMultiSelect){
-            if (isSelect)
-                _selection.insert(pObj);
-            else
-                _selection.erase(pObj);
-        }else
-            _selection.clear();
-    }
+    bool            isInSelection(Selectable_p pS);
 
-    static void stopSelect(){
-        _lastSelected = _theSelected;
-        if (!_theSelected)
-            return;
-        _theSelected->onUp();
-        _theSelected = 0;
-    }
+    void            startSelect(Selectable_p pObj, bool isselect, bool isMultiSelect);
+    void            stopSelect();
+    bool            dragTheSelected(const Vec2& t);
+    void            reset();
 
-    static void reset(){
-        (*_selectables).clear();
-        _COUNT = 0;
-    }
-
-    static bool isSelect;
-
-private:
-
-    static int          _COUNT;
-    static Selectable_p _theSelected;
-    static Selectable_p _lastSelected;
-    static SelectableMap_p _selectables;
-    static SelectionSet  _selection;
+    bool            isSelect;
 
 };
 
@@ -241,35 +213,44 @@ public:
     }
 
     //statics
-    static bool dragTheSelected(const Point& t){
-
-        if (!Selectable::getTheSelected() || !Selectable::getTheSelected()->isDraggable())
-            return false;
-        Draggable_p dragged = ((Draggable_p)Selectable::getTheSelected());
-        if (dragged->isLocked)
-            return false;
-        dragged->drag(t);
-        return true;
-    }
 
     DraggableList getChilds() const {return _childs;}
 };
 
-namespace dlfl {
 
-    class Corner;
-    class Edge;
-    class Vertex;
-    class Face;
-    class Mesh;
+class Session{
 
-    typedef Corner*     Corner_p;
-    typedef Edge*       Edge_p;
-    typedef Vertex*     Vertex_p;
-    typedef Face*       Face_p;
-    typedef Mesh*       Mesh_p;
+    GLWidget*           _pGlWidget;
+    Canvas*             _pCanvas;
+    SelectionManager*   _pSelectionMan;
+    ShapeControl*       _pController;
 
-}
+    static Session* _pSession;
+
+public:
+
+    GLWidget*           glWidget() const {return _pGlWidget;}
+    Canvas*             canvas()   const {return _pCanvas;}
+    SelectionManager*   selectionMan()  const {return _pSelectionMan;}
+    ShapeControl*       controller()    const {return _pController;}
+
+    Shape*              theShape() const;
+    void                activate(Shape*);
+    Shape*              deactivate();
+    void                insertShape(Shape*, bool isactivate = true);
+    void                removeShape(Shape*);
+
+    void                reset();
+
+    void                cancel();
+    void                exec();
+
+
+    static void         init();
+
+    static Session*     get(){return _pSession;}
+    static bool         isRender(RenderSetting rs);
+};
 
 struct ShapeVertex;
 

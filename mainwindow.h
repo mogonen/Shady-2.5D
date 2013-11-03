@@ -67,6 +67,7 @@ public:
     void setOptionsWidget(int);
 
     static void updateGL();
+    static GLWidget        *glWidget;
 
 private slots:
 
@@ -126,8 +127,6 @@ private:
     QWidget         *centralWidget;
     QScrollArea     *glWidgetArea;
     QScrollArea     *pixmapLabelArea;
-
-    static GLWidget        *glWidget;
 
     //Menu Pointers
     QMenu           *fileMenu;

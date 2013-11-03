@@ -96,8 +96,6 @@ public:
 class ShapeControl: public Draggable{
 
     Point _t0;
-    static ShapeControl*    _thecontroller;
-
     ShapeVertex_p           _theSelected;
     bool                    isNormalControl;
 
@@ -132,8 +130,6 @@ public:
     void startTransform(Shape_p pS){
         _theHandler->setShape(pS);
     }
-
-    static ShapeControl* get(){return _thecontroller;}
 
 };
 

@@ -39,46 +39,49 @@
 ****************************************************************************/
 
 #include "glwidget.h"
-
 #include <QMouseEvent>
 #include <QTimer>
 #include <gl/glu.h>
 #include <math.h>
-#include "canvas.h"
 
-GLWidget::GLWidget(QWidget *parent)
+#include "canvas.h"
+#include "Renderer/shaderprogram.h"
+
+unsigned int    GLWidget::_renderFlags;
+
+GLuint          SelectBuff[SELECT_BUFF_SIZE];
+GLdouble        MvMatrix[16];
+GLdouble        ProjMatrix[16];
+GLint           ViewPort[4];
+
+bool            m_CameraChanged;
+
+/// @brief The Origin(0,0,0) screen depth position under current camera coordinates
+double          m_ZeroX,m_ZeroY,m_ZeroZ;
+
+GLWidget::GLWidget(Canvas * pCanvas, QWidget *parent)
     : QGLWidget(parent)
 {
-    xRot = 0;
     _scale = 1.0;
-    _mouseLightPos = Vec3(0.0,0.0,1.0);
-    //setFocusPolicy(Qt::StrongFocus);
-    /*QTimer *timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(advance()));
-    timer->start(20);*/
-
+    _renderFlags = 0x00;
+    _pCanvas = pCanvas;
+    setRender(DRAGMODE_ON, true);
 }
 
-GLdouble MvMatrix[16];
-GLdouble ProjMatrix[16];
-GLint ViewPort[4];
-bool m_CameraChanged;
-GLuint SelectBuff[SELECT_BUFF_SIZE];
-/// @brief The Origin(0,0,0) screen depth position under current camera coordinates
-double m_ZeroX,m_ZeroY,m_ZeroZ;
+void GLWidget::setRender(RenderSetting rs, bool set){
+    if (set)
+        _renderFlags |= (1 << (int)rs);
+    else
+        _renderFlags &=~(1 << (int)rs);
 
-GLWidget::~GLWidget()
-{
-    //glDeleteLists(gear1, 1);
+    if (rs == SHADING_ON)
+        _pGLSLShader->SetInitialized(false);
+
+    updateGL();
 }
 
-void GLWidget::setXRotation(int angle)
-{
-    if (angle != xRot) {
-        xRot = angle;
-        emit xRotationChanged(angle);
-        updateGL();
-    }
+void GLWidget::flipDragMode(){
+    //_renderFlags = _renderFlags | (_renderFlags^( 1 << (int)DRAGMODE_ON));
 }
 
 void GLWidget::initializeGL()
@@ -114,7 +117,9 @@ void GLWidget::initializeGL()
      glMatrixMode(GL_MODELVIEW);
      glLoadIdentity();
      glTranslated(0, 0, -1.0);
-     Canvas::get()->initialize();
+
+     _pGLSLShader = new ShaderProgram();
+     _pGLSLShader->Initialize();
      m_CameraChanged = true;
 
 }
@@ -137,8 +142,6 @@ void GLWidget::resizeGL(int width, int height)
 {
     glViewport(0, 0, width, height);
     _aspectR = width*1.0 / height;
-
-    Canvas::get()->setSize(width, height);
     m_CameraChanged = true;
     /*    glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -150,49 +153,38 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     _lastP = event->pos();
     _lastWorldP = toWorld(_lastP.x(), _lastP.y());
 
-    if(Canvas::get()->isShadingOn||Canvas::get()->isShadingOn||Canvas::get()->isShadingOn)
-    {
-        if(event->buttons() & Qt::LeftButton)
-        {
-            _mouseLightPos.x = _lastWorldP.x;
-            _mouseLightPos.y = _lastWorldP.y;
-            Canvas::get()->updateShaderMouseClick(_mouseLightPos);
+    //send the click to the active shape
+    int hit = selectGL(_lastP.x(), _lastP.y());
+    if (hit){
+        Selectable_p pSel = select(hit, SelectBuff);
+        if (is(DRAGMODE_ON) && pSel->type() == Renderable::SHAPE){
+            activate((Shape_p)pSel);
         }
+        Session::get()->selectionMan()->startSelect(pSel, event->button() == Qt::LeftButton, event->modifiers() & Qt::ControlModifier);
     }
-    else
-    {
-        //send the click to the active shape
-        int hit = selectGL(_lastP.x(), _lastP.y());
-        if (hit){
-            Selectable_p pSel = select(hit, SelectBuff);
-            if (Canvas::get()->canDragShape() && pSel->type() == Renderable::SHAPE){
-                Canvas::get()->activate((Shape_p)pSel);
-            }
-            Selectable::startSelect(pSel, event->button() == Qt::LeftButton, event->modifiers() & Qt::ControlModifier);
-        }
 
-        if (Canvas::get()->active() && !Canvas::get()->isDragMode){
-            if (event->buttons()&Qt::LeftButton)
-                Canvas::get()->active()->sendClick(_lastWorldP, Selectable::DOWN);
-            else if (event->buttons()& Qt::RightButton)
-                Canvas::get()->active()->sendClick(_lastWorldP, Selectable::R_DOWN);
-        }
+    if (_pActiveShape && !is(DRAGMODE_ON)){
+        if (event->buttons()&Qt::LeftButton)
+            _pActiveShape->sendClick(_lastWorldP, Selectable::DOWN);
+        else if (event->buttons()& Qt::RightButton)
+           _pActiveShape->sendClick(_lastWorldP, Selectable::R_DOWN);
     }
+
     updateGL();
 }
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    Selectable::stopSelect();
+    Session::get()->selectionMan()->stopSelect();
     _lastP = event->pos();
     _lastWorldP = toWorld(_lastP.x(), _lastP.y());
 
     //send the click to the active shape
-    if (Canvas::get()->active() && !Canvas::get()->isDragMode){
+    if (_pActiveShape && !is(DRAGMODE_ON)){
         if (event->button() == Qt::LeftButton )
-            Canvas::get()->active()->sendClick(_lastWorldP, Selectable::UP);
+           _pActiveShape->sendClick(_lastWorldP, Selectable::UP);
         else if (event->button() == Qt::RightButton)
-            Canvas::get()->active()->sendClick(_lastWorldP, Selectable::R_UP);
+           _pActiveShape->sendClick(_lastWorldP, Selectable::R_UP);
     }
 
     updateGL();
@@ -200,33 +192,16 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    _lastP = event->pos();
+    _lastP  = event->pos();
     Point p = toWorld(_lastP.x(), _lastP.y());
 
-    if(Canvas::get()->isShadingOn||Canvas::get()->isAmbientOn||Canvas::get()->isShadowOn)
-    {
-        if(event->buttons() & Qt::LeftButton)
-        {
-            _mouseLightPos.x = p.x;
-            _mouseLightPos.y = p.y;
-            Canvas::get()->updateShaderMouseClick(_mouseLightPos);
-        }
-        else
-        {
-            Point pchange = _lastWorldP-p;
-            _mouseLightPos.z  += 2*(pchange.x-pchange.y);
-            Canvas::get()->updateShaderMouseClick(_mouseLightPos);
-        }
+    if ( event->modifiers() & Qt::AltModifier){
+        _translate = _translate - (p - _lastWorldP);
+        m_CameraChanged = true;
+    }else if (is(DRAGMODE_ON)){
+       Session::get()->selectionMan()->dragTheSelected(p - _lastWorldP);
     }
-    else
-    {
-        if ( event->modifiers() & Qt::AltModifier){
-            _translate = _translate - (p - _lastWorldP);
-            m_CameraChanged = true;
-        }else if (Canvas::get()->isDragMode){
-            Draggable::dragTheSelected(p - _lastWorldP);
-        }
-    }
+
     _lastWorldP = p;
     updateGL();
 }
@@ -240,18 +215,8 @@ void GLWidget::wheelEvent(QWheelEvent* e ){
     }
 }
 
- void GLWidget::keyPressEvent(QKeyEvent * event){
+void GLWidget::keyPressEvent(QKeyEvent * event){
 
-}
-
-void GLWidget::advance()
-{
-    updateGL();
-}
-
-void GLWidget::renderCanvas() const {
-
-    Canvas::get()->render();
 }
 
 int GLWidget::selectGL(int x, int y){
@@ -306,10 +271,8 @@ Vec3 GLWidget::toCamera(float wx, float wy, float wz)
     return Vec3(cx,cy,cz);
 }
 
-
-
- void GLWidget::loadCameraParameters()
- {
+void GLWidget::loadCameraParameters()
+{
     //Load openGL ModelView/Project/Viewpot parameters
     glGetIntegerv(GL_VIEWPORT, ViewPort);           // Retrieves The Viewport Values (X, Y, Width, Height)
     glGetDoublev(GL_MODELVIEW_MATRIX, MvMatrix);       // Retrieve The Modelview Matrix
@@ -323,4 +286,12 @@ Vec3 GLWidget::toCamera(float wx, float wy, float wz)
     m_CameraChanged = false;
     //calculate the depth value of the origin under current camera setting
     gluProject(0,0,0, MvMatrix,ProjMatrix,ViewPort,&m_ZeroX,&m_ZeroY,&m_ZeroZ);
+}
+
+void GLWidget::updateGLSLLight(float x, float y, float z)
+{
+    _pGLSLShader->bind();
+    _pGLSLShader->setUniformValue("light_dir", -QVector3D(x, y, z));
+    //qDebug()<<light_pos.x;//, light_pos.y, light_pos.z);
+    _pGLSLShader->release();
 }

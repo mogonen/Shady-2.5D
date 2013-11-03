@@ -19,7 +19,7 @@ void MeshShape::onClick(const Point & p, Click_e eClick){
         return;
 
     if (eClick == UP){
-        Selectable_p obj = Selectable::getLastSelected();
+        Selectable_p obj = Session::get()->selectionMan()->getLastSelected();
 
         if (!obj || obj->type() != Renderable::SHAPE)
             return;

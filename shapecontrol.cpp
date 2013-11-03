@@ -1,7 +1,6 @@
 #include "shapecontrol.h"
 
 //ShapeControl///////////////////////////////////////////////////////////////////////////////////
-ShapeControl* ShapeControl::_thecontroller = new ShapeControl();
 
 ShapeControl::ShapeControl():Draggable(Renderable::UI, &_t0){
     isNormalControl = false;

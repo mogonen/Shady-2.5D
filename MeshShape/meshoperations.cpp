@@ -221,7 +221,7 @@ void MeshShape::deleteFace(Face_p f){
     Mesh_p mesh = f->mesh();
     mesh->remove(f);
     if (mesh->sizeF()==0){
-        Canvas::get()->remove((Shape_p)mesh->caller());
+        Session::get()->removeShape((Shape_p)mesh->caller());
     }
 
 }

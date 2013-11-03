@@ -47,6 +47,10 @@
 #include "ellipseshape.h"
 #include "shapecontrol.h"
 
+double              EllipseShape::Radius = 0.1;
+ControlPoint_p      ControlPoint::_pTheActive = 0;
+Session*            Session::_pSession = 0;
+
 GLWidget* MainWindow::glWidget = 0;
 
 void MainWindow::updateGL(){
@@ -54,12 +58,25 @@ void MainWindow::updateGL(){
         glWidget->updateGL();
 }
 
+void Session::init(){
+    _pSession = new Session();
+    _pSession->_pSelectionMan   = new SelectionManager();
+    _pSession->_pController     = new ShapeControl();
+    _pSession->_pCanvas         = new Canvas();
+    _pSession->_pGlWidget       = new GLWidget(_pSession->_pCanvas);
+
+    Patch::setN(8);
+}
+
 MainWindow::MainWindow()
 {
+
+    Session::init();
+
     centralWidget = new QWidget;
     setCentralWidget(centralWidget);
 
-    glWidget = new GLWidget;
+    glWidget = Session::get()->glWidget();
 
     glWidgetArea = new QScrollArea;
     glWidgetArea->setWidget(glWidget);
@@ -83,7 +100,12 @@ MainWindow::MainWindow()
     centralWidget->setLayout(centralLayout);
     setWindowTitle(tr("Shady"));
     resize(1200, 900);
-    initScene();
+
+}
+
+
+void MainWindow::initScene(){
+    //init scene
 }
 
 void MainWindow::initTools()
@@ -126,11 +148,6 @@ void MainWindow::initTools()
     createAllOptionsWidgets();
 }
 
-void MainWindow::initScene(){
-    //init scene
-    Canvas::get()->initLights();
-    Patch::setN(8);
-}
 
 void MainWindow::about()
 {
@@ -386,63 +403,58 @@ void MainWindow::keyPressEvent(QKeyEvent *event){
     int key = event->key();
 
     if (key == Qt::Key_Escape){
-        ShapeControl::get()->cancel();
-        Canvas::get()->deactivate();
+        Session::get()->controller()->cancel();
+        glWidget->deactivate();
     }
 
 
     if (key == Qt::Key_Return){
-        ShapeControl::get()->apply();
+        Session::get()->controller()->apply();
     }
 
     glWidget->updateGL();
 }
 
 void MainWindow::newFile(){
-    Canvas::get()->clear();
-    glWidget->updateGL();
+    Session::get()->reset();
 }
 
 void MainWindow::flipDrag()
 {
-    Canvas::get()->flipMode();
-    glWidget->updateGL();
+    //glWidget->flipMode();
 }
 
 void MainWindow::unselectDrag()
 {
-    Canvas::get()->isDragMode = false;
     dragAct->setChecked(false);
-    glWidget->updateGL();
+    glWidget->setRender(DRAGMODE_ON, false);
 }
 
 void MainWindow::toggleNormals(){
-    Canvas::get()->isNormalsOn = normalsOnAct->isChecked();
-    glWidget->updateGL();
+    glWidget->setRender(NORMALS_ON, normalsOnAct->isChecked());
 }
 
 void MainWindow::togglePathces(){
-    Canvas::get()->isWireframeOn = patchesOnAct->isChecked();
-    glWidget->updateGL();
+    glWidget->setRender(WIREFRAME_ON, patchesOnAct->isChecked());
 }
 
 void MainWindow::toggleShading(){
-    Canvas::get()->m_GLSLShader->SetInitialized(false);
-    Canvas::get()->isShadingOn = shadingOnAct->isChecked();
-    glWidget->updateGL();
+    glWidget->setRender(SHADING_ON, shadingOnAct->isChecked());
 }
 
 void MainWindow::toggleAmbient(){
+    glWidget->setRender(AMBIENT_ON, ambientOnAct->isChecked());
     glWidget->updateGL();
 }
 
 void MainWindow::toggleShadow(){
+    glWidget->setRender(SHADOWS_ON, shadowOnAct->isChecked());
     glWidget->updateGL();
 }
 
 
 void MainWindow::toggleLockShape(){
-    Shape_p shape = Canvas::get()->active();
+    Shape_p shape = Session::get()->theShape();
     if (!shape)
         return;
     shape->flipLock();
@@ -450,7 +462,7 @@ void MainWindow::toggleLockShape(){
 }
 
 void MainWindow::parentShape(){
-    Shape_p shape = Canvas::get()->active();
+    Shape_p shape = Session::get()->theShape();
      if (!shape)
          return;
 
@@ -459,46 +471,46 @@ void MainWindow::parentShape(){
 }
 
 void MainWindow::groupShape(){
-    Shape_p shape = Canvas::get()->active();
+    Shape_p shape = Session::get()->theShape();
      if (!shape)
          return;
 }
 
 void MainWindow::moveShapeToFront(){
-    Canvas::get()->activeUp();
-    glWidget->updateGL();
+    glWidget->moveActiveUp();
 }
 
 void MainWindow::moveShapeToBack(){
-    Canvas::get()->activeDown();
-    glWidget->updateGL();
+    glWidget->moveActiveDown();
 }
 
 void MainWindow::sendShapeBack(){
-    Canvas::get()->sendToBack();
-    glWidget->updateGL();
+    glWidget->sendActiveBack();
 }
 
 void MainWindow::sendShapeFront(){
-    Canvas::get()->sendToFront();
-    glWidget->updateGL();
+    glWidget->sendActiveFront();
 }
 
 void MainWindow::transformShape(){
-    Shape_p shape = Canvas::get()->active();
+    Shape_p shape = Session::get()->theShape();
     if (!shape)
         return;
-    ShapeControl::get()->startTransform(shape);
+    Session::get()->controller()->startTransform(shape);
     glWidget->updateGL();
 }
 
 void MainWindow::deleteShape(){
-    Canvas::get()->removeActive();
-    glWidget->updateGL();
+   glWidget->removeActive();
 }
 
 
 void MainWindow::insertEllipse(){
-    Canvas::get()->insert(new EllipseShape());
+    glWidget->insertShape(new EllipseShape());
     glWidget->updateGL();
 }
+
+void updateGLSLLight(double x, double y, double z){
+    MainWindow::glWidget->updateGLSLLight(x,y,z);
+}
+

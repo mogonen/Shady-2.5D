@@ -24,7 +24,7 @@ void MeshShape::onUpdate(){
             (*it)->pData->pSurface->update();
     }
 
-    Selectable_p sel = Selectable::getTheSelected();
+    Selectable_p sel = Session::get()->selectionMan()->getTheSelected();
 
     /*if (getController()->doesExist((ControlPoint_p)sel)){
        //this is a control point

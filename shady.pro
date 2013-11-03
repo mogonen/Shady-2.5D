@@ -1,4 +1,4 @@
-CONFIG += FACIAL_SHAPE
+CONFIG +=
 
 HEADERS += glwidget.h \
     mainwindow.h \
@@ -52,7 +52,10 @@ SOURCES += glwidget.cpp \
     shapecontrol.cpp \
     Renderer/shaderprogram.cpp \
     Renderer/shaderparameters.cpp \
-    FacialShape/shadingcolorextractor.cpp
+    FacialShape/shadingcolorextractor.cpp \
+    glwidget_render.cpp \
+    glwidget_canvas.cpp \
+    selection.cpp
 
 QT           += opengl widgets
 
@@ -78,10 +81,12 @@ FACIAL_SHAPE{
 }else{
     HEADERS -=    FacialShape/facialshape.h \
     FacialShape/symmetryquad.h \
-    FacialShape/featurequads.h
+    FacialShape/featurequads.h \
+    FacialShape/shadingcolorextractor.h
     SOURCES -=     FacialShape/facialshape.cpp \
     FacialShape/symmetryquad.cpp \
-    FacialShape/featurequads.cpp
+    FacialShape/featurequads.cpp \
+    FacialShape/shadingcolorextractor.cpp
 }
 
 RESOURCES += \

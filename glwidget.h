@@ -50,6 +50,11 @@
 #define SELECT_BUFF_SIZE (MAX_SELECT*4)
 #define PICK 8.0
 
+class SelectionManager;
+class Canvas;
+class Shape;
+class ShaderProgram;
+
 Selectable_p select(GLint hits, GLuint* buff);
 
 class GLWidget : public QGLWidget
@@ -57,48 +62,62 @@ class GLWidget : public QGLWidget
     Q_OBJECT
 
 public:
-    GLWidget(QWidget *parent = 0);
-    ~GLWidget();
+    GLWidget(Canvas*, QWidget *parent = 0);
 
-    int xRotation() const { return xRot; }
-    static Point toWorld(int, int);
-    static Vec3 toCamera(float wx, float wy, float wz);
-    static void loadCameraParameters();
+    static Point        toWorld(int, int);
+    static Vec3         toCamera(float wx, float wy, float wz);
+    static void         loadCameraParameters();
 
-public slots:
-    void setXRotation(int angle);
-signals:
-    void xRotationChanged(int angle);
+    void                apply(const Matrix3x3& tM);
+    void                updateGLSLLight(float x, float y, float z);
+
+    static bool         is(RenderSetting rs){return _renderFlags&(1<<rs);}
+    void                setRender(RenderSetting rs, bool);
+    void                flipDragMode();
+
+    void                activate(Shape*);
+    Shape*              deactivate(bool isdeleted=false);
+    Shape*              activeShape()const{return _pActiveShape;}
+
+    void                insertShape(Shape*);
+    void                moveActiveDown();
+    void                moveActiveUp();
+    void                sendActiveBack();
+    void                sendActiveFront();
+    Shape*              removeActive();
+
+    void                clear();
 
 protected:
-    void initializeGL();
-    void paintGL();
-    void resizeGL(int width, int height);
-    void mousePressEvent(QMouseEvent *event);
-    void mouseReleaseEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
-    void wheelEvent(QWheelEvent* e );
-    void keyPressEvent(QKeyEvent *);
-
-private slots:
-    void advance();
+    void                initializeGL();
+    void                paintGL();
+    void                resizeGL(int width, int height);
+    void                mousePressEvent(QMouseEvent *event);
+    void                mouseReleaseEvent(QMouseEvent *event);
+    void                mouseMoveEvent(QMouseEvent *event);
+    void                wheelEvent(QWheelEvent* e );
+    void                keyPressEvent(QKeyEvent *);
 
 private:
 
-    void renderCanvas() const;
-    int selectGL(int, int);
+    void                renderCanvas();
+    void                render(Shape*);
+    int                 selectGL(int, int);
+    void                orthoView();
 
-    void orthoView();
+    double              _scale;
+    double              _aspectR;
+    Vec2                _translate;
 
-    int xRot;
-    double  _scale;
-    double  _aspectR;
-    Vec2    _translate;
+    QPoint              _lastP;
+    Point               _lastWorldP;
+    Vec2                _cam;
 
-    QPoint _lastP;
-    Point  _lastWorldP;
-    Vec3 _mouseLightPos;
-    Vec2 _cam;
+    Shape               *_pActiveShape;
+    Canvas              *_pCanvas;
+    ShaderProgram       *_pGLSLShader;
+
+    static unsigned int  _renderFlags;
 
 };
 

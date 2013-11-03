@@ -4,11 +4,11 @@
 #include "MeshShape/meshshape.h"
 #include "MeshShape/spineshape.h"
 #ifdef FACIAL_SHAPE
-#include "FacialShape/facialshape.h"
+//#include "FacialShape/facialshape.h"
 #endif
 
 void executeMeshShapeOperations(){
-    SelectionSet selects = Selectable::getSelection();
+    SelectionSet selects = Session::get()->selectionMan()->getSelection();
     FOR_ALL_ITEMS(SelectionSet, selects){
         MeshShape::execOP(Point(),*it);
     }
@@ -17,29 +17,25 @@ void executeMeshShapeOperations(){
 
 void createGrid(){
     MeshShape* pMS =MeshShape::insertGrid(Point(), MeshShape::GRID_LEN, MeshShape::GRID_M, MeshShape::GRID_N);
-    Canvas::get()->insert(pMS);
-    MainWindow::updateGL();
+    Session::get()->glWidget()->insertShape(pMS);
 }
 
 void createNGon(){
     MeshShape* pMS = MeshShape::insertNGon(Point(), MeshShape::NGON_N, MeshShape::NGON_SEG_V, MeshShape::NGON_RAD);
-    Canvas::get()->insert(pMS);
-    MainWindow::updateGL();
+    Session::get()->glWidget()->insertShape(pMS);
 }
 
 void createTorus(){
     MeshShape* pMS = MeshShape::insertTorus(Point(), MeshShape::TORUS_N, MeshShape::TORUS_RAD);
-    Canvas::get()->insert(pMS);
-    MainWindow::updateGL();
+    Session::get()->glWidget()->insertShape(pMS);
 }
 
 void createSpine(){
-    Shape_p shape = Canvas::get()->active();
+    Shape_p shape = Session::get()->theShape();
     SpineShape* spine = dynamic_cast<SpineShape*>(shape);
     if (spine==0)
         return;
-    Canvas::get()->insert(spine->buildMeshShape());
-    MainWindow::updateGL();
+    Session::get()->glWidget()->insertShape(spine->buildMeshShape());;
 }
 
 
@@ -84,16 +80,15 @@ void MainWindow::newGrid()
 void MainWindow::newSpine()
 {
     setOptionsWidget(Options::SPINE);
-    Canvas::get()->insert(new SpineShape());
+    Session::get()->glWidget()->insertShape(new SpineShape());
     unselectDrag();
 }
 
 void MainWindow::newFacial()
 {
 #ifdef FACIAL_SHAPE
-    Canvas::get()->insert(new FacialShape());
+    glWidget->insertShape(new FacialShape());
     //unselectDrag();
-    glWidget->updateGL();
 #endif
 }
 
