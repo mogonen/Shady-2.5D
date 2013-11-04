@@ -167,6 +167,7 @@ public:
     }
     textureInfo m_brightTex;
     textureInfo m_darkTex;
+
 	//save&load
     virtual int         load(std::ifstream&){return -1;}
     virtual int         save(std::ofstream&){return -1;}

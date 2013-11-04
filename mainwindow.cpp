@@ -135,15 +135,26 @@ void MainWindow::initTools()
     optionsDockWidget = new QDockWidget(QString("Options"), this);
     optionsDockWidget->setVisible(false);
 
+    attrDockWidget = new QDockWidget(QString("Attributes"), this);
+    attrDockWidget->setVisible(false);
+
     this->addDockWidget(Qt::LeftDockWidgetArea, optionsDockWidget);
+    this->addDockWidget(Qt::LeftDockWidgetArea, attrDockWidget);
 
     optionsStackedWidget = new QStackedWidget(optionsDockWidget);
     QVBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(optionsStackedWidget);
 
+    attrStackedWidget = new QStackedWidget(attrDockWidget);
+    layout->addWidget(attrStackedWidget);
+
     optionsDockWidget->setWidget(optionsStackedWidget);
     optionsDockWidget->setLayout(layout);
     optionsDockWidget->setVisible(false);
+
+    attrDockWidget->setWidget(attrStackedWidget);
+    attrDockWidget->setLayout(layout);
+    attrDockWidget->setVisible(false);
 
     createAllOptionsWidgets();
 }
@@ -169,6 +180,23 @@ void MainWindow::setOptionsWidget(int key){
     optionsStackedWidget->setCurrentIndex(id);
     optionsDockWidget->setVisible(true); //modify later
 }
+
+int MainWindow::addAttrWidget(QWidget* widget, void* key){
+    int id = attrStackedWidget->addWidget(widget);
+    _attrWidgetIDs[key] = id;
+    return id;
+}
+
+void MainWindow::setAttrWidget(void* key){
+
+    if (key==0 && (!attrDockWidget->isVisible() || !attrStackedWidget->isVisible()))
+        return;
+
+    int id = _attrWidgetIDs[key];
+    attrStackedWidget->setCurrentIndex(id);
+    attrDockWidget->setVisible(true); //modify later
+}
+
 
 void MainWindow::createActions()
 {
@@ -421,7 +449,7 @@ void MainWindow::newFile(){
 
 void MainWindow::flipDrag()
 {
-    //glWidget->flipMode();
+     glWidget->setRender(DRAGMODE_ON, dragAct->isChecked());
 }
 
 void MainWindow::unselectDrag()
@@ -444,12 +472,10 @@ void MainWindow::toggleShading(){
 
 void MainWindow::toggleAmbient(){
     glWidget->setRender(AMBIENT_ON, ambientOnAct->isChecked());
-    glWidget->updateGL();
 }
 
 void MainWindow::toggleShadow(){
     glWidget->setRender(SHADOWS_ON, shadowOnAct->isChecked());
-    glWidget->updateGL();
 }
 
 
@@ -504,7 +530,6 @@ void MainWindow::deleteShape(){
    glWidget->removeActive();
 }
 
-
 void MainWindow::insertEllipse(){
     glWidget->insertShape(new EllipseShape());
     glWidget->updateGL();
@@ -513,4 +538,3 @@ void MainWindow::insertEllipse(){
 void updateGLSLLight(double x, double y, double z){
     MainWindow::glWidget->updateGLSLLight(x,y,z);
 }
-

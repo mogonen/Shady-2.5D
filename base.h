@@ -225,7 +225,7 @@ class Session{
     SelectionManager*   _pSelectionMan;
     ShapeControl*       _pController;
 
-    static Session* _pSession;
+    static Session*     _pSession;
 
 public:
 
@@ -253,5 +253,6 @@ public:
 };
 
 struct ShapeVertex;
+bool isInRenderMode();
 
 #endif

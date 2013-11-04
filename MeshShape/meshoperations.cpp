@@ -1,5 +1,4 @@
 #include "meshshape.h"
-#include "../canvas.h"
 
 bool MeshShape::EXEC_ONCLICK = true;
 

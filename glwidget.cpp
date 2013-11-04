@@ -155,7 +155,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
     //send the click to the active shape
     int hit = selectGL(_lastP.x(), _lastP.y());
-    if (hit){
+   if (hit){
         Selectable_p pSel = select(hit, SelectBuff);
         if (is(DRAGMODE_ON) && pSel->type() == Renderable::SHAPE){
             activate((Shape_p)pSel);

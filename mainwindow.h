@@ -66,6 +66,9 @@ public:
     int  addOptionsWidget(QWidget* widget, int key);
     void setOptionsWidget(int);
 
+    int  addAttrWidget(QWidget* widget, void* key);
+    void setAttrWidget(void *);
+
     static void updateGL();
     static GLWidget        *glWidget;
 
@@ -120,7 +123,9 @@ private:
     void createAllOptionsWidgets();
 
     QStackedWidget  *optionsStackedWidget;
+    QStackedWidget  *attrStackedWidget;
     QDockWidget     *optionsDockWidget;
+    QDockWidget     *attrDockWidget;
 	
     QSize getSize();
 
@@ -148,40 +153,41 @@ private:
     //these are shape spesific actions
     //need to be moved somewhere else
 
-    QAction * patchesOnAct;
-    QAction * normalsOnAct;
-    QAction * shadingOnAct;
-    QAction * ambientOnAct;
-    QAction * shadowOnAct;
+    QAction *       patchesOnAct;
+    QAction *       normalsOnAct;
+    QAction *       shadingOnAct;
+    QAction *       ambientOnAct;
+    QAction *       shadowOnAct;
 
     //File Menu Actions
-    QAction * fileNewAct;
+    QAction *       fileNewAct;
 
 
     //Tools Menu Actions
-    QAction * dragAct;
-    QAction * extrudeEdgeAct;
-    QAction * extrudeFaceAct;
-    QAction * insertSegmentAct;
-    QAction * deleteFaceAct;
+    QAction *       dragAct;
+    QAction *       extrudeEdgeAct;
+    QAction *       extrudeFaceAct;
+    QAction *       insertSegmentAct;
+    QAction *       deleteFaceAct;
 
     //Shape Menu Actions
-    QAction * shapeInsertTorusAct;
-    QAction * shapeInsertEllipseAct;
-    QAction * shapeInsert2NGonAct;
-    QAction * shapeInsertSpineAct;
-    QAction * shapeInsertGridAct;
-    QAction * shapeInsertFacialAct;
-    QAction * shapeLockAct;
-    QAction * shapeMoveFrontAct;
-    QAction * shapeMoveBackAct;
-    QAction * shapeSendFrontAct;
-    QAction * shapeSendBackAct;
-    QAction * shapeParentAct;
-    QAction * shapeTransformAct;
-    QAction * shapeDeleteAct;
+    QAction *       shapeInsertTorusAct;
+    QAction *       shapeInsertEllipseAct;
+    QAction *       shapeInsert2NGonAct;
+    QAction *       shapeInsertSpineAct;
+    QAction *       shapeInsertGridAct;
+    QAction *       shapeInsertFacialAct;
+    QAction *       shapeLockAct;
+    QAction *       shapeMoveFrontAct;
+    QAction *       shapeMoveBackAct;
+    QAction *       shapeSendFrontAct;
+    QAction *       shapeSendBackAct;
+    QAction *       shapeParentAct;
+    QAction *       shapeTransformAct;
+    QAction *       shapeDeleteAct;
 
-    std::map<int, int> _optionWidgetIDs;
+    std::map<int, int>      _optionWidgetIDs;
+    std::map<void*, int>    _attrWidgetIDs;
 
     //need to improve this
     struct Options{

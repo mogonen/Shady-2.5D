@@ -14,7 +14,7 @@ bool Session::isRender(RenderSetting rs){
 
 void GLWidget::renderCanvas()
 {
-    if(is(SHADING_ON)||is(AMBIENT_ON)||is(SHADOWS_ON))
+    if(isInRenderMode() && (is(SHADING_ON)||is(AMBIENT_ON)||is(SHADOWS_ON)))
     {
         if (is(DRAGMODE_ON))
         {
@@ -69,7 +69,7 @@ void GLWidget::renderCanvas()
 
         _pGLSLShader->release();
 
-        glScalef(0.99,0.99,0.9);
+        //glScalef(0.99,0.99,0.9);
 
         glBegin(GL_LINE_LOOP);
         glVertex3f(-1.0,-1.0*aspect,0);
