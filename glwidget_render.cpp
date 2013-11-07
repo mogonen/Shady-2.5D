@@ -85,7 +85,7 @@ void GLWidget::renderCanvas()
         _pGLSLShader->release();
 
 
-        if (is(SHADING_ON) && is(DRAGMODE_ON))
+        if (is(DRAGMODE_ON) && (is(SHADING_ON) || is(PREVIEW_ON)))
         {
             _pCanvas->_lights[0]->renderNamed();
         }
