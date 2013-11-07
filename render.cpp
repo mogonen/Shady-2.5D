@@ -107,14 +107,15 @@ void ControlPoint::render() const {
     }
 }
 
-void Shape::renderAll() const
+void Shape::renderAll()
 {
     if(Session::isRender(DRAGMODE_ON) && this == theSHAPE)
        Session::get()->controller()->renderControls((Shape_p)this);
-    renderNamed(true);
+    glLoadName(name());
+    renderUpToDate();
 }
 
-void ShapeControl::renderControls(Shape_p shape) const{
+void ShapeControl::renderControls(Shape_p shape){
     if (_theHandler->isActive())
         return;
     //could not get pushname popname working!
@@ -199,6 +200,13 @@ void MeshShape::render() const {
 
     //too messy, fix it!
     if (isInRenderMode() || (IsSelectMode(FACE) || Session::isRender(DRAGMODE_ON) ) ){
+
+        qreal r, g, b;
+        diffuse.getRgbF(&r,&g,&b);
+
+        GLfloat mat_diff[]   = { (float)r, (float)g, (float)b, 1.0 };
+        glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diff);
+
         FaceList faces = _control->faces();
         FOR_ALL_CONST_ITEMS(FaceList, faces){
             render(*it);
@@ -349,20 +357,20 @@ void Patch4::render() const{
             }
 
 
-//            if (Canvas::MODE == Canvas::SHADED_M || Canvas::get()->is(SHADING_ON) ){
-//                glEnable(GL_LIGHTING);
-//                Point light0_p = Canvas::get()->lightPos(0);
-//                GLfloat light0_pf[] = { light0_p.x, light0_p.y, 5.0, 0.0 };
-//                glLightfv(GL_LIGHT0, GL_POSITION, light0_pf);
-//            }else
-//                glDisable(GL_LIGHTING);
+
+            if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON) ){
+                glEnable(GL_LIGHTING);
+                Point light0_p = Session::get()->canvas()->lightPos(0);
+                GLfloat light0_pf[] = { light0_p.x, light0_p.y, 5.0, 0.0 };
+                glLightfv(GL_LIGHT0, GL_POSITION, light0_pf);
+            }else
+                glDisable(GL_LIGHTING);
 
             glBegin(GL_POLYGON);
-            for(int k=0; k<4; k++){                
-//                if (Canvas::MODE == Canvas::SHADED_M || Canvas::get()->is(SHADING_ON))
-//                    glNormal3f(n[k].x, n[k].y, n[k].z );
-//                else
-
+            for(int k=0; k<4; k++){
+                if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON))
+                    glNormal3f(n[k].x, n[k].y, n[k].z );
+                else
                     glColor3f((n[k].x+1)/2, (n[k].y+1)/2, n[k].z );
                glVertex3f(p[k].x, p[k].y, 0);
                glTexCoord2d((p[k].x+1)/2, (p[k].y+1)/2);
@@ -429,20 +437,20 @@ void EllipseShape::render() const {
 
             }
 
-//            if (Canvas::get()->is(SHADING_ON) ){
-//                glEnable(GL_LIGHTING);
-//                Point light0_p = Canvas::get()->lightPos(0);
-//                GLfloat light0_pf[] = { light0_p.x, light0_p.y, 5.0, 0.0 };
-//                glLightfv(GL_LIGHT0, GL_POSITION, light0_pf);
-//            }else
-//                glDisable(GL_LIGHTING);
+            if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON) ){
+                glEnable(GL_LIGHTING);
+                Point light0_p = Session::get()->canvas()->lightPos(0);
+                GLfloat light0_pf[] = { light0_p.x, light0_p.y, 5.0, 0.0 };
+                glLightfv(GL_LIGHT0, GL_POSITION, light0_pf);
+            }else
+               glDisable(GL_LIGHTING);
 
 
             glBegin(GL_POLYGON);
             for(int k = 0; k < size; k++){
-//                if (Canvas::get()->is(SHADING_ON))
-//                    glNormal3f(n[k].x, n[k].y, n[k].z );
-//                else
+               if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON))
+                    glNormal3f(n[k].x, n[k].y, n[k].z );
+                else
                     glColor3f((n[k].x+1)/2, (n[k].y+1)/2, n[k].z );
                 glVertex2f(p[k].x, p[k].y);
                 glTexCoord2d((p[k].x+1)/2, (p[k].y+1)/2);

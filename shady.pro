@@ -20,12 +20,12 @@ HEADERS += glwidget.h \
     meshshape/spineshape.h \
     meshshape/meshshape.h \
     meshshape/meshdata.h \
-    meshshape/cMesh.h \
     shapecontrol.h \
     ellipseshape.h \
     Renderer/shaderprogram.h \
     Renderer/shaderparameters.h \
-    FacialShape/shadingcolorextractor.h
+    FacialShape/shadingcolorextractor.h \
+    meshshape/cmesh.h
 
 SOURCES += glwidget.cpp \
     main.cpp \
@@ -55,7 +55,8 @@ SOURCES += glwidget.cpp \
     FacialShape/shadingcolorextractor.cpp \
     glwidget_render.cpp \
     glwidget_canvas.cpp \
-    selection.cpp
+    selection.cpp \
+    session.cpp
 
 QT           += opengl widgets
 

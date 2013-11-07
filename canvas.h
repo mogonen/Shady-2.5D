@@ -1,11 +1,10 @@
 #ifndef __CANVAS_H__
 #define __CANVAS_H__
 
-#include <list>
-#include <hash_set>
+#include <Qlist>
+#include <Qhash>
 #include <algorithm>
 #include "Shape.h"
-#include "Renderer/shaderprogram.h"
 
 #define UNITZ 0.01
 #define MAX_LIGHTS 8

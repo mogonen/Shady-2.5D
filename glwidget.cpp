@@ -37,15 +37,14 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
+#include <gl/glu.h>
+//#include <math.h>
 #include "glwidget.h"
 #include <QMouseEvent>
 #include <QTimer>
-#include <gl/glu.h>
-#include <math.h>
 
 #include "canvas.h"
-#include "Renderer/shaderprogram.h"
+//#include "Renderer/shaderprogram.h"
 
 unsigned int    GLWidget::_renderFlags;
 
@@ -158,7 +157,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
    if (hit){
         Selectable_p pSel = select(hit, SelectBuff);
         if (is(DRAGMODE_ON) && pSel->type() == Renderable::SHAPE){
-            activate((Shape_p)pSel);
+            Session::get()->activate((Shape_p)pSel);
         }
         Session::get()->selectionMan()->startSelect(pSel, event->button() == Qt::LeftButton, event->modifiers() & Qt::ControlModifier);
     }
@@ -292,6 +291,5 @@ void GLWidget::updateGLSLLight(float x, float y, float z)
 {
     _pGLSLShader->bind();
     _pGLSLShader->setUniformValue("light_dir", -QVector3D(x, y, z));
-    //qDebug()<<light_pos.x;//, light_pos.y, light_pos.z);
     _pGLSLShader->release();
 }

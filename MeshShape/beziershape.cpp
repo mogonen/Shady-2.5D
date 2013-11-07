@@ -3,47 +3,83 @@
 #include "Patch.h"
 #include "MeshData.h"
 
+void  MeshShape::outdate(ShapeVertex_p sv){
+    if (sv->parent()){ //if tagent
+        Edge_p e = (Edge_p)(sv->pRef);
+        if (!e)
+            return;
+        e->pData->pCurve->update();
+        e->C0()->F()->pData->pSurface->outdate();
+        if (e->C1())
+            e->C1()->F()->pData->pSurface->outdate();
+
+    }else{//this is vertex
+        Vertex_p v = (Vertex_p)(sv->pRef);
+        if (!v)
+            return;
+        Corner_p c = v->C();
+        if (!c)
+            return;
+        Corner_p c0 = c;
+        while(c){
+            c->F()->pData->pSurface->outdate();
+            c->E()->pData->pCurve->outdate();
+            c = c->vNext();
+            if (c==c0)
+                break;
+        }
+
+        if (c == c0)
+            return;
+
+        Corner_p clast = c0;
+        c = c0->vPrev();
+
+        while(c){
+            c->F()->pData->pSurface->outdate();
+            c->E()->pData->pCurve->outdate();
+            clast = c;
+            c = c->vPrev();
+            if (c==c0)
+                break;
+        }
+
+        if (!c && clast)
+            clast->prev()->E()->pData->pCurve->outdate();
+
+    }
+}
+
 void MeshShape::onUpdate(){
 
     EdgeList edges = _control->edges();
-    FOR_ALL_CONST_ITEMS(EdgeList, edges){
+    FOR_ALL_ITEMS(EdgeList, edges){
         Edge_p e = (*it);
-
-        if (e->isBorder()){
-
-        }
-
         if (e->pData->pCurve)
             e->pData->pCurve->update();
-
     }
 
     FaceList faces = _control->faces();
-    FOR_ALL_CONST_ITEMS(FaceList, faces){
+    FOR_ALL_ITEMS(FaceList, faces){
         if ((*it)->pData->pSurface)
             (*it)->pData->pSurface->update();
     }
+}
 
-    Selectable_p sel = Session::get()->selectionMan()->getTheSelected();
+void MeshShape::onEnsureUpToDate(){
 
-    /*if (getController()->doesExist((ControlPoint_p)sel)){
-       //this is a control point
-        ControlPoint_p cp = (ControlPoint_p)sel;
+    EdgeList edges = _control->edges();
+    FOR_ALL_ITEMS(EdgeList, edges){
+        Edge_p e = (*it);
+        if (e->pData->pCurve)
+            e->pData->pCurve->ensureUpToDate();
+    }
 
-        Corner_p corn = cp->pV ? cp->pV->C() : ((ControlPoint_p)cp->parent())->pV->C();
-        Corner_p corn0 = corn;
-        while(corn){
-
-            corn->E()->curve->outdate();
-            corn->prev()->E()->curve->outdate();
-
-            corn->E()->curve->update();
-            corn->prev()->E()->curve->update();
-            corn = corn->vNext();
-            if (corn == corn0)
-                break
-        }
-    }*/
+    FaceList faces = _control->faces();
+    FOR_ALL_ITEMS(FaceList, faces){
+        if ((*it)->pData->pSurface)
+            (*it)->pData->pSurface->ensureUpToDate();
+    }
 }
 
 void MeshShape::makeSmoothTangents(){
@@ -92,11 +128,6 @@ Bezier* initCurve(Edge_p e){
     Vec2 tan0 = p1 - p0;
     Vec2 tan1 = p0 - p1;
 
-    /*if (MeshShape::isSMOOTH && e->isBorder()){
-        tan0 = p1 - (e->C0()->prev()->V()->pData->P);
-        tan1 = p0 - (e->C0()->next()->next()->V()->pData->P);
-    }*/
-
     MeshShape* shape = (MeshShape*) e->mesh()->caller();
 
     ShapeVertex_p sv0_t = shape->addVertex(p0 + tan0/3.0, v0->pData, true, false);
@@ -114,25 +145,6 @@ Bezier* initCurve(Edge_p e){
     c->insert(sv0_t->pP());
     c->insert(sv1_t->pP());
     c->insert(v1->pData->pP());
-
-    /*
-    if (MeshShape::isSMOOTH && e->isBorder()){
-
-        Edge_p e0 = e->C0()->prev()->E();
-        if ( e0 && e0->isBorder() && e0->pData->pCurve){
-            sv0_t->setPair(e0->pData->getTangentSV(e->C0()));
-            tan0 = tan0.normalize();
-            e->C0()->V()->pData->N.set( Vec3(0,0,1)%Vec3(tan0.x, tan0.y, 0));
-        }
-
-        Edge_p e1 = e->C0()->next()->E();
-        if ( e1 && e1->isBorder() && e1->pData->pCurve){
-            sv1_t->setPair(e1->pData->getTangentSV(e->C0()->next()));
-            tan1 = -tan1.normalize();
-            e->C0()->next()->V()->pData->N.set( Vec3(0,0,1)%Vec3(tan1.x, tan1.y, 0));
-        }
-    }*/
-
     c->pRef = (void*) e;
     return c;
 }
@@ -180,9 +192,4 @@ void MeshShape::onSplitEdge(Corner_p c, double t)
     curve1->pCV(isForward?1:2)->set(newCP[isForward?4:3]);
     curve1->pCV(isForward?2:1)->set(newCP[isForward?5:2]);
 
-
-    /*ControlNormal_p cpnorm = (ControlNormal_p)c->V()->pData->pCP->getChilds().front();
-    if (cpnorm){
-        cpnorm->pP()->set(c->V()->pData->P);
-    }*/
 }

@@ -25,8 +25,9 @@ class Shape;
 class GLWidget;
 class Canvas;
 class ShapeControl;
+class MainWindow;
 
-enum RenderSetting {DRAGMODE_ON, SHADING_ON, AMBIENT_ON, SHADOWS_ON, NORMALS_ON, WIREFRAME_ON};
+enum RenderSetting {DRAGMODE_ON, SHADING_ON, AMBIENT_ON, SHADOWS_ON, NORMALS_ON, WIREFRAME_ON, PREVIEW_ON};
 
 
 typedef void* Void_p;
@@ -54,6 +55,7 @@ protected:
 
     virtual void onOutdate(){}
     virtual void onUpdate(){}
+    virtual void onEnsureUpToDate(){}
     virtual void render() const = 0;
 
 public:
@@ -75,6 +77,7 @@ public:
     void ensureUpToDate(){
         if (!_upToDate)
             update();
+        onEnsureUpToDate();
     }
 
     void update(){
@@ -135,22 +138,22 @@ class SelectionManager{
 public:
     SelectionManager();
 
-    void            insert(Selectable_p pS);
-    void            remove(Selectable_p pS);
-    Selectable_p    get(int iname);
-    Selectable_p    getTheSelected(){return _theSelected;}
-    Selectable_p    getLastSelected(){return _lastSelected;}
-    SelectionSet    getSelection(){return _selection;}
-    int             selectionSize(){return _selection.size();}
+    void                insert(Selectable_p pS);
+    void                remove(Selectable_p pS);
+    Selectable_p        get(int iname);
+    Selectable_p        getTheSelected(){return _theSelected;}
+    Selectable_p        getLastSelected(){return _lastSelected;}
+    SelectionSet        getSelection(){return _selection;}
+    int                 selectionSize(){return _selection.size();}
 
-    bool            isInSelection(Selectable_p pS);
+    bool                isInSelection(Selectable_p pS);
 
-    void            startSelect(Selectable_p pObj, bool isselect, bool isMultiSelect);
-    void            stopSelect();
-    bool            dragTheSelected(const Vec2& t);
-    void            reset();
+    void                startSelect(Selectable_p pObj, bool isselect, bool isMultiSelect);
+    void                stopSelect();
+    bool                dragTheSelected(const Vec2& t);
+    void                reset();
 
-    bool            isSelect;
+    bool                isSelect;
 
 };
 
@@ -224,6 +227,7 @@ class Session{
     Canvas*             _pCanvas;
     SelectionManager*   _pSelectionMan;
     ShapeControl*       _pController;
+    MainWindow*         _pMainWindow;
 
     static Session*     _pSession;
 
@@ -233,6 +237,7 @@ public:
     Canvas*             canvas()   const {return _pCanvas;}
     SelectionManager*   selectionMan()  const {return _pSelectionMan;}
     ShapeControl*       controller()    const {return _pController;}
+    MainWindow*         mainWindow()    const {return _pMainWindow;}
 
     Shape*              theShape() const;
     void                activate(Shape*);
@@ -246,7 +251,7 @@ public:
     void                exec();
 
 
-    static void         init();
+    static void         init(MainWindow*);
 
     static Session*     get(){return _pSession;}
     static bool         isRender(RenderSetting rs);

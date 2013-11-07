@@ -203,8 +203,8 @@ const Vec3& getIntersection(Vec3 p0, Vec3 n0, Vec3 p1, Vec3 n1);
 double getIntersectionDist(Vec2 p1, Vec2 n1, Vec2 p0, Vec2 n0 );
 double getIntersectionDist(Vec3 p1, Vec3 n1, Vec3 p0, Vec3 n0 );
 
-inline static Vec3 mix(const Vec3& v0, const Vec3& v1, double t = 0.5){return v0*t + v1*(1-t);};
-inline static Vec4 mix(const Vec4& v0, const Vec4& v1, double t = 0.5){return v0*t + v1*(1-t);};
+inline static Vec3 mix(const Vec3& v0, const Vec3& v1, double t = 0.5){return v0*t + v1*(1-t);}
+inline static Vec4 mix(const Vec4& v0, const Vec4& v1, double t = 0.5){return v0*t + v1*(1-t);}
 
 #endif
 

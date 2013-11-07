@@ -13,6 +13,8 @@ MeshShape::MeshShape()
     _control->setCaller((void*)this);
 }
 
+
+
 void MeshShape::onClick(const Point & p, Click_e eClick){
 
     if (!EXEC_ONCLICK)

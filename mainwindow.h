@@ -67,6 +67,7 @@ public:
     void setOptionsWidget(int);
 
     int  addAttrWidget(QWidget* widget, void* key);
+    void removeAttrWidget(void*);
     void setAttrWidget(void *);
 
     static void updateGL();
@@ -75,8 +76,10 @@ public:
 private slots:
 
     void newFile();
-
     void about();
+
+    void viewOptions();
+    void viewAttr();
 
     void flipDrag();
     void unselectDrag();
@@ -91,6 +94,9 @@ private slots:
     void toggleShading();
     void toggleAmbient();
     void toggleShadow();
+    void togglePreview();
+    //void toggleShapeMap();
+
 
     void newGrid();
     void new2NGon();
@@ -120,7 +126,7 @@ private:
     void initTools();
 	
 	// for dockable widgets window
-    void createAllOptionsWidgets();
+    void             createAllOptionsWidgets();
 
     QStackedWidget  *optionsStackedWidget;
     QStackedWidget  *attrStackedWidget;
@@ -136,6 +142,7 @@ private:
     //Menu Pointers
     QMenu           *fileMenu;
     QMenu           *viewMenu;
+    QMenu           *displayMenu;
     QMenu           *shapeMenu;
     QMenu           *toolsMenu;
     QMenu           *selectMenu;
@@ -158,9 +165,15 @@ private:
     QAction *       shadingOnAct;
     QAction *       ambientOnAct;
     QAction *       shadowOnAct;
+    QAction *       previewOnAct;
+    //QAction *       shapemapOnAct;
 
     //File Menu Actions
     QAction *       fileNewAct;
+
+    //view
+    QAction *       viewOptionsAct;
+    QAction *       viewAttrAct;
 
 
     //Tools Menu Actions
@@ -185,6 +198,8 @@ private:
     QAction *       shapeParentAct;
     QAction *       shapeTransformAct;
     QAction *       shapeDeleteAct;
+
+    //QAction *       windowSh
 
     std::map<int, int>      _optionWidgetIDs;
     std::map<void*, int>    _attrWidgetIDs;

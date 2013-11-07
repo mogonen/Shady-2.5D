@@ -1,7 +1,7 @@
 #include "glwidget.h"
 #include "canvas.h"
 #include "shapecontrol.h"
-
+#include "Renderer/shaderprogram.h"
 GLuint tt;
 
 static bool          firstTime;
@@ -14,7 +14,7 @@ bool Session::isRender(RenderSetting rs){
 
 void GLWidget::renderCanvas()
 {
-    if(isInRenderMode() && (is(SHADING_ON)||is(AMBIENT_ON)||is(SHADOWS_ON)))
+    if(isInRenderMode() && (is(PREVIEW_ON)||is(AMBIENT_ON)||is(SHADOWS_ON)))
     {
         if (is(DRAGMODE_ON))
         {
@@ -40,7 +40,7 @@ void GLWidget::renderCanvas()
             }
             Shape_p pShape = _pCanvas->_shapes.front();
             ShaderParameters *sp;
-            sp = pShape->getShaderParam();
+            sp = pShape->shader();
             if(!sp)
             {
                 sp = pShape->initializeParam();

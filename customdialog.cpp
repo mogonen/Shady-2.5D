@@ -31,7 +31,7 @@ QColor ColorButton::getColor()
 
 void ColorButton::pickColor()
 {
-  QColor newColor = QColorDialog::getColor(color, this);
+  QColor newColor = QColorDialog::getColor(color);
   if(newColor.isValid())
   {
     color = newColor;
@@ -506,6 +506,8 @@ int CustomDialog::addColorSel(QString caption, QColor *color, QString tooltip)
   e.btnColor = new ColorButton(*color,this);
   if(!tooltip.isEmpty())
     e.btnColor->setToolTip(tooltip);
+
+  QObject::connect(e.btnColor, SIGNAL(released()), this, SLOT(itemChanged()));
 
   QSpacerItem *sp = new QSpacerItem(40,20,QSizePolicy::Expanding,QSizePolicy::Minimum);
   e.layout->addWidget(e.label);

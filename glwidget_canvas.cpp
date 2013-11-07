@@ -12,56 +12,10 @@ void Canvas::insert(Shape_p sp){
 }
 
 void Canvas::remove(Shape_p sp){
-//        m_GLSLShader->RemoveParamSet(sp->getShaderParam());
+//  m_GLSLShader->RemoveParamSet(sp->getShaderParam());
     _shapes.remove(sp);
     delete sp;
 }
-
-void Session::activate(Shape_p sp){
-    _pGlWidget->activate(sp);
-}
-
-Shape* Session::deactivate(){
-    return _pGlWidget->deactivate();
-}
-
-Shape* Session::theShape() const{
-    return _pGlWidget->activeShape();
-}
-
-void Session::insertShape(Shape* pShape, bool isactivate){
-    if (!pShape)
-        return;
-    _pCanvas->insert(pShape);
-    if (isactivate)
-        activate(pShape);
-    _pGlWidget->updateGL();
-}
-
-void Session::removeShape(Shape* pShape){
-    if (!pShape)
-        return;
-    if (pShape == _pGlWidget->activeShape())
-        _pGlWidget->deactivate();
-    _pCanvas->remove(pShape);
-    _pGlWidget->updateGL();
-}
-
-void Session::reset(){
-    _pCanvas->clear();
-    _pGlWidget->clear();
-}
-
-/*void Session::cancel(){
-    _pController->cancel();
-    _pGlWidget->deactivate();
-}
-
-void Session::cancel(){
-    _pController->cancel();
-    _pGlWidget->deactivate();
-}*/
-
 
 Shape_p Canvas::findPrev(Shape_p pShape){
     if (!_shapes.size())
@@ -214,6 +168,6 @@ void GLWidget::insertShape(Shape_p pShape){
         return;
 
     _pCanvas->insert(pShape);
-    activate(pShape);
+    Session::get()->activate(pShape);
     updateGL();
 }

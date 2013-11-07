@@ -17,6 +17,7 @@ protected:
     void render() const;
     void onClick(const Point &, Click_e);
     void onUpdate();
+    void onEnsureUpToDate();
     //void onOutdate();
 
 
@@ -32,6 +33,7 @@ public:
 
     MeshShape();
     Mesh_p                  mesh() const {return _control;}
+    void                    outdate(ShapeVertex_p sv);
 
     //primitives
     static MeshShape*       insertGrid(const Point& p, double len, int n, int m, MeshShape* pMS = 0);

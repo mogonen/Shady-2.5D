@@ -121,7 +121,7 @@ public:
     }
 
     void render() const {}
-    void renderControls(const Shape_p) const;
+    void renderControls(const Shape_p);
 
     void renderHandler() const{
         _theHandler->render();

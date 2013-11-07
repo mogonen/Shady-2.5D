@@ -49,29 +49,12 @@
 
 double              EllipseShape::Radius = 0.1;
 ControlPoint_p      ControlPoint::_pTheActive = 0;
-Session*            Session::_pSession = 0;
 
-GLWidget* MainWindow::glWidget = 0;
-
-void MainWindow::updateGL(){
-    if (glWidget)
-        glWidget->updateGL();
-}
-
-void Session::init(){
-    _pSession = new Session();
-    _pSession->_pSelectionMan   = new SelectionManager();
-    _pSession->_pController     = new ShapeControl();
-    _pSession->_pCanvas         = new Canvas();
-    _pSession->_pGlWidget       = new GLWidget(_pSession->_pCanvas);
-
-    Patch::setN(8);
-}
 
 MainWindow::MainWindow()
 {
 
-    Session::init();
+    Session::init(this);
 
     centralWidget = new QWidget;
     setCentralWidget(centralWidget);
@@ -100,6 +83,8 @@ MainWindow::MainWindow()
     centralWidget->setLayout(centralLayout);
     setWindowTitle(tr("Shady"));
     resize(1200, 900);
+
+    Patch::setN(16);
 
 }
 
@@ -133,10 +118,8 @@ void MainWindow::initTools()
 
     //init tool options dock
     optionsDockWidget = new QDockWidget(QString("Options"), this);
-    optionsDockWidget->setVisible(false);
 
     attrDockWidget = new QDockWidget(QString("Attributes"), this);
-    attrDockWidget->setVisible(false);
 
     this->addDockWidget(Qt::LeftDockWidgetArea, optionsDockWidget);
     this->addDockWidget(Qt::LeftDockWidgetArea, attrDockWidget);
@@ -144,25 +127,22 @@ void MainWindow::initTools()
     optionsStackedWidget = new QStackedWidget(optionsDockWidget);
     QVBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(optionsStackedWidget);
+    optionsStackedWidget->setVisible(true);
 
     attrStackedWidget = new QStackedWidget(attrDockWidget);
     layout->addWidget(attrStackedWidget);
+    attrStackedWidget->setVisible(true);
 
     optionsDockWidget->setWidget(optionsStackedWidget);
     optionsDockWidget->setLayout(layout);
-    optionsDockWidget->setVisible(false);
+    optionsDockWidget->setVisible(true);
 
     attrDockWidget->setWidget(attrStackedWidget);
     attrDockWidget->setLayout(layout);
-    attrDockWidget->setVisible(false);
+    attrDockWidget->setVisible(true);
 
+    addAttrWidget(new QWidget, 0);//default widget
     createAllOptionsWidgets();
-}
-
-
-void MainWindow::about()
-{
-    QMessageBox::about(this, tr("About Shady"), tr("<b>Shady</b> is an application in progress that implements theoretical framework developed atTexas A&M University for rendering 2D shapes as if they are part of 3D scene."));
 }
 
 int MainWindow::addOptionsWidget(QWidget* widget,int key){
@@ -189,12 +169,32 @@ int MainWindow::addAttrWidget(QWidget* widget, void* key){
 
 void MainWindow::setAttrWidget(void* key){
 
-    if (key==0 && (!attrDockWidget->isVisible() || !attrStackedWidget->isVisible()))
+    if (!attrDockWidget->isVisible() || !attrStackedWidget->isVisible())
         return;
 
-    int id = _attrWidgetIDs[key];
+    map<void*, int>::const_iterator it = _attrWidgetIDs.find(key);
+    if (it == _attrWidgetIDs.end()){
+        attrStackedWidget->setCurrentIndex(0);
+        return;
+    }
+    int id = it->second;
     attrStackedWidget->setCurrentIndex(id);
     attrDockWidget->setVisible(true); //modify later
+}
+
+void MainWindow::removeAttrWidget(void* key){
+
+    if (key==0)
+        return;
+
+    map<void*, int>::const_iterator it = _attrWidgetIDs.find(key);
+    if (it == _attrWidgetIDs.end())
+        return;
+
+    int id = it->second;
+    QWidget* widget = attrStackedWidget->find(id);
+    attrStackedWidget->removeWidget(widget);
+    delete widget;
 }
 
 
@@ -212,6 +212,15 @@ void MainWindow::createActions()
     aboutAct = new QAction(tr("&About"), this);
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
+    //view
+    viewOptionsAct =  new QAction(tr("Show Options"), this);
+    connect(viewOptionsAct, SIGNAL(triggered()), this, SLOT(viewOptions()));
+
+    viewAttrAct =  new QAction(tr("Show Attributes"), this);
+    connect(viewAttrAct, SIGNAL(triggered()), this, SLOT(viewAttr()));
+
+
+
     dragAct = new QAction(tr("Drag"), this);
     dragAct->setShortcut(Qt::Key_Space);
     connect(dragAct, SIGNAL(triggered()), this, SLOT(flipDrag()));
@@ -221,6 +230,11 @@ void MainWindow::createActions()
     shadingOnAct->setShortcut('S');
     shadingOnAct->setCheckable(true);
     connect(shadingOnAct, SIGNAL(triggered()), this, SLOT(toggleShading()));
+
+    previewOnAct = new QAction(tr("Preview On"), this);
+    previewOnAct->setShortcut('R');
+    previewOnAct->setCheckable(true);
+    connect(previewOnAct, SIGNAL(triggered()), this, SLOT(togglePreview()));
 
     ambientOnAct = new QAction(tr("&Ambient On"), this);
     ambientOnAct->setShortcut('A');
@@ -337,12 +351,17 @@ void MainWindow::createMenus()
     fileMenu->addSeparator();
     fileMenu->addAction(exitAct);
 
-    viewMenu  = menuBar()->addMenu(tr("Display"));
-    viewMenu->addAction(normalsOnAct);
-    viewMenu->addAction(patchesOnAct);
-    viewMenu->addAction(shadingOnAct);
-    viewMenu->addAction(ambientOnAct);
-    viewMenu->addAction(shadowOnAct);
+    viewMenu  = menuBar()->addMenu(tr("View"));
+    viewMenu->addAction(viewOptionsAct);
+    viewMenu->addAction(viewAttrAct);
+
+    displayMenu  = menuBar()->addMenu(tr("Display"));
+    displayMenu->addAction(normalsOnAct);
+    displayMenu->addAction(patchesOnAct);
+    displayMenu->addAction(shadingOnAct);
+    displayMenu->addAction(ambientOnAct);
+    displayMenu->addAction(shadowOnAct);
+    displayMenu->addAction(previewOnAct);
 
     insertMenu = menuBar()->addMenu("Create");
     insertMenu->addAction(shapeInsertEllipseAct);
@@ -443,8 +462,29 @@ void MainWindow::keyPressEvent(QKeyEvent *event){
     glWidget->updateGL();
 }
 
+//slots
+
 void MainWindow::newFile(){
     Session::get()->reset();
+}
+
+void MainWindow::viewAttr(){
+    bool ison = true; //= viewAttrAct->isChecked();
+    attrDockWidget->setVisible(ison);
+    attrStackedWidget->setVisible(ison);
+    if (ison)
+        setAttrWidget((void*)Session::get()->theShape());
+}
+
+void MainWindow::viewOptions(){
+    bool ison = true; //viewOptionsAct->isChecked();
+    optionsDockWidget->setVisible(ison);
+    optionsStackedWidget->setVisible(ison);
+}
+
+void MainWindow::about()
+{
+    QMessageBox::about(this, tr("About Shady"), tr("<b>Shady</b> is an application in progress that implements theoretical framework developed atTexas A&M University for rendering 2D shapes as if they are part of 3D scene."));
 }
 
 void MainWindow::flipDrag()
@@ -478,6 +518,9 @@ void MainWindow::toggleShadow(){
     glWidget->setRender(SHADOWS_ON, shadowOnAct->isChecked());
 }
 
+void MainWindow::togglePreview(){
+    glWidget->setRender(PREVIEW_ON, previewOnAct->isChecked());
+}
 
 void MainWindow::toggleLockShape(){
     Shape_p shape = Session::get()->theShape();

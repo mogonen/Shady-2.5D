@@ -15,6 +15,7 @@
 #define SV_ID_BIT 16
 
 class Shape;
+class Shader;
 typedef Shape*                          Shape_p;
 typedef std::list<Shape_p>              ShapeList;
 
@@ -70,7 +71,7 @@ struct ShapeVertex {
     inline SVList        getChilds()    const {return _childs;}
 
 
-    void update();
+    void                 outdate();
     static ShapeVertex_p get(int id);
 
 private:
@@ -99,8 +100,8 @@ class Shape:public Draggable{
 
     unsigned int            _flags;
     SVList                  _vertices;
+    //Shader*                 _pShader;
     ShaderParameters*       _shaderParam;
-
 protected:
 
     virtual void onDrag(const Vec2&){}
@@ -113,7 +114,7 @@ public:
 
     Shape();
     virtual ~Shape();
-    void                renderAll() const;
+    void                renderAll();
 
     //Vertex Handling
     ShapeVertex_p       addVertex();
@@ -121,7 +122,7 @@ public:
     void                removeVertex(ShapeVertex_p sv);
     void                removeVertex(Point_p pP);
     SVList              getVertices() const {return _vertices;}
-    void                update(ShapeVertex_p sv);
+    virtual void        outdate(ShapeVertex_p sv){ Renderable::outdate(); }
 
 	//send generic command to the shape
     enum    Command_e {};
@@ -148,7 +149,7 @@ public:
     void                unset(unsigned int bit){_flags &= ~(1 << bit);}
 
     //Shader related funcs
-    ShaderParameters*    getShaderParam() {return _shaderParam;}
+    ShaderParameters* shader() const {return _shaderParam;}
     ShaderParameters* initializeParam(){
         if(_shaderParam)
             delete _shaderParam;
@@ -171,6 +172,9 @@ public:
 	//save&load
     virtual int         load(std::ifstream&){return -1;}
     virtual int         save(std::ofstream&){return -1;}
+
+    //for now
+    QColor diffuse;
 
 };
 

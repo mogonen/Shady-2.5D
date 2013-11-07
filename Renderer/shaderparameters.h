@@ -5,11 +5,15 @@
 #include <QGLFunctions>
 #include "shaderprogram.h"
 
+//typedef Vec4 RGBA;
+//typedef Vec3 RGB;
+
 class ShaderProgram;
 
 class ShaderParameters : public QGLFunctions
 {
 public:
+
     ShaderParameters();
     ~ShaderParameters();
 

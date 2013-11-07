@@ -69,6 +69,7 @@ ShapeVertex::~ShapeVertex(){
 
 void ShapeVertex::drag(const Vec2 &t, bool isNormal){
 
+    _pShape->outdate(this);
     if (isNormal){
 
         Vec2 v = (Vec2(N.x*NORMAL_RAD, N.y*NORMAL_RAD) + t);
@@ -81,7 +82,6 @@ void ShapeVertex::drag(const Vec2 &t, bool isNormal){
         if (h < 0)
             h = 0;
         N.set(Vec3(v.x, v.y, h).normalize());
-        _pShape->update(this);
         return;
     }
 
@@ -101,14 +101,14 @@ void ShapeVertex::drag(const Vec2 &t, bool isNormal){
        Vec2 n2d_1 = tan*(tan0*n2d) + y_ax1*(y_ax0*n2d);
        Vec3 n3d(n2d_1.x, n2d_1.y, _parent->N.z);
        _parent->N = n3d.normalize();
+       _pShape->outdate(_pair);
     }
 
     if (hasChilds()){
-        FOR_ALL_CONST_ITEMS(SVList, _childs)
+        FOR_ALL_CONST_ITEMS(SVList, _childs){
             (*it)->P = (*it)->P + t;
+        }
     }
-
-    _pShape->update(this);
 }
 
 void   ShapeVertex::setTangent(const Vec2& tan, bool isnormal, bool ispair){
@@ -132,13 +132,13 @@ Vec2 ShapeVertex::getTangent(){
 }
 
 
-
 //Shape////////////////////////////////////////////////////////////////////////////////////
 
 Shape::Shape():Draggable(Renderable::SHAPE, &_t0){
     _shaderParam = NULL;
     _flags = 0;
     _tM.identity();
+    diffuse.setRed(255);
 }
 
 Shape::~Shape(){
@@ -179,10 +179,6 @@ void Shape::removeVertex(Point_p pP){
         _vertices.erase(it);
         delete sv;
     }
-}
-
-void Shape::update(ShapeVertex_p sv){
-    Renderable::update();
 }
 
 Point Shape::gT(){

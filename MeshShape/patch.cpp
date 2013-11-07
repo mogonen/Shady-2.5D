@@ -1,5 +1,6 @@
 #include "Patch.h"
 #include "../curve.h"
+#include <QDebug>
 
 int     Patch::N;
 int     Patch::Ni;

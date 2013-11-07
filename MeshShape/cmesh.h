@@ -74,12 +74,12 @@ public:
 
     Vertex_p addVertex(VertexData* pData=0);
 
-    Face_p addFace(int);
-    Face_p addQuad(Vertex_p, Vertex_p, Vertex_p, Vertex_p); //strickly clock-wise
-    Face_p addTriangle(Vertex_p, Vertex_p, Vertex_p);
-    Edge_p addEdge(Corner_p c0, Corner_p c1=0);
-    Edge_p insertEdge(Corner_p, Corner_p, bool updatefaces = true);
-    Corner_p splitEdge(Edge_p, Vertex_p vP = 0, Face_p f = 0);
+    Face_p      addFace(int);
+    Face_p      addQuad(Vertex_p, Vertex_p, Vertex_p, Vertex_p); //strickly clock-wise
+    Face_p      addTriangle(Vertex_p, Vertex_p, Vertex_p);
+    Edge_p      addEdge(Corner_p c0, Corner_p c1=0);
+    Edge_p      insertEdge(Corner_p, Corner_p, bool updatefaces = true);
+    Corner_p    splitEdge(Edge_p, Vertex_p vP = 0, Face_p f = 0);
 
     void remove(Face_p f, bool lazydel = false);
     void remove(Edge_p e, bool lazydel = false);

@@ -7,6 +7,13 @@
 //#include "FacialShape/facialshape.h"
 #endif
 
+QWidget* createAttrWidget(Shape_p pShape){
+    CustomDialog * widget = new CustomDialog("Shape Attr");
+    //widget->addSpinBox("test:", 1, 8, &MeshShape::GRID_N, 1, "Rows");
+    widget->addColorSel("Diffuse:",&pShape->diffuse,"" );
+    return widget;
+}
+
 void executeMeshShapeOperations(){
     SelectionSet selects = Session::get()->selectionMan()->getSelection();
     FOR_ALL_ITEMS(SelectionSet, selects){
@@ -17,16 +24,19 @@ void executeMeshShapeOperations(){
 
 void createGrid(){
     MeshShape* pMS =MeshShape::insertGrid(Point(), MeshShape::GRID_LEN, MeshShape::GRID_M, MeshShape::GRID_N);
+    Session::get()->mainWindow()->addAttrWidget(createAttrWidget((Shape_p)pMS), (void*)pMS);
     Session::get()->glWidget()->insertShape(pMS);
 }
 
 void createNGon(){
     MeshShape* pMS = MeshShape::insertNGon(Point(), MeshShape::NGON_N, MeshShape::NGON_SEG_V, MeshShape::NGON_RAD);
+    Session::get()->mainWindow()->addAttrWidget(createAttrWidget((Shape_p)pMS), (void*)pMS);
     Session::get()->glWidget()->insertShape(pMS);
 }
 
 void createTorus(){
     MeshShape* pMS = MeshShape::insertTorus(Point(), MeshShape::TORUS_N, MeshShape::TORUS_RAD);
+    Session::get()->mainWindow()->addAttrWidget(createAttrWidget((Shape_p)pMS), (void*)pMS);
     Session::get()->glWidget()->insertShape(pMS);
 }
 
@@ -35,7 +45,9 @@ void createSpine(){
     SpineShape* spine = dynamic_cast<SpineShape*>(shape);
     if (spine==0)
         return;
-    Session::get()->glWidget()->insertShape(spine->buildMeshShape());;
+    Shape_p pMS = spine->buildMeshShape();
+    Session::get()->mainWindow()->addAttrWidget(createAttrWidget(pMS), (void*)pMS);
+    Session::get()->glWidget()->insertShape(pMS);;
 }
 
 
