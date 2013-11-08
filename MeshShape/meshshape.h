@@ -80,6 +80,7 @@ private:
 
     //helper functions
     void                    onSplitEdge(Corner_p, double t);
+    void                    adjustInsertedSegmentTangents(Corner_p);
 
 };
 

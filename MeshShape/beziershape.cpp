@@ -168,28 +168,48 @@ void MeshShape::onSplitEdge(Corner_p c, double t)
     if (c->other())
         c->other()->F()->Face::update(true);
 
+    //clean up
     Edge_p e0 = c->prev()->E();
-    Bezier* curve0 = e0->pData->pCurve;
-
-    bool isForward = (c->prev()->V()->pData->pP() == curve0->pCV(0));
-
-
-    Point newCP[7];
-    curve0->calculateDivideCV(t, newCP);
-    c->V()->pData->adopt(e0->pData->pSV[isForward?2:1]);
+    ShapeVertex_p svtan = e0->pData->pSV[2];
+    c->V()->pData->adopt(e0->pData->pSV[2]);
+    if (svtan->pair()){
+        svtan->pair()->setPair(c->E()->pData->pSV[2]);
+    }
 
     //parenting fixed
     //now adjust control p's
+    Bezier* curve0 = e0->pData->pCurve;
 
-    curve0->set(c->V()->pData->pP(), isForward?3:0);
+    Point newCP[7];
+    curve0->calculateDivideCV(t, newCP);
 
-    curve0->pCV(isForward?1:2)->set(newCP[isForward?1:6]);
-    curve0->pCV(isForward?2:1)->set(newCP[isForward?2:5]);
-    curve0->pCV(isForward?3:0)->set(newCP[isForward?3:4]);
+    curve0->set(c->V()->pData->pP(), 3);
+
+    curve0->pCV(1)->set(newCP[1]);
+    curve0->pCV(2)->set(newCP[2]);
+    curve0->pCV(3)->set(newCP[3]);
 
     Bezier* curve1 = c->E()->pData->pCurve;
 
-    curve1->pCV(isForward?1:2)->set(newCP[isForward?4:3]);
-    curve1->pCV(isForward?2:1)->set(newCP[isForward?5:2]);
+    curve1->pCV(1)->set(newCP[4]);
+    curve1->pCV(2)->set(newCP[5]);
+
+}
+
+void MeshShape::adjustInsertedSegmentTangents(Corner_p pC){
+    double t = 0.5;
+    Corner_p vnext = pC->vNext();
+    ShapeVertex_p tanU = vnext->E()->pData->getTangentSV(vnext);
+    ShapeVertex_p tanD = pC->prev()->E()->pData->getTangentSV(pC);
+
+    ShapeVertex_p tanRD = pC->next()->E()->pData->getTangentSV(pC->next());
+    ShapeVertex_p tanLD = pC->vPrev() ->E()->pData->getTangentSV(pC->next());
+
+    tanD->P = tanLD->P*(1-t) + tanRD->P*t;
+
+    ShapeVertex_p tanRU = vnext->prev()->prev()->E()->pData->getTangentSV(vnext->prev());
+    Corner_p cLU = vnext->vNext()->next();
+    ShapeVertex_p tanLU = cLU->E()->pData->getTangentSV(cLU);
+    tanU->P = tanRU->P*(1-t) + tanLU->P*t;
 
 }
