@@ -60,7 +60,7 @@ void MeshShape::insertSegment(Edge_p e, const Point & p){
 
     Mesh_p pMesh = e->mesh();
 
-    //list<Corner_p> clist;
+    list<Corner_p> clist;
 
     double t = 0.5;
     Corner* c0 = pMesh->splitEdge(e, addMeshVertex());
@@ -75,7 +75,7 @@ void MeshShape::insertSegment(Edge_p e, const Point & p){
         onSplitEdge(c01, (1-t));
         Corner* c0n = c01->vNext();
         pMesh->insertEdge(c0, c01);
-        //clist.push_back(c0);
+        clist.push_back(c0);
         c0 = c0n;
     }
 
@@ -86,9 +86,12 @@ void MeshShape::insertSegment(Edge_p e, const Point & p){
         onSplitEdge(c11, 1-t);
         Corner* c1n = c11->vNext();
         pMesh->insertEdge(c1, c11);
-        //clist.push_back(c1);
+        clist.push_back(c1);
         c1 = c1n;
     }
+
+    /*FOR_ALL_ITEMS(list<Corner_p>, clist)
+            adjustInsertedSegmentTangents(*it);
 
     /*if (MeshShape::isSMOOTH){
         FOR_ALL_ITEMS(list<Corner_p>, clist){

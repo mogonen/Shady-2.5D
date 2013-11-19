@@ -147,6 +147,8 @@ void ShapeControl::renderControls(Shape_p shape){
         glLoadName(svname);
         glBegin(GL_POINTS);
         glColor3f(1.0, 1.0, 1.0);
+        if(sv->flag ==1)
+            glColor3f(1.0, 1.0, 0);
         glVertex3f(sv->P.x, sv->P.y, 0);
         glEnd();
 
@@ -361,7 +363,7 @@ void Patch4::render() const{
             if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON) ){
                 glEnable(GL_LIGHTING);
                 Point light0_p = Session::get()->canvas()->lightPos(0);
-                GLfloat light0_pf[] = { light0_p.x, light0_p.y, 5.0, 0.0 };
+                GLfloat light0_pf[] = { light0_p.x, light0_p.y, 1.0, 0.0 };
                 glLightfv(GL_LIGHT0, GL_POSITION, light0_pf);
             }else
                 glDisable(GL_LIGHTING);
@@ -440,7 +442,7 @@ void EllipseShape::render() const {
             if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON) ){
                 glEnable(GL_LIGHTING);
                 Point light0_p = Session::get()->canvas()->lightPos(0);
-                GLfloat light0_pf[] = { light0_p.x, light0_p.y, 5.0, 0.0 };
+                GLfloat light0_pf[] = { light0_p.x, light0_p.y, 1.0, 0.0 };
                 glLightfv(GL_LIGHT0, GL_POSITION, light0_pf);
             }else
                glDisable(GL_LIGHTING);
