@@ -84,6 +84,7 @@ MainWindow::MainWindow()
     setWindowTitle(tr("Shady"));
     resize(1200, 900);
 
+    // set the number of patch lines
     Patch::setN(16);
 
 }
