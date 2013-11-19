@@ -30,8 +30,6 @@ void ShapeVertex::setPair(ShapeVertex_p sv,bool isSetTangent,  bool isSetNormal)
     if (sv->_pair)
         sv->_pair->_pair = 0; //unpair
     sv->_pair = this;
-    if (_pair)
-        _pair->_pair = 0;//unpair
     _pair = sv;
 
     Vec2 tan = (P - _pair->P);

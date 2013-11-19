@@ -14,7 +14,7 @@ void updateGLSLLight(double, double, double);
 typedef class Light:public Draggable
 {
     Point _p0;
-
+    float _z;
 protected:
 
     void onDrag(const Vec2& t){
@@ -28,7 +28,7 @@ public:
         _p0.set(x,y);
         _z = z;
     }
-    float _z;
+
     void render() const;
 
 } * Light_p;
