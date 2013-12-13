@@ -54,8 +54,8 @@ Patch4::Patch4(Face_p pF):Patch(pF){
 }
 
 Vec3 Patch4::interpolateN(int i, int j){
-    double t = isH? H(i*1.0 / Ni) : (i*1.0 / Ni);
-    double s = isH? H(j*1.0 / Ni) : (j*1.0 / Ni);
+    double t = H(i*1.0 / Ni);
+    double s = H(j*1.0 / Ni);
     Vec3 n0 = _ns[i]*(1.0-s) + _ns[i + Ni*N]*s;
     n0 = n0 + _ns[0 + j*N]*(1.0 - t) + _ns[Ni + j*N]*t;
     n0 = n0 - _ns[0]*(1-s)*(1.0-t) - _ns[Ni]*(1-s)*t - _ns[Ni + Ni*N]*s*t - _ns[Ni*N]*s*(1-t);
@@ -77,9 +77,9 @@ void Patch4::onUpdate(){
     _K[4] = K(3,1);
     _K[8] = K(3,2);
 
-    _K[5]  = _K[1] + _K[4] - _K[0];
-    _K[6] = _K[2] + _K[7] - _K[3];
-    _K[9] = _K[13] + _K[8] - _K[12];
+    _K[5]  = _K[1]  + _K[4]  - _K[0];
+    _K[6]  = _K[2]  + _K[7]  - _K[3];
+    _K[9]  = _K[13] + _K[8]  - _K[12];
     _K[10] = _K[11] + _K[14] - _K[15];
 
     //bezier surface interpolation
