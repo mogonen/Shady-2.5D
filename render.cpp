@@ -373,6 +373,7 @@ void Patch4::render(int mode){
                     glEnd();
                 }
 
+                // Set the color of the patches
                 glColor3f(1.0,1.0,1.0);
                 glLineWidth(0.5);
                 glBegin(GL_LINE_LOOP);

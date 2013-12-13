@@ -48,8 +48,8 @@
 #include "shapecontrol.h"
 #include "Renderer/renderoptionspenal.h"
 
-double              EllipseShape::Radius = 0.1;
-ControlPoint_p      ControlPoint::_pTheActive = 0;
+double                  EllipseShape::Radius = 0.1;
+ControlPoint_p          ControlPoint::_pTheActive = 0;
 
 
 MainWindow::MainWindow()
@@ -85,6 +85,7 @@ MainWindow::MainWindow()
     setWindowTitle(tr("Shady"));
     resize(1200, 900);
 
+    // set the number of patch lines
     Patch::setN(16);
 }
 
@@ -127,6 +128,7 @@ void MainWindow::initTools()
     rendererDockWidget->setWidget(new RenderOptionsPenal(this, glWidget));
 
 
+//<<<<<<< HEAD
 
     optionsStackedWidget = new QStackedWidget();
 //    QVBoxLayout *layout = new QVBoxLayout;
@@ -136,12 +138,29 @@ void MainWindow::initTools()
     attrStackedWidget = new QStackedWidget();
 //    layout->addWidget(attrStackedWidget);
 //    attrStackedWidget->setVisible(true);
+//=======
+//    optionsStackedWidget = new QStackedWidget(optionsDockWidget);
+//    QGridLayout *layout = new QGridLayout;
+//    layout->addWidget(optionsStackedWidget,0,0,1,1,Qt::AlignTop);
+//    layout->addWidget(0,1,0,1,1,Qt::AlignTop);
+//    layout->setRowStretch(1,1);
+//    optionsStackedWidget->setVisible(true);
+
+//    attrStackedWidget = new QStackedWidget(attrDockWidget);
+//    QVBoxLayout *layout2 = new QVBoxLayout;
+//    layout2->addWidget(attrStackedWidget);
+//    layout2->addStretch(0);
+//    attrStackedWidget->setVisible(true);
+//>>>>>>> cf2484ca3603326ba548c6882ec97d8c814f9ca7
+
+
 
     optionsDockWidget->setWidget(optionsStackedWidget);
 //    optionsDockWidget->setLayout(layout);
 //    optionsDockWidget->setVisible(true);
 
     attrDockWidget->setWidget(attrStackedWidget);
+//<<<<<<< HEAD
 //    attrDockWidget->setLayout(layout);
 //    attrDockWidget->setVisible(true);
 
@@ -149,6 +168,10 @@ void MainWindow::initTools()
     this->addDockWidget(Qt::LeftDockWidgetArea, attrDockWidget);
     this->addDockWidget(Qt::LeftDockWidgetArea, rendererDockWidget);
     this->setDockOptions(!QMainWindow::AllowTabbedDocks);
+//=======
+//    attrDockWidget->setLayout(layout2);
+//    attrDockWidget->setVisible(true);
+//>>>>>>> cf2484ca3603326ba548c6882ec97d8c814f9ca7
 
     addAttrWidget(new QWidget, 0);//default widget
     createAllOptionsWidgets();
@@ -468,6 +491,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event){
     bool ctrl = (event->modifiers() & Qt::ControlModifier);
 
     int key = event->key();
+
+    if (key == Qt::Key_H)
+    {
+        Patch::flipH();
+    }
 
     if (key == Qt::Key_Escape){
         Session::get()->controller()->cancel();

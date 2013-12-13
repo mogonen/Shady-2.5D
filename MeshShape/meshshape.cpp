@@ -1,10 +1,6 @@
 #include "meshshape.h"
 #include "../curve.h"
 
-double MeshShape::EXTRUDE_T = 0.25;
-MeshShape::OPERATION_e MeshShape::_OPMODE = MeshShape::EXTRUDE_EDGE;
-bool MeshShape::isSMOOTH = true;
-
 MeshShape::MeshShape()
 {
     _control = new Mesh();
@@ -12,8 +8,6 @@ MeshShape::MeshShape()
     _control->setAddFaceCB(onAddFace);
     _control->setCaller((void*)this);
 }
-
-
 
 void MeshShape::onClick(const Point & p, Click_e eClick){
 
@@ -34,8 +28,6 @@ void MeshShape::onClick(const Point & p, Click_e eClick){
 void MeshShape::setOPMODE(OPERATION_e eMode){
     _OPMODE = eMode;
 }
-
-
 
 Vertex_p MeshShape::addMeshVertex(){
     ShapeVertex_p sv = addVertex();

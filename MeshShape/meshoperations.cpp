@@ -1,6 +1,12 @@
 #include "meshshape.h"
 
+double MeshShape::EXTRUDE_T = 0.25;
+MeshShape::OPERATION_e MeshShape::_OPMODE = MeshShape::EXTRUDE_EDGE;
+bool MeshShape::isSMOOTH = true;
+bool MeshShape::isKEEP_TOGETHER = false;
 bool MeshShape::EXEC_ONCLICK = true;
+
+std::map<Vertex_p, Corner_p> vertexToCornerMap;
 
 //all operations on meshshape needs to be made static to allow operation on all layers
 void MeshShape::execOP(const Point &p, Selectable_p obj){
@@ -31,7 +37,7 @@ void MeshShape::execOP(const Point &p, Selectable_p obj){
         break;
 
         case MeshShape::EXTRUDE_EDGE:
-                pMS->extrude(pE, EXTRUDE_T);
+                pMS->extrude(pE, EXTRUDE_T, isKEEP_TOGETHER?&vertexToCornerMap:0);
         break;
 
         case MeshShape::INSERT_SEGMENT:
@@ -51,6 +57,14 @@ void MeshShape::execOP(const Point &p, Selectable_p obj){
     if (_OPMODE != MeshShape::DELETE_FACE)
         pMS->Renderable::update();
 
+}
+
+void MeshShape::executeStackOperation(){
+    vertexToCornerMap.clear();
+    SelectionSet selects = Session::get()->selectionMan()->getSelection();
+    FOR_ALL_ITEMS(SelectionSet, selects){
+        MeshShape::execOP(Point(),*it);
+    }
 }
 
 void MeshShape::insertSegment(Edge_p e, const Point & p){
@@ -170,19 +184,54 @@ Face_p MeshShape::extrude(Face_p f0, double t){
     return f1;
 }
 
-Edge_p MeshShape::extrude(Edge_p e0, double t){
+Edge_p MeshShape::extrude(Edge_p e0, double t, VertexMap *pVMap){
 
     if (!e0 || !e0->isBorder())
         return 0;
 
     Mesh_p pMesh = e0->mesh();
+    MeshShape* pMS = (MeshShape*)pMesh->caller();
 
     Face_p f = pMesh->addFace(4);
 
     //set verts
     Vec2 n = ( Vec3(0,0,1) % Vec3(P1(e0) - P0(e0)) ).normalize()*t;
-    Vertex_p v0 = addMeshVertex(P0(e0)+n);
-    Vertex_p v1 = addMeshVertex(P1(e0)+n);
+
+    Vertex_p v0 = 0;
+    Vertex_p v1 = 0;
+
+    Edge_p e1 = 0;
+    Edge_p e3 = 0;
+
+    if (pVMap){
+        std::map<Vertex_p, Corner_p>::iterator it_v = pVMap->find(e0->C0()->V());
+        if (it_v == pVMap->end()){
+            v0 = pMS->addMeshVertex(P0(e0)+n);
+            (*pVMap)[e0->C0()->V()] = f->C(1);
+        }else{
+            Corner_p ec = it_v->second;
+            e1 = ec->E();
+            v0 = (ec->V() == e0->C0()->V() || ec->V() == e0->C0()->next()->V())? ec->next()->V():ec->V();
+            v0->pData->P = P0(e0) + ((v0->pData->P + P0(e0)+n)*0.5).normalize()*t;
+            if (isSMOOTH)
+                makeSmoothTangents(ec);
+        }
+
+        it_v = pVMap->find(e0->C0()->next()->V());
+        if (it_v == pVMap->end()){
+            v1 = pMS->addMeshVertex(P1(e0)+n);
+            (*pVMap)[e0->C0()->next()->V()] = f->C(3);
+        }else{
+            Corner_p ec = it_v->second;
+            e3 = ec->E();
+            v1 = (ec->V() == e0->C0()->V() || ec->V() == e0->C0()->next()->V())? ec->next()->V():ec->V();
+            v1->pData->P = P1(e0) + ((v1->pData->P + P1(e0)+n)*0.5).normalize()*t;
+        }
+
+    }else{
+        v0 = pMS->addMeshVertex(P0(e0)+n);
+        v1 = pMS->addMeshVertex(P1(e0)+n);
+    }
 
     f->set(e0->C0()->next()->V(), 0);
     f->set(e0->C0()->V(), 1);
@@ -191,17 +240,37 @@ Edge_p MeshShape::extrude(Edge_p e0, double t){
 
     //insert edges
     e0->set(f->C(0));
-    pMesh->addEdge(f->C(1), 0); //e1
+    if (e1)
+        e1->set(f->C(1));
+    else
+        pMesh->addEdge(f->C(1), 0); //e1
+
     Edge_p e2 = pMesh->addEdge(f->C(2), 0);
-    pMesh->addEdge(f->C(3), 0); //e3
+
+    if (e3)
+        e3->set(f->C(3));
+    else
+        pMesh->addEdge(f->C(3), 0); //e3
 
     f->Face::update();
-    if (isSMOOTH){
-        makeSmoothTangents(e2->C0());
-        makeSmoothTangents(e2->C0()->next());
+    if (isSMOOTH && !pVMap){
+        makeSmoothTangents(f->C(2));
+        makeSmoothTangents(f->C(3));
     }
 
     return e2;
+}
+
+void MeshShape::extrudeEdges(SelectionSet selection, double t){
+
+    std::map<Vertex_p, Corner_p>    vertmap;
+
+    std::map<Vertex_p, Corner_p> *  pVMap = isKEEP_TOGETHER?&vertmap:0;
+
+    FOR_ALL_ITEMS(SelectionSet, selection){
+        Edge_p e = (Edge_p)*it;
+        extrude(e, t, pVMap);
+    }
 }
 
 void MeshShape::deleteFace(Face_p f){
