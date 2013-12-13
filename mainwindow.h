@@ -82,6 +82,7 @@ private slots:
     void viewAttr();
 
     void flipDrag();
+    void flipRender();
     void unselectDrag();
 
     void selectExtrudeEdge();
@@ -103,6 +104,7 @@ private slots:
     void newTorus();
     void newSpine();
     void newFacial();
+    void newImageShape();
     void insertEllipse();
 
     void toggleLockShape();
@@ -132,7 +134,8 @@ private:
     QStackedWidget  *attrStackedWidget;
     QDockWidget     *optionsDockWidget;
     QDockWidget     *attrDockWidget;
-	
+    QDockWidget     *rendererDockWidget;
+
     QSize getSize();
 
     QWidget         *centralWidget;
@@ -178,6 +181,8 @@ private:
 
     //Tools Menu Actions
     QAction *       dragAct;
+    QAction *       renderAct;
+
     QAction *       extrudeEdgeAct;
     QAction *       extrudeFaceAct;
     QAction *       insertSegmentAct;
@@ -190,6 +195,8 @@ private:
     QAction *       shapeInsertSpineAct;
     QAction *       shapeInsertGridAct;
     QAction *       shapeInsertFacialAct;
+    QAction *       shapeInsertImageShapeAct;
+
     QAction *       shapeLockAct;
     QAction *       shapeMoveFrontAct;
     QAction *       shapeMoveBackAct;
@@ -206,7 +213,7 @@ private:
 
     //need to improve this
     struct Options{
-        enum OptionWidget_e {NONE, ELLIPSE, GRID, NGON, TORUS, SPINE, EXTRUDE, INSERT_SEGMENT, DELETE_FACE};
+        enum OptionWidget_e {NONE, ELLIPSE, GRID, NGON, TORUS, SPINE, IMAGE_SHAPE, EXTRUDE, INSERT_SEGMENT, DELETE_FACE};
     };
 };
 

@@ -19,7 +19,7 @@ public:
             addVertex(p[i]);
     }
 
-    void render() const;
+    void render(int mode = 0);
 };
 
 #endif // SAMOLESHAPE_H

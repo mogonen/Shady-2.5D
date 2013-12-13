@@ -59,7 +59,7 @@ public:
         delete _ns;
     }
 
-    void render() const;
+    void render(int mode = 0);
 
     void getBBox(BBox& bbox) const{
         bbox.P[0].set(_radX>0?-_radX:_radX, _radY>0?-_radY:_radY);

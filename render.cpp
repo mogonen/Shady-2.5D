@@ -3,6 +3,7 @@
 #include "SampleShape.h"
 #include "meshshape/spineshape.h"
 #include "meshshape/meshshape.h"
+#include "glwidget.h"
 
 #ifdef FACIAL_SHAPE
 #include "FacialShape/facialshape.h"
@@ -14,6 +15,8 @@
 #include "shapecontrol.h"
 #include "ellipseshape.h"
 #include "canvas.h"
+
+#include "Renderer/imageshape.h"
 
 #define theSHAPE Session::get()->theShape()
 
@@ -28,16 +31,22 @@ bool MeshShape::IsSelectMode(SELECTION_e eMode){
     return GetSelectMode() == eMode && !Session::isRender(DRAGMODE_ON);
 }
 
-void Selectable::renderNamed(bool ispush) const{
-    glLoadName(name());
-    render();
+//void Selectable::renderNamed(bool ispush) const{
+//    glLoadName(name());
+//    render();
+//}
+
+void Selectable::render(int mode){
+    if(mode&DRAG_MODE)
+        glLoadName(name());
 }
+
+
 
 Selectable_p select(GLint hits, GLuint *buff){
    //only one selectable object in the stack for now
    unsigned int name = buff[3];
    Selectable_p pSel =0;
-
    if ( name & ( 1 << UI_BIT ) ){
       pSel =Session::get()->controller();
      Session::get()->controller()->startSelect(name);
@@ -66,7 +75,7 @@ inline bool selectionColor(Selectable_p pSel){
 
 
 
-void SampleShape::render() const{
+void SampleShape::render(int mode) {
 
     glColor3f(1.0, 0, 0);
     glBegin(GL_POLYGON);
@@ -75,18 +84,22 @@ void SampleShape::render() const{
     glEnd();
 }
 
-void Light::render() const {
-    glColor3f(1.0, 1.0, 0);
-    glPointSize(8);
-    glBegin(GL_POINTS);
-    glVertex3f(P().x, P().y, 0);
-    glEnd();
+void Light::render(int mode) {
+    Draggable::render(mode);
 
+        glColor3f(1.0, 1.0, 0);
+        glPointSize(8);
+        glBegin(GL_POINTS);
+        glVertex3f(P().x, P().y, 0);
+        glEnd();
 }
 
-void ControlPoint::render() const {
+void ControlPoint::render(int mode) {
 
-    if (isChild() && !isActive()) return;
+    Draggable::render(mode);
+
+    if (isChild() && !isActive())
+        return;
 
     glColor3f(1.0, 1.0, 1.0);
     selectionColor((Selectable_p)this);
@@ -107,12 +120,13 @@ void ControlPoint::render() const {
     }
 }
 
-void Shape::renderAll()
+void Shape::render(int mode)
 {
     if(Session::isRender(DRAGMODE_ON) && this == theSHAPE)
        Session::get()->controller()->renderControls((Shape_p)this);
-    glLoadName(name());
-    renderUpToDate();
+
+    Draggable::render(mode);
+    ensureUpToDate();
 }
 
 void ShapeControl::renderControls(Shape_p shape){
@@ -135,6 +149,7 @@ void ShapeControl::renderControls(Shape_p shape){
             glColor3f(1.0, 0, 0);
             glVertex3f(p1.x, p1.y, 0);
             glEnd();
+
             if (isInRenderMode()){
                 glColor3f(1.0, 1.0, 1.0);
                 glBegin(GL_LINES);
@@ -142,6 +157,7 @@ void ShapeControl::renderControls(Shape_p shape){
                 glVertex3f(p1.x, p1.y, 0);
                 glEnd();
             }
+
         }
 
         glLoadName(svname);
@@ -161,8 +177,9 @@ void ShapeControl::renderControls(Shape_p shape){
     }
 }
 
-void SpineShape::render() const{
+void SpineShape::render(int mode){
 
+    Shape::render(mode);
     if(isInRenderMode()){
         glPointSize(5.0);
         glBegin(GL_POINTS);
@@ -191,15 +208,18 @@ void SpineShape::render() const{
     glEnd();
 }
 
-void MeshShape::render() const {
+void MeshShape::render(int mode) {
 
-    if ( (isInRenderMode() || IsSelectMode(EDGE) )){
-        EdgeList edges = _control->edges();
-        FOR_ALL_CONST_ITEMS(EdgeList, edges){
-            render(*it);
+    Shape::render(mode);
+    if(!(mode&SM_MODE||mode&BRIGHT_MODE||mode&DARK_MODE))
+    {
+        if ( (isInRenderMode() || IsSelectMode(EDGE) )){
+            EdgeList edges = _control->edges();
+            FOR_ALL_CONST_ITEMS(EdgeList, edges){
+                render(*it);
+            }
         }
     }
-
     //too messy, fix it!
     if (isInRenderMode() || (IsSelectMode(FACE) || Session::isRender(DRAGMODE_ON) ) ){
 
@@ -211,7 +231,7 @@ void MeshShape::render() const {
 
         FaceList faces = _control->faces();
         FOR_ALL_CONST_ITEMS(FaceList, faces){
-            render(*it);
+            render(*it, mode);
         }
     }
 }
@@ -220,7 +240,7 @@ void MeshShape::render(Edge_p pEdge) const{
     if (this != theSHAPE)
         return;
     if (pEdge->pData->pCurve){
-        pEdge->pData->pCurve->renderNamed();
+        pEdge->pData->pCurve->render(DRAG_MODE);
         return;
     }
     //non selectable line representation
@@ -232,18 +252,20 @@ void MeshShape::render(Edge_p pEdge) const{
     glVertex3f(p0.x, p0.y, 0);
     glVertex3f(p1.x, p1.y, 0);
     glEnd();
-
 }
 
-void MeshShape::render(Face_p pFace) const{
+void MeshShape::render(Face_p pFace, int mode) const{
     if (pFace->pData->pSurface){
-        //this is messy, needs better solution
-        if (Session::isRender(DRAGMODE_ON)){
-            pFace->pData->pSurface->renderUnnamed();
-        }else{
-            pFace->pData->pSurface->renderNamed();
-        }
-        return;
+        if(mode&BRIGHT_MODE)
+            glColor3f(diffuse.redF()*2.0,diffuse.greenF()*2.0,diffuse.blueF()*2.0);
+        else
+            if(mode&DARK_MODE)
+                glColor3f(1-diffuse.redF(),1-diffuse.greenF(),1-diffuse.blueF());
+            else
+                glColor3f(diffuse.redF(),diffuse.greenF(),diffuse.blueF());
+
+        pFace->pData->pSurface->render(mode);
+    return;
     }
 }
 
@@ -283,8 +305,9 @@ void FacialShape::render() const{
 }
 #endif
 
-void Curve::render() const {
+void Curve::render(int mode) {
 
+    Selectable::render(mode);
     glColor3f(1.0, 1.0, 1.0);
     selectionColor((Selectable_p)this);
     if (isTheSelected())
@@ -299,8 +322,9 @@ void Curve::render() const {
 }
 
 
-void Patch4::render() const{
+void Patch4::render(int mode){
 
+//    Patch::render(mode);
     for(int j=0; j < Ni; j++){
         for(int i = 0; i< Ni; i++){
 
@@ -369,14 +393,26 @@ void Patch4::render() const{
             }else
                 glDisable(GL_LIGHTING);
 
+
             glBegin(GL_POLYGON);
-            for(int k=0; k<4; k++){
-                if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON))
-                    glNormal3f(n[k].x, n[k].y, n[k].z );
-                else
-                    glColor3f((n[k].x+1)/2, (n[k].y+1)/2, n[k].z );
-               glVertex3f(p[k].x, p[k].y, 0);
-               glTexCoord2d((p[k].x+1)/2, (p[k].y+1)/2);
+
+            if(mode&DARK_MODE||mode&BRIGHT_MODE)
+            {
+                for(int k=0; k<4; k++){
+                   glVertex3f(p[k].x, p[k].y, 0);
+                }
+            }
+            else{
+                for(int k=0; k<4; k++){
+                    if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON))
+                        glNormal3f(n[k].x, n[k].y, n[k].z );
+                    else
+    //                    glColor3f((n[k].x+1)/2, (n[k].y+1)/2, n[k].z );
+                        glColor3f((n[k].x+1)/2, (n[k].y+1)/2, 1.0);
+
+                   glVertex3f(p[k].x, p[k].y, 0);
+                   glTexCoord2d((p[k].x+1)/2, (p[k].y+1)/2);
+                }
             }
             glEnd();
 
@@ -387,8 +423,9 @@ void Patch4::render() const{
 }
 
 
-void EllipseShape::render() const {
+void EllipseShape::render(int mode) {
 
+    Shape::render(mode);
     FOR_ALL_J(_segV){
         FOR_ALL_I(_segU){
 
@@ -454,7 +491,9 @@ void EllipseShape::render() const {
                if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON))
                     glNormal3f(n[k].x, n[k].y, n[k].z );
                 else
-                    glColor3f((n[k].x+1)/2, (n[k].y+1)/2, n[k].z );
+//                    glColor3f((n[k].x+1)/2, (n[k].y+1)/2, n[k].z );
+                   glColor3f((n[k].x+1)/2, (n[k].y+1)/2, 1.0);
+
                 glVertex2f(p[k].x, p[k].y);
                 glTexCoord2d((p[k].x+1)/2, (p[k].y+1)/2);
             }
@@ -470,8 +509,8 @@ void TransformHandler::render() const{
     if (!_pShape || _pShape!=theSHAPE)
         return;
 
-    _handles[0]->renderNamed();
-    _handles[1]->renderNamed();
+    _handles[0]->render(DRAG_MODE);
+    _handles[1]->render(DRAG_MODE);
     //_rotHandle->renderNamed();
 
     if (isInRenderMode()){
@@ -483,5 +522,126 @@ void TransformHandler::render() const{
         glVertex2f(_bbox.P[1].x, _bbox.P[0].y);
         glEnd();
     }
+}
+
+
+void ImageShape::InitializeTex()
+{
+    QImage loadedImage;
+    if(m_texUpdate&UPDATE_SM)
+    {
+        if(glIsTexture(m_texSM))
+            Session::get()->glWidget()->deleteTexture(m_texSM);
+        if(m_SMFile.isEmpty()||!loadedImage.load(m_SMFile))
+        {
+            loadedImage = QImage(1,1,QImage::Format_ARGB32);
+            loadedImage.setPixel(0,0,qRgba(0.0,0.0,255.0,255.0));
+        }
+        else
+        {
+            int w = loadedImage.width();
+            int h = loadedImage.height();
+            if(w>h)
+                m_height = m_width*h/w;
+            else
+                m_width = m_height*w/h;
+//            for(int i=0;i<w;i++)
+//                for(int j=0;j<h;j++)
+//                {
+//                    loadedImage.color();
+//                }
+        }
+        m_texSM = Session::get()->glWidget()->bindTexture(loadedImage, GL_TEXTURE_2D);
+        if(GetPenal())
+            GetPenal()->SetNewSize(m_width,m_height);
+    }
+
+    if(m_texUpdate&UPDATE_DARK)
+    {
+        if(glIsTexture(m_texDark))
+            Session::get()->glWidget()->deleteTexture(m_texDark);
+        if(m_DarkFile.isEmpty()||!loadedImage.load(m_DarkFile))
+        {
+            loadedImage = QImage(1,1,QImage::Format_ARGB32);
+            loadedImage.setPixel(0,0,qRgba(0.0,0.0,0.0,255.0));
+        }
+        m_texDark = Session::get()->glWidget()->bindTexture(loadedImage, GL_TEXTURE_2D);
+    }
+
+    if(m_texUpdate&UPDATE_BRIGHT)
+    {
+        if(glIsTexture(m_texBright))
+            Session::get()->glWidget()->deleteTexture(m_texBright);
+        if(m_BrightFile.isEmpty()||!loadedImage.load(m_BrightFile))
+        {
+            loadedImage = QImage(1,1,QImage::Format_ARGB32);
+            loadedImage.setPixel(0,0,qRgba(255.0,255.0,255.0,255.0));
+        }
+        m_texBright = Session::get()->glWidget()->bindTexture(loadedImage, GL_TEXTURE_2D);
+    }
+    m_texUpdate = NO_UPDATE;
+}
+
+
+void ImageShape::render(int mode)
+{
+    Shape::render(mode);
+    if(m_texUpdate!=NO_UPDATE)
+        InitializeTex();
+    if(mode&DEFAULT_MODE||mode&DRAG_MODE)
+    {
+        switch(m_curTexture)
+        {
+        case 0:
+            glBindTexture(GL_TEXTURE_2D, m_texSM);
+            break;
+        case 1:
+            glBindTexture(GL_TEXTURE_2D, m_texDark);
+            break;
+        case 2:
+            glBindTexture(GL_TEXTURE_2D, m_texBright);
+            break;
+        case 3:
+            glBindTexture(GL_TEXTURE_2D, m_texSM);
+            mode = mode|LABELDEPTH_MODE;
+            break;
+
+        }
+    }
+    else
+        if(mode&SM_MODE||mode&LABELDEPTH_MODE)
+            glBindTexture(GL_TEXTURE_2D, m_texSM);
+        else if(mode&DARK_MODE)
+            glBindTexture(GL_TEXTURE_2D, m_texDark);
+        else if(mode&BRIGHT_MODE)
+            glBindTexture(GL_TEXTURE_2D, m_texBright);
+
+
+    Session::get()->glWidget()->getMShader()->bind();
+    Session::get()->glWidget()->getMShader()->setUniformValue("alpha_th", (float)m_alpha_th);
+    if(mode&LABELDEPTH_MODE)
+        Session::get()->glWidget()->getMShader()->setUniformValue("isLabelDepth", (float)1.0);
+    else
+        Session::get()->glWidget()->getMShader()->setUniformValue("isLabelDepth", (float)0.0);
+//    Session::get()->glWidget()->getMShader()->setUniformValue("label_depth", (float)m_alpha_th);
+
+    int total_num = Session::get()->canvas()->getNumShapes();
+//    glDepthMask(GL_FALSE);
+    glBegin(GL_QUADS);
+    glColor4f(((float)_layerLabel)/total_num,((float)_layerLabel)/total_num,0.0,1.0);
+    glTexCoord2d(0.0,0.0);
+    glVertex3f(-m_width,-m_height,((float)_layerLabel)/total_num);
+    glColor4f(((float)_layerLabel)/total_num,((float)_layerLabel)/total_num,0.0,1.0);
+    glTexCoord2d(0.0,1.0);
+    glVertex3f(-m_width,m_height,-((float)_layerLabel)/total_num);
+    glColor4f(((float)_layerLabel)/total_num,((float)_layerLabel)/total_num,0.0,1.0);
+    glTexCoord2d(1.0,1.0);
+    glVertex3f(m_width,m_height,-((float)_layerLabel)/total_num);
+    glColor4f(((float)_layerLabel)/total_num,((float)_layerLabel)/total_num,0.0,1.0);
+    glTexCoord2d(1.0,0.0);
+    glVertex3f(m_width,-m_height,((float)_layerLabel)/total_num);
+    glEnd();
+//    glDepthMask(GL_TRUE);
+    Session::get()->glWidget()->getMShader()->release();
 }
 

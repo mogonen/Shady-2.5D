@@ -38,7 +38,7 @@ public:
 
     ControlPoint(Point_p pP, Selectable_p pControlled):Draggable(Renderable::UI, pP), _pControlled(pControlled){}
 
-    void render() const;
+    void render(int mode = 0);
     bool isActive() const {return (_pTheActive == this) || (_pTheActive == this->parent());}
 };
 

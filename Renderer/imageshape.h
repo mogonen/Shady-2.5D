@@ -1,0 +1,58 @@
+#ifndef IMAGESHAPE_H
+#define IMAGESHAPE_H
+
+#include "./Shape.h"
+#include "./customdialog.h"
+
+#include <QString>
+#include <qgl.h>
+
+class ImageShape;
+class ImageShapeCustomDialog : public CustomDialog
+{
+    Q_OBJECT
+public:
+    ImageShapeCustomDialog(ImageShape* imgS, QString title, QWidget *parent = 0, char* execLabel = 0, void (*callback)()=0, bool * ischeck = 0);
+    void Initialize();
+    void SetNewSize(double w, double h);
+
+private slots:
+    void LoadTextureImage(int );
+    void LoadTextureImage();
+private:
+    ImageShape* m_imgShape;
+    QDoubleSpinBox* m_returnWidth;
+    QDoubleSpinBox* m_returnHeight;
+};
+
+class ImageShape : public Shape
+{
+public:
+    ImageShape(int w = 1, int h = 1);
+    ~ImageShape();
+    void render(int mode);
+    void calAverageNormal();
+
+    void InitializeTex();
+    void LoadTextureImage(int );
+    void LoadTextureImage();
+    void SetPenal(ImageShapeCustomDialog *penal){m_penal = penal;}
+    ImageShapeCustomDialog* GetPenal(){return m_penal;}
+
+    enum{NO_UPDATE = 0, UPDATE_SM = 1, UPDATE_BRIGHT = 2, UPDATE_DARK = 4} texType;
+
+    double m_alpha_th;
+    double m_width;
+    double m_height;
+    int m_texUpdate;
+    GLuint m_texSM;
+    GLuint m_texDark;
+    GLuint m_texBright;
+    QString m_SMFile;
+    QString m_DarkFile;
+    QString m_BrightFile;
+    int m_curTexture;
+    ImageShapeCustomDialog *m_penal;
+};
+
+#endif // IMAGESHAPE_H

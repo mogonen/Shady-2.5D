@@ -7,7 +7,7 @@ int     Patch::Ni;
 int     Patch::NN;
 int     Patch::NN2;
 double  Patch::T;
-bool    Patch::isH = false;
+bool    Patch::isH = true;
 
 
 Patch::Patch(Face_p pF):Selectable(Renderable::SHAPE){
@@ -54,8 +54,10 @@ Patch4::Patch4(Face_p pF):Patch(pF){
 }
 
 Vec3 Patch4::interpolateN(int i, int j){
-    double t = H(i*1.0 / Ni);
-    double s = H(j*1.0 / Ni);
+
+    double t =  H(i*1.0 / Ni); //isH? H(i*1.0 / Ni) : (i*1.0 / Ni);
+    double s =  H(j*1.0 / Ni) ;//isH? H(j*1.0 / Ni) : (j*1.0 / Ni);
+
     Vec3 n0 = _ns[i]*(1.0-s) + _ns[i + Ni*N]*s;
     n0 = n0 + _ns[0 + j*N]*(1.0 - t) + _ns[Ni + j*N]*t;
     n0 = n0 - _ns[0]*(1-s)*(1.0-t) - _ns[Ni]*(1-s)*t - _ns[Ni + Ni*N]*s*t - _ns[Ni*N]*s*(1-t);

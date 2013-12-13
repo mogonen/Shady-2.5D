@@ -38,7 +38,7 @@ protected:
 public:
 
     SpineShape(){ _lastV=0; }
-    void render() const;
+    void render(int mode = 0);
 
     MeshShape*      buildMeshShape(MeshShape* pMS=0);
 

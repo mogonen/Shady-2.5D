@@ -43,7 +43,7 @@ public:
     void resize(int);
     virtual void resample();
 
-    void render() const;
+    void render(int mode = 0);
 
 };
 

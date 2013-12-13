@@ -14,20 +14,15 @@ bool Session::isRender(RenderSetting rs){
 
 void GLWidget::renderCanvas()
 {
+    _pGLSLShader_R->release();
+    glDisable(GL_BLEND);
     if(isInRenderMode() && (is(PREVIEW_ON)||is(AMBIENT_ON)||is(SHADOWS_ON)))
     {
-        if (is(DRAGMODE_ON))
-        {
-            _pCanvas->_lights[0]->renderNamed();
-        }
-
         glReadBuffer(GL_BACK);
-        if(!_pGLSLShader->isInitialized())
+        if(!_pGLSLShader_R->isInitialized())
         {
             Session::get()->deactivate();
-            _pGLSLShader->SetInitialized(true);
-            _pGLSLShader->setUniformValue("width", (float)width());
-            _pGLSLShader->setUniformValue("height", (float)height());
+            _pGLSLShader_R->SetInitialized(true);
             FOR_ALL_CONST_ITEMS(ShapeList, _pCanvas->_shapes){ //need to add layers
                 Shape_p pShape = *it;
                 glPushMatrix();
@@ -35,59 +30,95 @@ void GLWidget::renderCanvas()
                 glTranslatef(p.x, p.y, 0);
                 apply(pShape->getTransform());
                 glMultMatrixd((double*)&tM);
-                pShape->renderAll();
+                pShape->render(SM_MODE);
                 glPopMatrix();
             }
-            Shape_p pShape = _pCanvas->_shapes.front();
-            ShaderParameters *sp;
-            sp = pShape->shader();
-            if(!sp)
-            {
-                sp = pShape->initializeParam();
-                sp->AssociateToProgram(_pGLSLShader);
+
+            _pGLSLShader_R->GrabShapeMap(width(), height());
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            FOR_ALL_CONST_ITEMS(ShapeList, _pCanvas->_shapes){ //need to add layers
+                Shape_p pShape = *it;
+                glPushMatrix();
+                Point p = pShape->P();
+                glTranslatef(p.x, p.y, 0);
+                apply(pShape->getTransform());
+                glMultMatrixd((double*)&tM);
+                pShape->type();
+                pShape->render(BRIGHT_MODE);
+                glPopMatrix();
             }
-            pShape->setBrightParam();
-            pShape->setDarkParam();
-            sp->GrabShapeMap(width(), height());
-            sp->SetAllLocalParameters();
+            _pGLSLShader_R->GrabBrightMap();
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            FOR_ALL_CONST_ITEMS(ShapeList, _pCanvas->_shapes){ //need to add layers
+                Shape_p pShape = *it;
+                glPushMatrix();
+                Point p = pShape->P();
+                glTranslatef(p.x, p.y, 0);
+                apply(pShape->getTransform());
+                glMultMatrixd((double*)&tM);
+                pShape->type();
+                pShape->render(DARK_MODE);
+                glPopMatrix();
+            }
+            _pGLSLShader_R->GrabDarkMap();
+
+            _pCanvas->updateDepth();
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            FOR_ALL_CONST_ITEMS(ShapeList, _pCanvas->_shapes){ //need to add layers
+                Shape_p pShape = *it;
+                glPushMatrix();
+                Point p = pShape->P();
+                glTranslatef(p.x, p.y, 0);
+                apply(pShape->getTransform());
+                glMultMatrixd((double*)&tM);
+                pShape->render(LABELDEPTH_MODE);
+                glPopMatrix();
+            }
+            _pGLSLShader_R->GrabLDMap();
+
+            _pGLSLShader_R->SetTextureToShader();
         }
-        _pGLSLShader->bind();
+
+        _pGLSLShader_R->bind();
+        _pGLSLShader_R->setUniformValue("width", (float)width());
+        _pGLSLShader_R->setUniformValue("height", (float)height());
+        _pGLSLShader_R->setUniformValue("toggle_ShaAmbCos", (int)(_renderFlags>>1)&7);
         float aspect = (float)height() / width();
 
-        glEnable(GL_TEXTURE_2D);
+
         glBegin(GL_QUADS);
         glColor4f(1.0, 1.0, 1.0, 1.0);
         glTexCoord2d(0.0,0.0);
-        glVertex3f(-1.0,-1.0,0);
+        glVertex3f(-1.0,-1.0,-0.0001);
         glTexCoord2d(0.0,1.0);
-        glVertex3f(-1.0,1.0,0);
+        glVertex3f(-1.0,1.0,-0.0001);
         glTexCoord2d(1.0,1.0);
-        glVertex3f(1.0,1.0,0);
+        glVertex3f(1.0,1.0,-0.0001);
         glTexCoord2d(1.0,0.0);
-        glVertex3f(1.0,-1.0,0);
+        glVertex3f(1.0,-1.0,-0.0001);
         glEnd();
 
-        _pGLSLShader->release();
+        _pGLSLShader_R->release();
 
-        //glScalef(0.99,0.99,0.9);
-
-        glBegin(GL_LINE_LOOP);
-        glVertex3f(-1.0,-1.0*aspect,0);
-        glVertex3f(-1.0,1.0*aspect,0);
-        glVertex3f(1.0,1.0*aspect,0);
-        glVertex3f(1.0,-1.0*aspect,0);
-        glEnd();
+        if (is(DRAGMODE_ON))
+        {
+            _pCanvas->_lights[0]->render(DRAG_MODE);
+        }
         glDisable(GL_TEXTURE_2D);
+        glDisable(GL_BLEND);
 
     }
     else
     {
-        _pGLSLShader->release();
+        _pGLSLShader_R->release();
 
 
+        _pGLSLShader_R->SetInitialized(false);
         if (is(DRAGMODE_ON) && (is(SHADING_ON) || is(PREVIEW_ON)))
         {
-            _pCanvas->_lights[0]->renderNamed();
+            _pCanvas->_lights[0]->render(DRAG_MODE);
         }
         FOR_ALL_CONST_ITEMS(ShapeList,_pCanvas->_shapes){ //need to add layers
             Shape_p s = *it;
@@ -96,14 +127,12 @@ void GLWidget::renderCanvas()
         }
     }
 //    glBindTexture(GL_TEXTURE_2D, tt);
-
 ////    if (!firstTime)
 //    {
 //        glCopyTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,0,0,1024,1024,0); // copy whole image to textureimage
 //        firstTime = true;
 //        qDebug()<<"123";
 //        qDebug()<<"222";
-
 //    }
 ////    else
 //    {
@@ -111,7 +140,6 @@ void GLWidget::renderCanvas()
 //        glCopyTexSubImage2D(GL_TEXTURE_2D,0,0,50,50,0,640,640);
 //        qDebug()<<glGetError();
 //    }
-
 //    glDisable(GL_TEXTURE_2D);
 
 ////    glTexImage2D(GL_TEXTURE_2D, 0 ,4, 640, 640, 0, GL_RGBA8, GL_UNSIGNED_BYTE, textureSt);
@@ -137,6 +165,7 @@ void GLWidget::renderCanvas()
 //        glPopMatrix();
 
 //    }
+
 }
 
 
@@ -154,7 +183,7 @@ void GLWidget::render(Shape_p pShape)
     apply(pShape->getTransform());
     glMultMatrixd((double*)&tM);
 
-    pShape->renderAll();
+    pShape->render(DRAG_MODE);
 
     if (pShape->isParent()){
         DraggableList childs = pShape->getChilds();

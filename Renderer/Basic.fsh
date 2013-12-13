@@ -2,7 +2,7 @@
 
 
 uniform float alpha;
-uniform sampler2D tex_SM, tex_DI_Dark, tex_DI_Bright, tex_BG, tex_env, tex_SI;
+uniform sampler2D tex_SM, tex_DI_Dark, tex_DI_Bright, tex_BG, tex_LD, tex_Env;
 uniform float dist;
 
 //varying float F;
@@ -17,6 +17,9 @@ uniform float LOD;
 uniform vec3 light_dir;
 uniform bool toggle_Mirror;
 uniform int toggle_ShaAmbCos;
+
+//0-render results, 1-ShapeMap, 2-DarkImage, 3-BrightImage, 4-BGImage, 5-LabelImage, 6-DepthImage
+uniform int cur_tex;
 uniform float SM_Quality;
 uniform float Cartoon_sha=0.1;
 uniform bool toggle_Point;
@@ -114,7 +117,10 @@ void Shadow1(in vec2 center, out float center_cos, out float Sha, out float Spe)
 
 
             }
-            else{integral -= 1.0; count++;
+            else
+            {
+                integral -= 1.0;
+                count++;
                 if(max_int < integral/count -light_dir.z/2 +0.1) max_int =  integral/count -light_dir.z/2+0.1;
 
             }
@@ -122,8 +128,7 @@ void Shadow1(in vec2 center, out float center_cos, out float Sha, out float Spe)
 
     }
 
-
-    float c_center=0.3*amb_strength-0.2;
+    float c_center=0.3*amb_strength-0.3;
     float c_delta=Cartoon_sha;
 
     float b=c_center+c_delta;
@@ -196,8 +201,6 @@ void Shadow2(in vec2 center, out float center_cos, out float Sha, out float Spe)
                 count++;
                 if(max_int <   integral/count -light_dir.z/2 +0.1) max_int =  integral/count -light_dir.z/2+0.1;
 
-
-
             }
             else{integral -= 1.0; count++;
                 if(max_int < integral/count -light_dir.z/2 +0.1) max_int =  integral/count -light_dir.z/2+0.1;
@@ -248,7 +251,7 @@ void ReflectRefract(in vec4 cood_color, out vec4 refractColor, out vec4 reflectC
 //    refractColor =  texture2D(tex_BG, cood_refr, LOD+20*length(cood_displace));
 
     refractColor =  textureLod(tex_BG, cood_refr, LOD+20*length(cood_displace));
-    reflectColor =  textureLod(tex_env, cood_refl+(light_dir.rg)*0.2/(0.1+abs(light_dir.b)), LOD);
+    reflectColor =  textureLod(tex_Env, cood_refl+(light_dir.rg)*0.2/(0.1+abs(light_dir.b)), LOD);
 }
 
 void FrenselBlend(in vec4 cood_color, in vec4 refractColor, in vec4 reflectColor, out vec4 Ref_Fresnel)
@@ -295,7 +298,7 @@ void main()
 {
     //get the (x, y) normal vector from R and G channel
     vec4 cood_center = (texture2D(tex_SM, gl_TexCoord[0].st));
-
+    float label_center = (texture2D(tex_SM, gl_TexCoord[0].st)).r;
     //the mask from foreground image(specular image)
     //vec4 mask = (texture2D(tex_SI, gl_TexCoord[0].st));
 
@@ -304,33 +307,40 @@ void main()
     float center_cos, Sha, Amb,  Spe;
 
     if(toggle_Point)
-        Shadow1(cood_center.st, center_cos, Sha, Spe);
+        Shadow1(cood_center.st,center_cos, Sha, Spe);
     else
-        Shadow2(cood_center.st, center_cos, Sha, Spe);
+        Shadow2(cood_center.st,center_cos, Sha, Spe);
     AmbientShadow(cood_center, Amb);
     vec3 light_dir_n = normalize(light_dir);
 
 
-//    if(toggle_ShaAmbCos == 0)
-//        center_cos = 0;
-//    else if(toggle_ShaAmbCos == 1)
-//        center_cos = center_cos;
-//    else if(toggle_ShaAmbCos == 2)
-//        center_cos = Amb;
-//    else if(toggle_ShaAmbCos == 4)
-//        center_cos = Sha;
-//    else if(toggle_ShaAmbCos == 3)
-//        center_cos = center_cos*Amb;
-//    else if(toggle_ShaAmbCos == 5)
-//        center_cos = center_cos*Sha;
-//    else if(toggle_ShaAmbCos == 6)
-//        center_cos=Sha*Amb;
-//    else if(toggle_ShaAmbCos == 7)
-//        center_cos=center_cos*Sha*Amb;
+    if(toggle_ShaAmbCos == 0)
+        center_cos = 0;
+    else if(toggle_ShaAmbCos == 1)
+        center_cos = center_cos;
+    else if(toggle_ShaAmbCos == 2)
+        center_cos = Amb;
+    else if(toggle_ShaAmbCos == 4)
+        center_cos = Sha;
+    else if(toggle_ShaAmbCos == 3)
+        center_cos = center_cos*Amb;
+    else if(toggle_ShaAmbCos == 5)
+        center_cos = center_cos*Sha;
+    else if(toggle_ShaAmbCos == 6)
+        center_cos=Sha*Amb;
+    else if(toggle_ShaAmbCos == 7)
+        center_cos=center_cos*Sha*Amb;
+
+
+//    center_cos = Sha;
 
     //blend Diffusion image 1 and 2 based on shadow strength
     vec4 Shadow_blend = mix( texture2D(tex_DI_Dark, gl_TexCoord[0].st),  texture2D(tex_DI_Bright, gl_TexCoord[0].st), center_cos);
-    vec4 Light_direct = mix(Shadow_blend, texture2D(tex_SI, gl_TexCoord[0].st), 0);
+
+    //we were planning to add specular, but finally we removed it
+    //    vec4 Light_direct = mix(Shadow_blend, texture2D(tex_SI, gl_TexCoord[0].st), 0);
+    vec4 Light_direct = Shadow_blend;
+
     //vec4 Light_direct = mix(vec4(0.0),vec4(1.0), Sha*Amb);
     //vec4 Light_direct =vec4(1.0)*center_cos;
 
@@ -349,9 +359,27 @@ void main()
     float Final_Mix = cood_center.a;
     if (cood_center.b<0.001)
         Final_Mix=Final_Mix*cood_center.b;
-    gl_FragColor = mix(texture2D(tex_BG, gl_TexCoord[0].st), Fore_blend, Final_Mix);
+//    gl_FragColor = vec4(mix(texture2D(tex_BG, gl_TexCoord[0].st).rgb, Fore_blend.rgb, Final_Mix), 1.0);
 
-//    gl_FragColor = texture2D(tex_DI_Bright, gl_TexCoord[0].st);
+
+    if(cur_tex == 0)
+        gl_FragColor = vec4(mix(texture2D(tex_BG, gl_TexCoord[0].st).rgb, Fore_blend.rgb, Final_Mix), 1.0);
+    else if(cur_tex == 1)
+            gl_FragColor = texture2D(tex_SM, gl_TexCoord[0].st);
+    else if(cur_tex == 2)
+            gl_FragColor = texture2D(tex_DI_Dark, gl_TexCoord[0].st);
+    else if(cur_tex == 3)
+            gl_FragColor = texture2D(tex_DI_Bright, gl_TexCoord[0].st);
+    else if(cur_tex == 4)
+            gl_FragColor = texture2D(tex_BG, gl_TexCoord[0].st);
+    else if(cur_tex == 5)
+            gl_FragColor = texture2D(tex_LD, gl_TexCoord[0].st).rrra;
+    else if(cur_tex == 6)
+            gl_FragColor = texture2D(tex_LD, gl_TexCoord[0].st).ggga;
+    else if(cur_tex == 7)
+            gl_FragColor = texture2D(tex_Env, gl_TexCoord[0].st);
+
+//    gl_FragColor = texture2D(tex_BG, gl_TexCoord[0].st);
 
 //        gl_FragColor = vec4(1.0)*Sha;
     //    gl_FragColor = vec4(1.0)*Spe;

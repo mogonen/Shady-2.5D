@@ -65,7 +65,7 @@ protected:
 
 public:
 
-    void render() const;
+    void render(int mode = 0);
 
     Patch4(Face_p);
     //~Patch4();

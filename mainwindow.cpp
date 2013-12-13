@@ -46,6 +46,7 @@
 #include "meshshape/meshshape.h"
 #include "ellipseshape.h"
 #include "shapecontrol.h"
+#include "Renderer/renderoptionspenal.h"
 
 double                  EllipseShape::Radius = 0.1;
 ControlPoint_p          ControlPoint::_pTheActive = 0;
@@ -86,7 +87,6 @@ MainWindow::MainWindow()
 
     // set the number of patch lines
     Patch::setN(16);
-
 }
 
 
@@ -100,6 +100,8 @@ void MainWindow::initTools()
     QToolBar *toolbar = addToolBar("main toolbar");
 
     toolbar->addAction(dragAct);
+    toolbar->addAction(renderAct);
+
     toolbar->addSeparator();
 
     toolbar->addAction(shapeInsertEllipseAct);
@@ -107,6 +109,7 @@ void MainWindow::initTools()
     toolbar->addAction(shapeInsert2NGonAct);
     toolbar->addAction(shapeInsertTorusAct);
     toolbar->addAction(shapeInsertSpineAct);
+    toolbar->addAction(shapeInsertImageShapeAct);
 
     toolbar->addSeparator();
 
@@ -119,34 +122,56 @@ void MainWindow::initTools()
 
     //init tool options dock
     optionsDockWidget = new QDockWidget(QString("Options"), this);
-
+    rendererDockWidget = new QDockWidget(QString("Render"), this);
     attrDockWidget = new QDockWidget(QString("Attributes"), this);
 
-    this->addDockWidget(Qt::LeftDockWidgetArea, optionsDockWidget);
-    this->addDockWidget(Qt::LeftDockWidgetArea, attrDockWidget);
+    rendererDockWidget->setWidget(new RenderOptionsPenal(this, glWidget));
 
-    optionsStackedWidget = new QStackedWidget(optionsDockWidget);
-    QGridLayout *layout = new QGridLayout;
-    layout->addWidget(optionsStackedWidget,0,0,1,1,Qt::AlignTop);
-    layout->addWidget(0,1,0,1,1,Qt::AlignTop);
-    layout->setRowStretch(1,1);
-    optionsStackedWidget->setVisible(true);
 
-    attrStackedWidget = new QStackedWidget(attrDockWidget);
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addWidget(attrStackedWidget);
-    layout2->addStretch(0);
-    attrStackedWidget->setVisible(true);
+//<<<<<<< HEAD
+
+    optionsStackedWidget = new QStackedWidget();
+//    QVBoxLayout *layout = new QVBoxLayout;
+//    layout->addWidget(optionsStackedWidget);
+//    optionsStackedWidget->setVisible(true);
+
+    attrStackedWidget = new QStackedWidget();
+//    layout->addWidget(attrStackedWidget);
+//    attrStackedWidget->setVisible(true);
+//=======
+//    optionsStackedWidget = new QStackedWidget(optionsDockWidget);
+//    QGridLayout *layout = new QGridLayout;
+//    layout->addWidget(optionsStackedWidget,0,0,1,1,Qt::AlignTop);
+//    layout->addWidget(0,1,0,1,1,Qt::AlignTop);
+//    layout->setRowStretch(1,1);
+//    optionsStackedWidget->setVisible(true);
+
+//    attrStackedWidget = new QStackedWidget(attrDockWidget);
+//    QVBoxLayout *layout2 = new QVBoxLayout;
+//    layout2->addWidget(attrStackedWidget);
+//    layout2->addStretch(0);
+//    attrStackedWidget->setVisible(true);
+//>>>>>>> cf2484ca3603326ba548c6882ec97d8c814f9ca7
 
 
 
     optionsDockWidget->setWidget(optionsStackedWidget);
-    optionsDockWidget->setLayout(layout);
-    optionsDockWidget->setVisible(true);
+//    optionsDockWidget->setLayout(layout);
+//    optionsDockWidget->setVisible(true);
 
     attrDockWidget->setWidget(attrStackedWidget);
-    attrDockWidget->setLayout(layout2);
-    attrDockWidget->setVisible(true);
+//<<<<<<< HEAD
+//    attrDockWidget->setLayout(layout);
+//    attrDockWidget->setVisible(true);
+
+    this->addDockWidget(Qt::LeftDockWidgetArea, optionsDockWidget);
+    this->addDockWidget(Qt::LeftDockWidgetArea, attrDockWidget);
+    this->addDockWidget(Qt::LeftDockWidgetArea, rendererDockWidget);
+    this->setDockOptions(!QMainWindow::AllowTabbedDocks);
+//=======
+//    attrDockWidget->setLayout(layout2);
+//    attrDockWidget->setVisible(true);
+//>>>>>>> cf2484ca3603326ba548c6882ec97d8c814f9ca7
 
     addAttrWidget(new QWidget, 0);//default widget
     createAllOptionsWidgets();
@@ -186,7 +211,7 @@ void MainWindow::setAttrWidget(void* key){
     }
     int id = it->second;
     attrStackedWidget->setCurrentIndex(id);
-    attrDockWidget->setVisible(true); //modify later
+//    attrDockWidget->setVisible(true); //modify later
 }
 
 void MainWindow::removeAttrWidget(void* key){
@@ -232,13 +257,17 @@ void MainWindow::createActions()
     dragAct->setShortcut(Qt::Key_Space);
     connect(dragAct, SIGNAL(triggered()), this, SLOT(flipDrag()));
 
+
+    renderAct = new QAction(tr("Render"), this);
+    renderAct->setShortcut(Qt::Key_Space);
+    connect(renderAct, SIGNAL(triggered()), this, SLOT(flipRender()));
     //view Act
     shadingOnAct = new QAction(tr("&Shading On"), this);
     shadingOnAct->setShortcut('S');
     shadingOnAct->setCheckable(true);
     connect(shadingOnAct, SIGNAL(triggered()), this, SLOT(toggleShading()));
 
-    previewOnAct = new QAction(tr("Preview On"), this);
+    previewOnAct = new QAction(tr("RenderMode On"), this);
     previewOnAct->setShortcut('R');
     previewOnAct->setCheckable(true);
     connect(previewOnAct, SIGNAL(triggered()), this, SLOT(togglePreview()));
@@ -246,12 +275,12 @@ void MainWindow::createActions()
     ambientOnAct = new QAction(tr("&Ambient On"), this);
     ambientOnAct->setShortcut('A');
     ambientOnAct->setCheckable(true);
-    connect(shadingOnAct, SIGNAL(triggered()), this, SLOT(toggleAmbient()));
+    connect(ambientOnAct, SIGNAL(triggered()), this, SLOT(toggleAmbient()));
 
     shadowOnAct = new QAction(tr("&Shadow On"), this);
     shadowOnAct->setShortcut('W');
     shadowOnAct->setCheckable(true);
-    connect(shadingOnAct, SIGNAL(triggered()), this, SLOT(toggleShadow()));
+    connect(shadowOnAct, SIGNAL(triggered()), this, SLOT(toggleShadow()));
 
     normalsOnAct = new QAction(tr("Show &Normals"), this);
     normalsOnAct->setShortcut('N');
@@ -285,6 +314,9 @@ void MainWindow::createActions()
     dragAct->setCheckable(true);
     dragAct->setChecked(true);
 
+    renderAct->setCheckable(true);
+    renderAct->setChecked(false);
+
     extrudeEdgeAct->setCheckable(true);
     extrudeFaceAct->setCheckable(true);
     insertSegmentAct->setCheckable(true);
@@ -313,6 +345,10 @@ void MainWindow::createActions()
 
     shapeInsertFacialAct = new QAction(tr("Facial Shape"), this);
     connect(shapeInsertFacialAct, SIGNAL(triggered()), this, SLOT(newFacial()));
+
+    shapeInsertImageShapeAct = new QAction(tr("Image Shape"), this);
+    connect(shapeInsertImageShapeAct, SIGNAL(triggered()), this, SLOT(newImageShape()));
+
 
     shapeLockAct = new QAction(tr("&Lock"), this);
     shapeLockAct->setShortcut(tr("Ctrl+L"));
@@ -504,6 +540,22 @@ void MainWindow::flipDrag()
      glWidget->setRender(DRAGMODE_ON, dragAct->isChecked());
 }
 
+
+void MainWindow::flipRender()
+{
+    shadingOnAct->setChecked(renderAct->isChecked());
+    ambientOnAct->setChecked(renderAct->isChecked());
+    shadowOnAct->setChecked(renderAct->isChecked());
+    previewOnAct->setChecked(renderAct->isChecked());
+    emit(shadingOnAct->triggered());
+    emit(ambientOnAct->triggered());
+    emit(shadowOnAct->triggered());
+    emit(previewOnAct->triggered());
+    glWidget->setRender(PREVIEW_ON, renderAct->isChecked());
+}
+
+
+
 void MainWindow::unselectDrag()
 {
     dragAct->setChecked(false);
@@ -532,6 +584,7 @@ void MainWindow::toggleShadow(){
 
 void MainWindow::togglePreview(){
     glWidget->setRender(PREVIEW_ON, previewOnAct->isChecked());
+    glWidget->updateGL();
 }
 
 void MainWindow::toggleLockShape(){

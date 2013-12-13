@@ -28,6 +28,7 @@ class ShapeControl;
 class MainWindow;
 
 enum RenderSetting {DRAGMODE_ON, SHADING_ON, AMBIENT_ON, SHADOWS_ON, NORMALS_ON, WIREFRAME_ON, PREVIEW_ON};
+enum RenderMode {DEFAULT_MODE = 0, DRAG_MODE = 1, SM_MODE = 2, DARK_MODE = 4, BRIGHT_MODE = 8, LABELDEPTH_MODE = 16};
 
 
 typedef void* Void_p;
@@ -56,18 +57,19 @@ protected:
     virtual void onOutdate(){}
     virtual void onUpdate(){}
     virtual void onEnsureUpToDate(){}
-    virtual void render() const = 0;
-
+    static int mRenderMode;
 public:
+    virtual void render(int mode = 0) = 0;
+
     enum Type_e {NONE, UI, SHAPE};
 
     Renderable(Type_e type):_type(type){_upToDate = false;}
     Type_e type() const {return _type;}
 
-    void renderUpToDate(){
-        ensureUpToDate();
-        render();
-    }
+//    void renderUpToDate() {
+//        ensureUpToDate();
+////        render();
+//    }
 
     void outdate(){
         _upToDate = false;
@@ -113,10 +115,12 @@ public:
     Selectable(Type_e type);
     virtual ~Selectable();
 
-    void renderNamed(bool ispush = false) const;
-    void renderUnnamed() const{
-        render();
-    }
+    virtual void render(int mode = 0);
+
+//    void renderNamed(bool ispush = false) const;
+//    void renderUnnamed() const{
+//        render();
+//    }
 
     inline bool isDraggable() const{return _isDraggable;}
     inline void makeDraggable(){_isDraggable = true;}

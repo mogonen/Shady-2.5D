@@ -25,7 +25,10 @@ HEADERS += glwidget.h \
     Renderer/shaderprogram.h \
     Renderer/shaderparameters.h \
     FacialShape/shadingcolorextractor.h \
-    meshshape/cmesh.h
+    meshshape/cmesh.h \
+    Renderer/qsliderspinbox.h \
+    Renderer/renderoptionspenal.h \
+    Renderer/imageshape.h
 
 SOURCES += glwidget.cpp \
     main.cpp \
@@ -56,7 +59,10 @@ SOURCES += glwidget.cpp \
     glwidget_render.cpp \
     glwidget_canvas.cpp \
     selection.cpp \
-    session.cpp
+    session.cpp \
+    Renderer/qsliderspinbox.cpp \
+    Renderer/renderoptionspenal.cpp \
+    Renderer/imageshape.cpp
 
 QT           += opengl widgets
 
@@ -95,5 +101,6 @@ RESOURCES += \
 
 OTHER_FILES += \
     Renderer/Basic.vsh \
-    Renderer/Basic.fsh
+    Renderer/Basic.fsh \
+    Renderer/Modelling.fsh
 

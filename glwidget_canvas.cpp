@@ -8,6 +8,7 @@ GLuint texture[30];
 
 void Canvas::insert(Shape_p sp){
     _shapes.push_front(sp);
+    _depthUpdated = false;
     UPDATE_GL
 }
 
@@ -15,6 +16,7 @@ void Canvas::remove(Shape_p sp){
 //  m_GLSLShader->RemoveParamSet(sp->getShaderParam());
     _shapes.remove(sp);
     delete sp;
+    _depthUpdated = false;
 }
 
 Shape_p Canvas::findPrev(Shape_p pShape){
@@ -43,7 +45,6 @@ Shape_p Canvas::findNext(Shape_p pShape){
 
     if (it == _shapes.end())
         it = _shapes.begin();
-
 }
 
 void Canvas::moveDown(Shape_p pShape){
@@ -59,6 +60,7 @@ void Canvas::moveDown(Shape_p pShape){
     Shape_p tmp = *it;
     (*it) = *itn;
     (*itn) = tmp;
+    _depthUpdated = false;
 }
 
 void Canvas::moveUp(Shape_p pShape){
@@ -74,6 +76,7 @@ void Canvas::moveUp(Shape_p pShape){
     Shape_p tmp = *it;
     (*it) = *itp;
     (*itp) = tmp;
+    _depthUpdated = false;
 }
 
 void Canvas::sendToBack(Shape_p pShape){
@@ -81,6 +84,7 @@ void Canvas::sendToBack(Shape_p pShape){
         return;
     _shapes.remove(pShape);
     _shapes.push_back(pShape);
+    _depthUpdated = false;
 }
 
 void Canvas::sendToFront(Shape_p pShape){
@@ -88,12 +92,14 @@ void Canvas::sendToFront(Shape_p pShape){
         return;
     _shapes.remove(pShape);
     _shapes.push_front(pShape);
+    _depthUpdated = false;
 }
 
 void Canvas::clear(){
     FOR_ALL_ITEMS(ShapeList,_shapes)
         delete *it;
     _shapes.clear();
+    _depthUpdated = false;
 }
 
 void Canvas::setImagePlane(const string &filename){
@@ -105,6 +111,16 @@ void Canvas::setImagePlane(const string &filename){
                   0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.bits() );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+}
+
+void Canvas::updateDepth()
+{
+    _depthUpdated = true;
+    unsigned char m=0;
+    FOR_ALL_ITEMS(ShapeList,_shapes)
+    {
+        (*it)->setLayerLabel(m++);
+    }
 }
 
 //NOW GL WIDGET ////////////////////////////////////////////
