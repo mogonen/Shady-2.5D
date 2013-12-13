@@ -238,7 +238,7 @@ public:     //## METHODS:
   int addReadOnlyLineEdit(QString caption, QString text, QString tooltip="");
   int addLineEditF(QString caption, float min, float max, double *value, float decimals,  QString tooltip="", QString unitsStr="");
   int addSpinBox(QString caption, int min, int max, int *value, int step, QString tooltip="");
-  int addDblSpinBoxF(QString caption, float min, float max, double *value, int decimals, float step=0.1, QString tooltip="");
+  QDoubleSpinBox* addDblSpinBoxF(QString caption, float min, float max, double *value, int decimals, float step=0.1, QString tooltip="");
   int addComboBox(QString caption, QString barSepList, int *selIdx, QString tooltip="");
   int addRadioGrp(QString caption, QString barSepList, int *selIdx, QString tooltip="", QString tooltipArr="", bool checkable=false, bool *checked=0);
   int addColorSel(QString caption, QColor *color, QString tooltip="");
@@ -270,7 +270,7 @@ public:       //## DATA:
   int customBtnClicked;               // Set to the index of the button
                                       //   "customBtn" clicked.
 
-private:
+protected:
 
   vector<QPushButton*> customBtn;      // Vector of buttons down the button of the GUI.
   QVBoxLayout *vboxLayout;
@@ -283,6 +283,9 @@ private:
   void  (*executeCallback)();
   bool* isExecCheck;
   QPushButton* execButton;
+
+signals:
+  void ValueUpdated();
 
 private slots:
 

@@ -14,15 +14,14 @@ protected:
     Mesh_p _control;
 
     //overridden functions
-    void render() const;
+    void render(int mode = 0);
     void onClick(const Point &, Click_e);
     void onUpdate();
     void onEnsureUpToDate();
     //void onOutdate();
 
-
-    void render(Edge_p) const;
-    void render(Face_p) const;
+    void render(Edge_p pEdge) const;
+    void render(Face_p pFace, int mode = 0) const;
 
     Vertex_p addMeshVertex();
     Vertex_p addMeshVertex(const Point&);

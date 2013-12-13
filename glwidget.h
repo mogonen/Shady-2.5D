@@ -85,6 +85,8 @@ public:
     void                sendActiveBack();
     void                sendActiveFront();
     Shape*              removeActive();
+    ShaderProgram*      getRShader(){return _pGLSLShader_R;}
+    ShaderProgram*      getMShader(){return _pGLSLShader_M;}
 
     void                clear();
 
@@ -115,7 +117,8 @@ private:
 
     Shape               *_pActiveShape;
     Canvas              *_pCanvas;
-    ShaderProgram       *_pGLSLShader;
+    ShaderProgram       *_pGLSLShader_R;
+    ShaderProgram       *_pGLSLShader_M;
 
     static unsigned int  _renderFlags;
 

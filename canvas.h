@@ -19,7 +19,8 @@ protected:
 
     void onDrag(const Vec2& t){
        _z+= 2*(t.x-t.y);
-       updateGLSLLight(_p0.x, _p0.y, _z);
+       qDebug()<<_p0.x<<_p0.y<<_z;
+       updateGLSLLight(_p0.x, _p0.y, 2);
     }
 
 public:
@@ -29,7 +30,7 @@ public:
         _z = z;
     }
     float _z;
-    void render() const;
+    void render(int mode = 0);
 
 } * Light_p;
 
@@ -37,6 +38,7 @@ class Canvas{
 
     ShapeList       _shapes;
     Light_p         _lights[MAX_LIGHTS];
+    bool            _depthUpdated;
     friend class    GLWidget;
 
 public:
@@ -55,7 +57,10 @@ public:
     void moveUp(Shape_p);
     void sendToBack(Shape_p);
     void sendToFront(Shape_p);
+    void updateDepth();
     void clear();
+
+    int getNumShapes(){return _shapes.size();}
 
 	int saveTo(const char * fname);
 	int loadFrom(const char * fname);

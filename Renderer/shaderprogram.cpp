@@ -2,14 +2,23 @@
 #include <QFileInfo>
 #include <QMessageBox>
 
-ShaderProgram::ShaderProgram()
+ShaderProgram::ShaderProgram(SHADER_TYPE type)
 {
-    m_VShaderFile = QString(":Basic.vsh");
-    m_FShaderFile = QString(":Basic.fsh");
-//    m_VShaderFile = QString("/Renderer/Basic.vsh");
-//    m_FShaderFile = QString("/Renderer/Basic.fsh");
+
+    switch(type)
+    {
+    case(TYPE_RENDER):
+        m_VShaderFile = QString(":Basic.vsh");
+        m_FShaderFile = QString(":Basic.fsh");
+        break;
+    case(TYPE_MODEL):
+        m_VShaderFile = QString(":Basic.vsh");
+        m_FShaderFile = QString(":Modelling.fsh");
+        break;
+    }
     m_VertexShader = NULL;
     m_FragmentShader = NULL;
+    m_type = type;
 }
 
 ShaderProgram::ShaderProgram(const QString &VFile, const QString &FFile) : m_VShaderFile(VFile), m_FShaderFile(FFile)
@@ -18,14 +27,26 @@ ShaderProgram::ShaderProgram(const QString &VFile, const QString &FFile) : m_VSh
     m_FragmentShader = NULL;
 }
 
+ShaderProgram::~ShaderProgram()
+{
+    glDeleteTextures(1,&m_Dark);
+    glDeleteTextures(1,&m_Bright);
+    glDeleteTextures(1,&m_ShapeMap);
+    glDeleteTextures(1, &m_BG);
+    glDeleteTextures(1, &m_LD);
+
+}
+
+
 void ShaderProgram::GrabResultsTes()
 {
-//    glBindTexture(GL_TEXTURE_2D, m_resTexture);
-//    glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, (h-w)/2, w, w,0);
+    //    glBindTexture(GL_TEXTURE_2D, m_resTexture);
+    //    glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, (h-w)/2, w, w,0);
 }
 
 void ShaderProgram::Initialize()
 {
+    initializeGLFunctions();
     LoadShader();
 
     glGenTextures(1,&m_resTexture);
@@ -36,28 +57,57 @@ void ShaderProgram::Initialize()
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
-
+    InitializeTextures();
+    InitializeParameters();
     this->setUniformValue("tex_SM", 0);
     this->setUniformValue("tex_DI_Dark", 1);
-    this->setUniformValue("tex_DI_Bright", 31);
+    this->setUniformValue("tex_DI_Bright", 2);
     this->setUniformValue("tex_BG", 3);
-    this->setUniformValue("tex_env", 4);
+    this->setUniformValue("tex_LD", 4);
+    this->setUniformValue("tex_Env", 5);
+
     this->setUniformValue("is_Video", 0);
-    this->setUniformValue("dist", (float)0.0);
-    this->setUniformValue("alpha", (float)1.0);
-    this->setUniformValue("filter_size", (float)1.0);
-    this->setUniformValue("amb_strength", (float)0.25);
-    this->setUniformValue("width", (float)1.0);
-    this->setUniformValue("height", (float)1.0);
-    this->setUniformValue("LOD", (float)0.0);
-    this->setUniformValue("toggle_ShaAmbCos", (int)7);
-    this->setUniformValue("toggle_Mirror", false);
-    this->setUniformValue("toggle_Point", false);
-    this->setUniformValue("SM_Quality", (float)0.5);
-    this->setUniformValue("Cartoon_sha", (float)0.5);
+
+
+    this->setUniformValue("filter_size", (float)m_filter_size);
+    this->setUniformValue("amb_strength", (float)m_amb_strength);
+    this->setUniformValue("width", (float)m_Width);
+    this->setUniformValue("height", (float)m_Height);
+
+    this->setUniformValue("toggle_Point", m_toggle_Point);
+    this->setUniformValue("Cartoon_sha", (float)m_Cartoon_sha);
     this->setUniformValue("light_dir", -QVector3D(0,0.0,1.0));
+
+    this->setUniformValue("dist", (float)m_Dist);
+    this->setUniformValue("alpha", (float)m_Alpha);
+
+    this->setUniformValue("LOD", (float)m_LOD);
+    this->setUniformValue("toggle_Mirror", m_toggle_Mirror);
+    this->setUniformValue("SM_Quality", (float)m_SM_Quality);
+
+    this->setUniformValue("current_show", (int)0);
 }
 
+void ShaderProgram::InitializeParameters()
+{
+    m_Dist = 0.0;
+    m_Alpha = 1.0;
+    m_filter_size = 1.0;
+    m_amb_strength = 0.25;
+    m_Cartoon_sha = 0.5;
+
+    m_Width = 1.0;
+    m_Height = 1.0;
+    m_SM_Quality = 0.5;
+
+    m_toggle_Mirror = false;
+    m_toggle_Point = true;
+
+    m_SMInitialized = false;
+    m_DarkInitialized = false;
+    m_BrightInitialized = false;
+    m_LDInitialized = false;
+}
 
 void ShaderProgram::LoadShader(const QString& vshader,const QString& fshader)
 {
@@ -66,9 +116,6 @@ void ShaderProgram::LoadShader(const QString& vshader,const QString& fshader)
         m_VShaderFile = vshader;
         m_FShaderFile = fshader;
     }
-
-//    this->release();
-//    this->removeAllShaders();
 
     if(m_VertexShader)
     {
@@ -91,7 +138,7 @@ void ShaderProgram::LoadShader(const QString& vshader,const QString& fshader)
             this->addShader(m_VertexShader);
         else
             QMessageBox::critical(0, "GLSL Vertex Shader Error",
-                                   QString("GLSL ")+m_VertexShader->log());
+                                  QString("GLSL ")+m_VertexShader->log());
     }
     else qWarning() << "Vertex Shader source file " << m_VShaderFile << " not found.";
 
@@ -141,11 +188,291 @@ void ShaderProgram::LoadAllParamSet()
 
 void ShaderProgram::LoadParamSet(ShaderParameters *p)
 {
-    p->SetAllLocalParameters();
+    //    p->SetAllLocalParameters();
+}
+
+void ShaderProgram::InitializeTextures()
+{
+    glGenTextures(1,&m_Dark);
+    glGenTextures(1,&m_Bright);
+    glGenTextures(1,&m_ShapeMap);
+    glGenTextures(1,&m_BG);
+    glGenTextures(1,&m_LD);
+
+    ResetDarkImage();
+    ResetBrightImage();
+    ResetLDImage();
+
+    //    //set background as black
+    //    char temp[4];
+    //    memset(temp,255,3);
+    //    temp[3] = 255;
+    //    glBindTexture(GL_TEXTURE_2D, m_BG);
+    //    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA,
+    //                  1, 1,
+    //                  0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
+    //    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    //    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
+    //set shapemap as null
+    glBindTexture(GL_TEXTURE_2D, m_ShapeMap);
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA,
+                  0, 0,
+                  0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
+}
+
+void ShaderProgram::SetTextureToShader()
+{
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_ShapeMap);
+    glDisable(GL_TEXTURE0);
+
+    glActiveTexture(GL_TEXTURE0+1);
+    glBindTexture(GL_TEXTURE_2D, m_Dark);
+    glDisable(GL_TEXTURE0+1);
+
+    glActiveTexture(GL_TEXTURE0+2);
+    glBindTexture(GL_TEXTURE_2D, m_Bright);
+    glDisable(GL_TEXTURE0+2);
+
+
+    glActiveTexture(GL_TEXTURE0+3);
+    glBindTexture(GL_TEXTURE_2D, m_BG);
+    glDisable(GL_TEXTURE0+3);
+
+    glActiveTexture(GL_TEXTURE0+4);
+    glBindTexture(GL_TEXTURE_2D, m_LD);
+    glDisable(GL_TEXTURE0+4);
+
+    glActiveTexture(GL_TEXTURE0+5);
+    glBindTexture(GL_TEXTURE_2D, m_env);
+    glDisable(GL_TEXTURE0+5);
+
+    glActiveTexture(GL_TEXTURE0);
+    glDisable(GL_TEXTURE0);
+}
+
+void ShaderProgram::ResetDarkImage()
+{
+    //set dark image as all black
+    char temp[4];
+    memset(temp,0,3);
+    temp[3] = 255;
+    glBindTexture(GL_TEXTURE_2D, m_Dark);
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA,
+                  1, 1,
+                  0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+}
+
+void ShaderProgram::ResetBrightImage()
+{
+    //set birght image as all white
+    char temp[4];
+    glBindTexture(GL_TEXTURE_2D, m_Bright);
+    memset(temp,255,4);
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA,
+                  1, 1,
+                  0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+}
+
+void ShaderProgram::ResetLDImage()
+{
+    //set LD image as all black
+    char temp[4];
+    memset(temp,127,3);
+    temp[3] = 255;
+    glBindTexture(GL_TEXTURE_2D, m_LD);
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA,
+                  1, 1,
+                  0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+}
+
+
+void ShaderProgram::LoadBrightImage(unsigned char *data, int width, int height)
+{
+    glBindTexture(GL_TEXTURE_2D, m_Bright);
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA,
+                  width, height,
+                  0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+}
+
+void ShaderProgram::LoadDarkImage(unsigned char *data, int width, int height)
+{
+    glBindTexture(GL_TEXTURE_2D, m_Dark);
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA,
+                  width, height,
+                  0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+}
+
+void ShaderProgram::LoadBGImage(unsigned char *data, int width, int height)
+{
+    glActiveTexture(GL_TEXTURE0+3);
+    glBindTexture(GL_TEXTURE_2D, m_BG);
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA,
+                  width, height,
+                  0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glDisable(GL_TEXTURE0+3);
+
+    glActiveTexture(GL_TEXTURE0);
+    glDisable(GL_TEXTURE0);
+}
+
+void ShaderProgram::GrabShapeMap(int w, int h)
+{
+    m_Width = w;
+    m_Height = h;
+
+    glBindTexture(GL_TEXTURE_2D, m_ShapeMap);
+    if(!m_SMInitialized)
+    {
+        glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, (h-w)/2, w, w,0);
+        m_SMInitialized = true;
+    }
+    else
+        glCopyTexSubImage2D(GL_TEXTURE_2D,0,0,0,0, (h-w)/2, w, w);
+}
+
+
+void ShaderProgram::GrabDarkMap()
+{
+    glBindTexture(GL_TEXTURE_2D, m_Dark);
+    if(!m_DarkInitialized)
+    {
+        glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, (m_Height-m_Width)/2, m_Width, m_Width,0);
+        m_DarkInitialized = true;
+    }
+    else
+        glCopyTexSubImage2D(GL_TEXTURE_2D,0,0,0,0, (m_Height-m_Width)/2, m_Width, m_Width);
+}
+
+void ShaderProgram::GrabBrightMap()
+{
+    glBindTexture(GL_TEXTURE_2D, m_Bright);
+    if(!m_BrightInitialized)
+    {
+        glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, (m_Height-m_Width)/2, m_Width, m_Width,0);
+        m_BrightInitialized = true;
+    }
+    else
+        glCopyTexSubImage2D(GL_TEXTURE_2D,0,0,0,0, (m_Height-m_Width)/2, m_Width, m_Width);
+}
+
+void ShaderProgram::GrabLDMap()
+{
+    glBindTexture(GL_TEXTURE_2D, m_LD);
+    if(!m_LDInitialized)
+    {
+        glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, (m_Height-m_Width)/2, m_Width, m_Width,0);
+        m_LDInitialized = true;
+    }
+    else
+        glCopyTexSubImage2D(GL_TEXTURE_2D,0,0,0,0, (m_Height-m_Width)/2, m_Width, m_Width);
 }
 
 
 
+void ShaderProgram::SetDepthValue(double dep)
+{
+    m_Dist = dep;
+    this->setUniformValue("dist", m_Dist);
+}
+void ShaderProgram::SetAlphaValue(double alp)
+{
+    m_Alpha = alp;
+    this->setUniformValue("alpha", m_Alpha);
+}
 
 
+void ShaderProgram::SetFilterValue(double filter)
+{
+    m_filter_size = filter;
+    this->setUniformValue("filter_size", m_filter_size);
+}
+void ShaderProgram::SetAmbValue(double amb)
+{
+    m_amb_strength = amb;
+    //    ShaderProgram->bind();
+    this->setUniformValue("amb_strength", m_amb_strength);
+    //    qDebug()<<dep;
+    //    LoadShader("./GLSL/Basic.vsh", "./GLSL/Basic.fsh");
 
+}
+
+void ShaderProgram::SetLevelOfDetail(double LOD)
+{
+    m_LOD = LOD;
+    this->setUniformValue("LOD", m_LOD);
+
+}
+
+void ShaderProgram::SetSMQuality(double Quality)
+{
+    m_SM_Quality = Quality;
+    this->setUniformValue("SM_Quality", m_SM_Quality);
+
+}
+
+void ShaderProgram::SetCartoonSha(double Strength)
+{
+    m_Cartoon_sha = Strength;
+    //    qDebug()<<m_CartoonSha;
+    this->setUniformValue("Cartoon_sha", m_Cartoon_sha);
+
+}
+
+void ShaderProgram::ToggleCos(bool info)
+{
+    m_toggle_ShaAmbCos &= 0xe;
+    if(info)
+        m_toggle_ShaAmbCos += 1;
+    this->setUniformValue("toggle_ShaAmbCos", (int)m_toggle_ShaAmbCos);
+}
+
+void ShaderProgram::ToggleAmb(bool info)
+{
+    m_toggle_ShaAmbCos &= 0xd;
+    if(info)
+        m_toggle_ShaAmbCos += 2;
+    this->setUniformValue("toggle_ShaAmbCos", (int)m_toggle_ShaAmbCos);
+}
+
+void ShaderProgram::ToggleSha(bool info)
+{
+    m_toggle_ShaAmbCos &= 0xb;
+    if(info)
+        m_toggle_ShaAmbCos += 4;
+    this->setUniformValue("toggle_ShaAmbCos", (int)m_toggle_ShaAmbCos);
+}
+
+void ShaderProgram::ToggleMirror(bool info)
+{
+    m_toggle_Mirror = info;
+    this->setUniformValue("toggle_Mirror", m_toggle_Mirror);
+}
+
+void ShaderProgram::TogglePoint(bool info)
+{
+    m_toggle_Point = info;
+    this->setUniformValue("toggle_Point", m_toggle_Point);
+}
+
+void ShaderProgram::SetCurTex(int index)
+{
+    m_cur_tex = index;
+    this->setUniformValue("cur_tex", m_cur_tex);
+}

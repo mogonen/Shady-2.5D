@@ -1,5 +1,5 @@
 #include "base.h"
-
+#include <qDebug>
 Selectable::Selectable(Type_e type):Renderable(type){
     _isDraggable = false;
     pRef = 0;
@@ -52,6 +52,7 @@ void SelectionManager::startSelect(Selectable_p pObj, bool isselect, bool isMult
 {
     isSelect = isselect;
     _theSelected = pObj;
+    qDebug()<<pObj->name();
 
     if (pObj)
         pObj->onDown();

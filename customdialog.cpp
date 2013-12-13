@@ -58,20 +58,20 @@ CustomDialog::CustomDialog(QString title, QWidget *parent, char *execLabel, void
 
 
   QVBoxLayout *vboxLayoutMain = new QVBoxLayout(this);
-  vboxLayoutMain->setSpacing(0);
-  vboxLayoutMain->setMargin(0);
+//  vboxLayoutMain->setSpacing(0);
+//  vboxLayoutMain->setMargin(0);
 
   vboxLayout = new QVBoxLayout();
-  vboxLayout->setSpacing(5);
-  vboxLayout->setMargin(8);
-  vboxLayout->setContentsMargins(9, 6, 9, 9);
+//  vboxLayout->setSpacing(5);
+//  vboxLayout->setMargin(8);
+//  vboxLayout->setContentsMargins(9, 6, 9, 9);
   layoutNextElement = vboxLayout;
 
   //## ADD "CANCEL" AND "OKAY" BUTTONS AT BOTTOM:
 
   hbtnLayout = new QHBoxLayout();
-  hbtnLayout->setSpacing(5);
-  hbtnLayout->setMargin(8);
+//  hbtnLayout->setSpacing(5);
+//  hbtnLayout->setMargin(8);
 
   executeCallback = callback;
   isExecCheck  = ischeck;
@@ -95,6 +95,7 @@ CustomDialog::CustomDialog(QString title, QWidget *parent, char *execLabel, void
   }
 
   vboxLayoutMain->addLayout(hbtnLayout);
+  vboxLayoutMain->setAlignment(Qt::AlignTop);
   this->setLayout(vboxLayoutMain);
 }
 
@@ -374,7 +375,7 @@ int CustomDialog::addSpinBox(QString caption, int min, int max, int *value, int 
 //-- @ step     =  the interval the spin box advances when its little arrows are clicked
 //-- @ tooltip  =  optional tooltip
 
-int CustomDialog::addDblSpinBoxF(QString caption, float min, float max, double *value,
+QDoubleSpinBox* CustomDialog::addDblSpinBoxF(QString caption, float min, float max, double *value,
                                   int decimals, float step, QString tooltip)
 {
   DialogElement &e = addNewElement(DLG_DBLSPINBOX, caption, tooltip, true);
@@ -397,7 +398,7 @@ int CustomDialog::addDblSpinBoxF(QString caption, float min, float max, double *
   e.layout->addItem(sp);
   e.layout->addWidget(e.dblSpnBox);
   layoutNextElement->addLayout(e.layout);
-  return elements.size();
+  return e.dblSpnBox;
 }
 
 //------------------------
@@ -427,6 +428,7 @@ int CustomDialog::addComboBox(QString caption, QString barSepList, int *selIdx,
 
   e.layout->addWidget(e.label);
   e.layout->addWidget(e.cmbBox);
+  QObject::connect(e.cmbBox,SIGNAL(currentIndexChanged(int)),this,SLOT(itemChanged()));
   layoutNextElement->addLayout(e.layout);
   return elements.size();
 }
@@ -739,6 +741,7 @@ int CustomDialog::addPercentBar(QString caption, QString valueLabel, float fract
   layoutNextElement->addLayout(e.layout);
   return elements.size();
 }
+
 
 //------------------------
 //-- Adds a vertical spacer below the last added dialog element.
@@ -1191,6 +1194,7 @@ bool CustomDialog::wasCancelled()
 
 void CustomDialog::itemChanged(){
     updateValues();
+    emit(ValueUpdated());
 }
 
 void CustomDialog::changeEvent(QEvent*){
