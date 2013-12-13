@@ -103,6 +103,7 @@ void GLWidget::initializeGL()
      glClear (GL_COLOR_BUFFER_BIT);
      _cam.set(0,0);
 
+     //glClearColor(1.0, 1.0, 1.0, 1.0);
      //Lighting
      GLfloat mat_specular[]   = { 1.0, 1.0, 1.0, 1.0 };
      GLfloat mat_shininess[]  = { 50.0 };
@@ -142,8 +143,9 @@ void GLWidget::resizeGL(int width, int height)
     glViewport(0, 0, width, height);
     _aspectR = width*1.0 / height;
     m_CameraChanged = true;
-    /*    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    /*
+     *glMatrixMode(GL_MODELVIEW);
+     *glLoadIdentity();
     glTranslated(_cam.x, _cam.y, -1.0);*/
 }
 

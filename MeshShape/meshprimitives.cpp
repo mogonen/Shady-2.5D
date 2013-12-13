@@ -86,6 +86,7 @@ MeshShape* MeshShape::insertTorus(const Point& p, int n, double rad, MeshShape* 
     double step_u = 2*PI / segU;
     Vertex_p* vs = new Vertex_p[segU*segV];
 
+
     FOR_ALL_J(segV){
         FOR_ALL_I(segU){
             double ang_u = -step_u * i;

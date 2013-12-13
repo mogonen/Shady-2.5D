@@ -47,8 +47,8 @@
 #include "ellipseshape.h"
 #include "shapecontrol.h"
 
-double              EllipseShape::Radius = 0.1;
-ControlPoint_p      ControlPoint::_pTheActive = 0;
+double                  EllipseShape::Radius = 0.1;
+ControlPoint_p          ControlPoint::_pTheActive = 0;
 
 
 MainWindow::MainWindow()
@@ -126,20 +126,26 @@ void MainWindow::initTools()
     this->addDockWidget(Qt::LeftDockWidgetArea, attrDockWidget);
 
     optionsStackedWidget = new QStackedWidget(optionsDockWidget);
-    QVBoxLayout *layout = new QVBoxLayout;
-    layout->addWidget(optionsStackedWidget);
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(optionsStackedWidget,0,0,1,1,Qt::AlignTop);
+    layout->addWidget(0,1,0,1,1,Qt::AlignTop);
+    layout->setRowStretch(1,1);
     optionsStackedWidget->setVisible(true);
 
     attrStackedWidget = new QStackedWidget(attrDockWidget);
-    layout->addWidget(attrStackedWidget);
+    QVBoxLayout *layout2 = new QVBoxLayout;
+    layout2->addWidget(attrStackedWidget);
+    layout2->addStretch(0);
     attrStackedWidget->setVisible(true);
+
+
 
     optionsDockWidget->setWidget(optionsStackedWidget);
     optionsDockWidget->setLayout(layout);
     optionsDockWidget->setVisible(true);
 
     attrDockWidget->setWidget(attrStackedWidget);
-    attrDockWidget->setLayout(layout);
+    attrDockWidget->setLayout(layout2);
     attrDockWidget->setVisible(true);
 
     addAttrWidget(new QWidget, 0);//default widget
@@ -449,6 +455,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event){
     bool ctrl = (event->modifiers() & Qt::ControlModifier);
 
     int key = event->key();
+
+    if (key == Qt::Key_H)
+    {
+        Patch::flipH();
+    }
 
     if (key == Qt::Key_Escape){
         Session::get()->controller()->cancel();

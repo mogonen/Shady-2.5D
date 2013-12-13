@@ -15,10 +15,7 @@ QWidget* createAttrWidget(Shape_p pShape){
 }
 
 void executeMeshShapeOperations(){
-    SelectionSet selects = Session::get()->selectionMan()->getSelection();
-    FOR_ALL_ITEMS(SelectionSet, selects){
-        MeshShape::execOP(Point(),*it);
-    }
+    MeshShape::executeStackOperation();
     MainWindow::updateGL();
 }
 
@@ -154,6 +151,7 @@ QWidget* createExtrudeOptions()
     CustomDialog * widget = new CustomDialog("Extrusion Options",0, "Exture", executeMeshShapeOperations, &MeshShape::EXEC_ONCLICK);
     widget->addDblSpinBoxF("Extrusion Amount:", 0, 0.5, &MeshShape::EXTRUDE_T, 2, 0.01, "");
     widget->addCheckBox ("Keep Tangents Smooth", &MeshShape::isSMOOTH,"");
+    widget->addCheckBox ("Keep Faces Together", &MeshShape::isKEEP_TOGETHER,"");
     // We want our custom dialog called "Registration".
     /*d.addLineEdit (input1+"  ", &Value0, "No middle name!");             // Here's a line edit.
     d.addCheckBox (input2+"  ", &Value1, "my tooltip");       // Here's a checkbox with a tooltip (optional last argument).

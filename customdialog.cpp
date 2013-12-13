@@ -66,6 +66,7 @@ CustomDialog::CustomDialog(QString title, QWidget *parent, char *execLabel, void
   vboxLayout->setMargin(8);
   vboxLayout->setContentsMargins(9, 6, 9, 9);
   layoutNextElement = vboxLayout;
+  layoutNextElement->addStretch(0);
 
   //## ADD "CANCEL" AND "OKAY" BUTTONS AT BOTTOM:
 

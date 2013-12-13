@@ -7,6 +7,8 @@
 
 using namespace dlfl;
 
+typedef std::map<Vertex_p, Corner_p> VertexMap;
+
 class MeshShape : public Shape
 {
 
@@ -14,18 +16,16 @@ protected:
     Mesh_p _control;
 
     //overridden functions
-    void render() const;
-    void onClick(const Point &, Click_e);
-    void onUpdate();
-    void onEnsureUpToDate();
-    //void onOutdate();
+    void                    render() const;
+    void                    onClick(const Point &, Click_e);
+    void                    onUpdate();
+    void                    onEnsureUpToDate();
 
+    void                    render(Edge_p) const;
+    void                    render(Face_p) const;
 
-    void render(Edge_p) const;
-    void render(Face_p) const;
-
-    Vertex_p addMeshVertex();
-    Vertex_p addMeshVertex(const Point&);
+    Vertex_p                addMeshVertex();
+    Vertex_p                addMeshVertex(const Point&);
 
     friend class SpineShape;
 
@@ -66,6 +66,7 @@ public:
     static bool             EXEC_ONCLICK;
     static bool             isSMOOTH;
     static double           EXTRUDE_T;
+    static bool             isKEEP_TOGETHER;
 
 private:
 
@@ -75,7 +76,8 @@ private:
     void                    insertSegment(Edge_p, const Point&);
     void                    diagonalDivide(Corner_p);
     Face_p                  extrude(Face_p, double);
-    Edge_p                  extrude(Edge_p, double);
+    Edge_p                  extrude(Edge_p, double, VertexMap* vmap=0);
+    void                    extrudeEdges(SelectionSet, double);
     void                    deleteFace(Face_p);
 
     //helper functions
