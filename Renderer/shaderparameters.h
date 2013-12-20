@@ -1,42 +1,21 @@
 #ifndef SHADERPARAMETERS_H
 #define SHADERPARAMETERS_H
 
-#include <QImage>
-#include <QGLFunctions>
-#include "shaderprogram.h"
+#include <QVector3D>
 
-//typedef Vec4 RGBA;
-//typedef Vec3 RGB;
-
-class ShaderProgram;
-
-class ShaderParameters : public QGLFunctions
+class ShaderParameters
 {
 public:
 
     ShaderParameters();
     ~ShaderParameters();
 
-    void AssociateToProgram(ShaderProgram* p){m_ShaderProgram = p;}
-
-
-    void SetAllLocalParameters();
-
-
-
-//    void SetSMTexture(QImage img, int option = 3);
-//    void SetDarkTexture(QImage img, int option = 3);
-//    void SetBrightTexture(QImage img, int option = 3);
-
-//    void SetDepthValue(double dep);
-//    void SetAlphaValue(double alp);
-//    void SetLevelOfDetail(double LOD);
-//    void SetSMQuality(double Quality);
-//    void ToggleMirror(bool info);
-
-    ShaderProgram *m_ShaderProgram;
-
-
+    float m_alphaValue;
+    float m_translucency;
+    float m_centerDepth;
+    int   m_layerLabel;
+    float m_SMQuality;
+    QVector3D m_averageNormal;
 
 
 };

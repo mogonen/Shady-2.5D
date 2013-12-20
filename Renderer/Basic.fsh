@@ -24,6 +24,11 @@ uniform float SM_Quality;
 uniform float Cartoon_sha=0.1;
 uniform bool toggle_Point;
 
+//the array that stores all the reflection/refraction parameters
+uniform float refValues[10];
+//the arra that stores all the average normals
+uniform vec3 normalValues[10];
+
 //function to calculate ambient occlusion effect of image
 void AmbientShadow(in vec4 center, out float Amb)
 {
@@ -379,7 +384,8 @@ void main()
     else if(cur_tex == 7)
             gl_FragColor = texture2D(tex_Env, gl_TexCoord[0].st);
 
-//    gl_FragColor = texture2D(tex_BG, gl_TexCoord[0].st);
+    int label = int(texture2D(tex_LD, gl_TexCoord[0].st).b*255);
+    gl_FragColor = vec4(normalValues[0],1.0);
 
 //        gl_FragColor = vec4(1.0)*Sha;
     //    gl_FragColor = vec4(1.0)*Spe;

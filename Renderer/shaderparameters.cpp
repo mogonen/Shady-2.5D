@@ -2,19 +2,12 @@
 
 ShaderParameters::ShaderParameters()
 {
-//    m_ShaderProgram = NULL;
-//    m_Dist = 0.0;
-//    m_Alpha = 1.0;
-//    m_Width = 1.0;
-//    m_Height = 1.0;
-//    m_SM_QUality = 0.5;
-//    m_toggle_Mirror = false;
-//    m_SMInitialized = false;
-//    m_DarkInitialized = false;
-//    m_BrightInitialized = false;
-//    glEnable(GL_TEXTURE_2D);
-//    initializeGLFunctions();
-//    InitializeTextures();
+    m_alphaValue = 1.0;
+    m_translucency = 0.0;
+    m_centerDepth = 0.0;
+    m_layerLabel = 0;
+    m_SMQuality = 0.5;
+    m_averageNormal = QVector3D(0.0,0.0,1.0);
 }
 
 ShaderParameters::~ShaderParameters()

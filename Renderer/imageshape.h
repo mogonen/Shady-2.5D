@@ -42,6 +42,8 @@ public:
     enum{NO_UPDATE = 0, UPDATE_SM = 1, UPDATE_BRIGHT = 2, UPDATE_DARK = 4} texType;
 
     double m_alpha_th;
+    double m_stretch;
+
     double m_width;
     double m_height;
     int m_texUpdate;
@@ -51,6 +53,8 @@ public:
     QString m_SMFile;
     QString m_DarkFile;
     QString m_BrightFile;
+    //shape map image will be saved for further use
+    QImage m_SMimg;
     int m_curTexture;
     ImageShapeCustomDialog *m_penal;
 };

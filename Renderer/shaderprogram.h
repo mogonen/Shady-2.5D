@@ -5,10 +5,9 @@
 #include <QGLFunctions>
 #include <QList>
 #include "shaderparameters.h"
+#include "shape.h"
 
-class ShaderParameters;
-typedef QList<ShaderParameters *> ParamList;
-
+class shape;
 class ShaderProgram : public QGLShaderProgram, public QGLFunctions
 {
 public:
@@ -77,13 +76,15 @@ public:
 //    void SetEnvTexture(QPixmap img, int option = 3);
 
 
-    void AddParamSet(ShaderParameters *p);
-    void RemoveParamSet(ShaderParameters *p);
-    void LoadAllParamSet();
-    void LoadParamSet(ShaderParameters *p);
+//    void AddParamSet(ShaderParameters *p);
+//    void RemoveParamSet(ShaderParameters *p);
+//    void LoadAllParamSet();
+//    void LoadParamSet(ShaderParameters *p);
     bool isInitialized(){return m_isInitialized;}
     void SetInitialized(bool v){m_isInitialized = v;}
+    void LoadShaperParameters(ShapeList Shapes);
 
+//    void LoadShaperParameters(ShapeList Shapes);
 
     float m_Width;
     float m_Height;
@@ -114,8 +115,8 @@ public:
     GLuint m_env;
 
     SHADER_TYPE m_type;
+
 private:
-    ParamList m_ShaderParamList;
     QGLShader *m_VertexShader;
     QGLShader *m_FragmentShader;
     QString m_VShaderFile;
@@ -135,9 +136,6 @@ private:
     bool m_BrightInitialized;
     bool m_LDInitialized;
     bool m_isInitialized;
-
-
-
 };
 
 #endif // SHADERPROGRAM_H

@@ -87,11 +87,11 @@ void SampleShape::render(int mode) {
 void Light::render(int mode) {
     Draggable::render(mode);
 
-        glColor3f(1.0, 1.0, 0);
-        glPointSize(8);
-        glBegin(GL_POINTS);
-        glVertex3f(P().x, P().y, 0);
-        glEnd();
+    glColor3f(1.0, 1.0, 0);
+    glPointSize(8);
+    glBegin(GL_POINTS);
+    glVertex3f(P().x, P().y, 0.001);
+    glEnd();
 }
 
 void ControlPoint::render(int mode) {
@@ -373,7 +373,6 @@ void Patch4::render(int mode){
                     glEnd();
                 }
 
-                // Set the color of the patches
                 glColor3f(1.0,1.0,1.0);
                 glLineWidth(0.5);
                 glBegin(GL_LINE_LOOP);
@@ -536,6 +535,7 @@ void ImageShape::InitializeTex()
         {
             loadedImage = QImage(1,1,QImage::Format_ARGB32);
             loadedImage.setPixel(0,0,qRgba(0.0,0.0,255.0,255.0));
+            _shaderParam.m_averageNormal = QVector3D(0.0,0.0,1.0);
         }
         else
         {
@@ -545,11 +545,8 @@ void ImageShape::InitializeTex()
                 m_height = m_width*h/w;
             else
                 m_width = m_height*w/h;
-//            for(int i=0;i<w;i++)
-//                for(int j=0;j<h;j++)
-//                {
-//                    loadedImage.color();
-//                }
+            m_SMimg = loadedImage;
+            calAverageNormal();
         }
         m_texSM = Session::get()->glWidget()->bindTexture(loadedImage, GL_TEXTURE_2D);
         if(GetPenal())
@@ -588,7 +585,7 @@ void ImageShape::render(int mode)
     Shape::render(mode);
     if(m_texUpdate!=NO_UPDATE)
         InitializeTex();
-    if(mode&DEFAULT_MODE||mode&DRAG_MODE)
+    if(mode&DEFAULT_MODE||mode&DRAG_MODE&&!(mode&SM_MODE||mode&DARK_MODE||mode&BRIGHT_MODE||mode&LABELDEPTH_MODE))
     {
         switch(m_curTexture)
         {
@@ -605,7 +602,6 @@ void ImageShape::render(int mode)
             glBindTexture(GL_TEXTURE_2D, m_texSM);
             mode = mode|LABELDEPTH_MODE;
             break;
-
         }
     }
     else
@@ -626,22 +622,58 @@ void ImageShape::render(int mode)
 //    Session::get()->glWidget()->getMShader()->setUniformValue("label_depth", (float)m_alpha_th);
 
     int total_num = Session::get()->canvas()->getNumShapes();
+    qDebug()<<"normal"<<_shaderParam.m_averageNormal;
 //    glDepthMask(GL_FALSE);
     glBegin(GL_QUADS);
-    glColor4f(((float)_layerLabel)/total_num,((float)_layerLabel)/total_num,0.0,1.0);
+    double delta_LB2RT = (_shaderParam.m_averageNormal.x()*m_width+_shaderParam.m_averageNormal.y()*m_height)*m_stretch;
+    double delta_LT2BR = (_shaderParam.m_averageNormal.x()*m_width-_shaderParam.m_averageNormal.y()*m_height)*m_stretch;
+    double center_depth = (float)(_shaderParam.m_layerLabel+1)/(total_num+1);
+    qDebug()<<"_layerLabel"<<(int)_shaderParam.m_layerLabel;
+    qDebug()<<"total_num"<<(int)total_num;
+    qDebug()<<"center_depth"<<center_depth;
+    qDebug()<<"delta_LB2RT"<<delta_LB2RT;
+    qDebug()<<"delta_LT2BR"<<delta_LT2BR;
+
+    if(_shaderParam.m_averageNormal.z()<0)
+    {
+        delta_LB2RT =-delta_LB2RT;
+        delta_LT2BR =-delta_LT2BR;
+    }
+
+    glColor4f(center_depth,center_depth-delta_LB2RT,_shaderParam.m_layerLabel,1.0);
     glTexCoord2d(0.0,0.0);
-    glVertex3f(-m_width,-m_height,((float)_layerLabel)/total_num);
-    glColor4f(((float)_layerLabel)/total_num,((float)_layerLabel)/total_num,0.0,1.0);
+    glVertex3f(-m_width,-m_height,-(center_depth-delta_LB2RT));
+    QVector3D bl(-m_width,-m_height,center_depth-delta_LB2RT);
+//    glVertex3f(-m_width,-m_height,0.5);
+
+    glColor4f(center_depth,center_depth-delta_LT2BR,_shaderParam.m_layerLabel,1.0);
     glTexCoord2d(0.0,1.0);
-    glVertex3f(-m_width,m_height,-((float)_layerLabel)/total_num);
-    glColor4f(((float)_layerLabel)/total_num,((float)_layerLabel)/total_num,0.0,1.0);
+    glVertex3f(-m_width,m_height,-(center_depth-delta_LT2BR));
+    QVector3D tl(-m_width,m_height,center_depth-delta_LT2BR);
+//    glVertex3f(-m_width,m_height,0.5);
+
+    glColor4f(center_depth,center_depth+delta_LB2RT,_shaderParam.m_layerLabel,1.0);
     glTexCoord2d(1.0,1.0);
-    glVertex3f(m_width,m_height,-((float)_layerLabel)/total_num);
-    glColor4f(((float)_layerLabel)/total_num,((float)_layerLabel)/total_num,0.0,1.0);
+    glVertex3f(m_width,m_height,-(center_depth+delta_LB2RT));
+    QVector3D tr(m_width,m_height,center_depth+delta_LB2RT);
+
+//    glVertex3f(m_width,m_height,0.5);
+
+    glColor4f(center_depth,center_depth+delta_LT2BR,_shaderParam.m_layerLabel,1.0);
     glTexCoord2d(1.0,0.0);
-    glVertex3f(m_width,-m_height,((float)_layerLabel)/total_num);
+    glVertex3f(m_width,-m_height,-(center_depth+delta_LT2BR));
+    QVector3D br(m_width,-m_height,center_depth+delta_LT2BR);
+
+    QVector3D n1 = QVector3D::crossProduct(bl-tl,bl-br);
+    QVector3D n2 = QVector3D::crossProduct(tr-br,tr-tl);
+    qDebug()<<"n1"<<n1;
+    qDebug()<<"n2"<<n2;
+
+//    glVertex3f(m_width,-m_height,0.5);
+
     glEnd();
 //    glDepthMask(GL_TRUE);
     Session::get()->glWidget()->getMShader()->release();
+    glDisable(GL_TEXTURE_2D);
 }
 

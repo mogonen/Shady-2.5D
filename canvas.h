@@ -38,7 +38,6 @@ class Canvas{
 
     ShapeList       _shapes;
     Light_p         _lights[MAX_LIGHTS];
-    bool            _depthUpdated;
     friend class    GLWidget;
 
 public:

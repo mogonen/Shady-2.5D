@@ -506,7 +506,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event){
     if (key == Qt::Key_Return){
         Session::get()->controller()->apply();
     }
-
+    glWidget->keyPressEvent(event);
     glWidget->updateGL();
 }
 

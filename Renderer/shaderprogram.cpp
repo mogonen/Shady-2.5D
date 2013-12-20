@@ -165,31 +165,31 @@ void ShaderProgram::LoadShader(const QString& vshader,const QString& fshader)
 }
 
 
-void ShaderProgram::AddParamSet(ShaderParameters *p)
-{
-    m_ShaderParamList.push_back(p);
-    p->AssociateToProgram(this);
-}
+//void ShaderProgram::AddParamSet(ShaderParameters *p)
+//{
+//    m_ShaderParamList.push_back(p);
+//    p->AssociateToProgram(this);
+//}
 
-void ShaderProgram::RemoveParamSet(ShaderParameters *p)
-{
-    m_ShaderParamList.removeOne(p);
-    LoadAllParamSet();
-}
+//void ShaderProgram::RemoveParamSet(ShaderParameters *p)
+//{
+//    m_ShaderParamList.removeOne(p);
+//    LoadAllParamSet();
+//}
 
-void ShaderProgram::LoadAllParamSet()
-{
-    ParamList::Iterator it;
-    for(it = m_ShaderParamList.begin();it!=m_ShaderParamList.end();it++)
-    {
-        LoadParamSet(*it);
-    }
-}
+//void ShaderProgram::LoadAllParamSet()
+//{
+//    ParamList::Iterator it;
+//    for(it = m_ShaderParamList.begin();it!=m_ShaderParamList.end();it++)
+//    {
+//        LoadParamSet(*it);
+//    }
+//}
 
-void ShaderProgram::LoadParamSet(ShaderParameters *p)
-{
-    //    p->SetAllLocalParameters();
-}
+//void ShaderProgram::LoadParamSet(ShaderParameters *p)
+//{
+//    //    p->SetAllLocalParameters();
+//}
 
 void ShaderProgram::InitializeTextures()
 {
@@ -476,3 +476,21 @@ void ShaderProgram::SetCurTex(int index)
     m_cur_tex = index;
     this->setUniformValue("cur_tex", m_cur_tex);
 }
+
+
+void ShaderProgram::LoadShaperParameters(ShapeList Shapes)
+{
+    float refValues[10];
+    QVector3D normalValues[10];
+    int m=0;
+    FOR_ALL_CONST_ITEMS(ShapeList, Shapes){
+        ShaderParameters Param = (*it)->getShaderParam();
+        refValues[m] = Param.m_alphaValue;
+        normalValues[m] = Param.m_averageNormal;
+        m++;
+    }
+
+    this->setUniformValueArray("refValues", refValues, 10,1);
+    this->setUniformValueArray("normalValues", normalValues, 10);
+}
+

@@ -2,7 +2,7 @@
 uniform sampler2D tex;
 uniform float alpha_th;
 uniform float isLabelDepth;
-varying in vec4 theColor;
+in vec4 theColor;
 
 
 void main(void)
@@ -21,4 +21,6 @@ void main(void)
             gl_FragColor = vec4(temp_c.rgb,1.0);
 
     }
+//    gl_FragColor = theColor;
+
 }

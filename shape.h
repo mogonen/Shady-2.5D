@@ -5,6 +5,7 @@
 #include <map>
 #include <iostream>
 #include <fstream>
+#include <QColor>
 #include "base.h"
 #include "Renderer/shaderparameters.h"
 
@@ -101,17 +102,14 @@ class Shape:public Draggable{
     unsigned int            _flags;
     SVList                  _vertices;
     //Shader*                 _pShader;
-    ShaderParameters*       _shaderParam;
-    QVector3D               _averageNormal;
-protected:
 
+protected:
     virtual void onDrag(const Vec2&){}
     virtual void onRotate(double ang){}
     virtual void onScale(const Vec2&){}
     virtual void onApplyT(const Matrix3x3&){}
     virtual void onClick(const Point&, Click_e){}
-    unsigned char           _layerLabel;
-
+    ShaderParameters       _shaderParam;
 public:
 
     Shape();
@@ -153,65 +151,65 @@ public:
 
 
     //Shader related funcs
-    virtual void calAverageNormal(void *){_averageNormal = QVector3D(0.0,0.0,1.0);}
-    QVector3D getAveragNormal(){return _averageNormal;}
-    void setLayerLabel(unsigned char dep){_layerLabel = dep;}
-    ShaderParameters* shader() const {return _shaderParam;}
-    ShaderParameters* initializeParam(){
-        if(_shaderParam)
-            delete _shaderParam;
-        _shaderParam = new ShaderParameters();
-        return _shaderParam;
-    }
+    virtual void calAverageNormal(){_shaderParam.m_averageNormal = QVector3D(0.0,0.0,1.0);}
+    ShaderParameters getShaderParam(){return _shaderParam;}
+    void setLayerLabel(unsigned char dep = 0){_shaderParam.m_layerLabel = dep;}
+//    ShaderParameters* shader() const {return _shaderParam;}
+//    ShaderParameters* initializeParam(){
+//        if(_shaderParam)
+//            delete _shaderParam;
+//        _shaderParam = new ShaderParameters();
+//        return _shaderParam;
+//    }
 
-    void setAlpha()
-    {
+//    void setAlpha()
+//    {
 
-    }
+//    }
 
-    void setTranslucency()
-    {
+//    void setTranslucency()
+//    {
 
-    }
+//    }
 
-    void setSMQuality()
-    {
+//    void setSMQuality()
+//    {
 
-    }
+//    }
 
-    void toggleMirror()
-    {
+//    void toggleMirror()
+//    {
 
-    }
+//    }
 
-    void setBrightParam()
-    {
-//        if(m_brightTex.data)
-//            _shaderParam->LoadBrightImage(m_brightTex.data,m_brightTex.width,m_brightTex.height);
-    }
-    void setDarkParam()
-    {
-//        if(m_darkTex.data)
-//            _shaderParam->LoadDarkImage(m_darkTex.data,m_darkTex.width,m_darkTex.height);
-    }
+//    void setBrightParam()
+//    {
+////        if(m_brightTex.data)
+////            _shaderParam->LoadBrightImage(m_brightTex.data,m_brightTex.width,m_brightTex.height);
+//    }
+//    void setDarkParam()
+//    {
+////        if(m_darkTex.data)
+////            _shaderParam->LoadDarkImage(m_darkTex.data,m_darkTex.width,m_darkTex.height);
+//    }
 
-    void setShapeMapTex()
-    {
+//    void setShapeMapTex()
+//    {
 
-    }
+//    }
 
-    virtual void loadBrightTex(QString name = QString())
-    {
-//        QImage m_temp(name);
-//        m_brightTex
-    }
-    virtual void loadDarkTex(QString name)
-    {
+//    virtual void loadBrightTex(QString name = QString())
+//    {
+////        QImage m_temp(name);
+////        m_brightTex
+//    }
+//    virtual void loadDarkTex(QString name)
+//    {
 
-    }
-    virtual void loadSMTex(QString name){
+//    }
+//    virtual void loadSMTex(QString name){
 
-    }
+//    }
 
     textureInfo m_brightTex;
     textureInfo m_darkTex;

@@ -42,10 +42,14 @@
 #define GLWIDGET_H
 
 #include <QGLWidget>
+#include <QMatrix4x4>
+#include <QQuaternion>
+#include <QVector2D>
 #include "base.h"
+#include "Renderer/shaderprogram.h"
 
-#define NEAR_P 1.0
-#define FAR_P 1000.0
+#define NEAR_P -100.0
+#define FAR_P 100.0
 #define MAX_SELECT 16
 #define SELECT_BUFF_SIZE (MAX_SELECT*4)
 #define PICK 8.0
@@ -89,6 +93,7 @@ public:
     ShaderProgram*      getMShader(){return _pGLSLShader_M;}
 
     void                clear();
+    void                keyPressEvent(QKeyEvent *);
 
 protected:
     void                initializeGL();
@@ -98,8 +103,7 @@ protected:
     void                mouseReleaseEvent(QMouseEvent *event);
     void                mouseMoveEvent(QMouseEvent *event);
     void                wheelEvent(QWheelEvent* e );
-    void                keyPressEvent(QKeyEvent *);
-
+    void                setView();
 private:
 
     void                renderCanvas();
@@ -109,7 +113,7 @@ private:
 
     double              _scale;
     double              _aspectR;
-    Vec2                _translate;
+//    Vec2                _translate;
 
     QPoint              _lastP;
     Point               _lastWorldP;
@@ -119,6 +123,16 @@ private:
     Canvas              *_pCanvas;
     ShaderProgram       *_pGLSLShader_R;
     ShaderProgram       *_pGLSLShader_M;
+
+
+
+    QVector2D _mousePressPosition;
+    QVector3D _rotationAxis;
+    qreal _angularChange;
+    QQuaternion _rotation;
+    qreal _translateX;
+    qreal _translateY;
+    qreal _translateZ;
 
     static unsigned int  _renderFlags;
 

@@ -66,6 +66,10 @@ GLWidget::GLWidget(Canvas * pCanvas, QWidget *parent)
     _pCanvas = pCanvas;
     _pGLSLShader_M = NULL;
     _pGLSLShader_R = NULL;
+    _translateX = 0;
+    _translateY = 0;
+    _translateZ = 0;
+
     setRender(DRAGMODE_ON, true);
 }
 
@@ -122,7 +126,7 @@ void GLWidget::initializeGL()
 
      glMatrixMode(GL_MODELVIEW);
      glLoadIdentity();
-     glTranslated(0, 0, -1.0);
+     glTranslatef(0, 0, -1.0);
 
      _pGLSLShader_R = new ShaderProgram();
      _pGLSLShader_R->Initialize();
@@ -137,14 +141,25 @@ void GLWidget::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-
     orthoView();
-    glTranslated(0, 0, -1.0);
+
+    setView();
 
     glPushMatrix();
     renderCanvas();
     glPopMatrix();
 }
+
+void GLWidget::setView()
+{
+    QMatrix4x4 matrix;
+    matrix.translate(_translateX, _translateY, _translateZ);
+    matrix.rotate(_rotation);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glMultMatrixf(matrix.constData());
+}
+
 
 void GLWidget::resizeGL(int width, int height)
 {
@@ -171,7 +186,6 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
         if (hit){
             Selectable_p pSel = select(hit, SelectBuff);
             if (is(DRAGMODE_ON) && pSel->type() == Renderable::UI){
-
                 Session::get()->selectionMan()->startSelect(pSel, event->button() == Qt::LeftButton, event->modifiers() & Qt::ControlModifier);
             }
         }
@@ -220,17 +234,36 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
+    QVector2D diff = QVector2D(event->pos()-_lastP);
     _lastP  = event->pos();
     Point p = toWorld(_lastP.x(), _lastP.y());
 
-    if ( event->modifiers() & Qt::AltModifier){
-        _translate = _translate - (p - _lastWorldP);
-        m_CameraChanged = true;
-    }else if (is(DRAGMODE_ON)){
-       Session::get()->selectionMan()->dragTheSelected(p - _lastWorldP);
-    }
 
+
+
+
+    if(event->modifiers() & Qt::ShiftModifier)
+    {
+        if((event->buttons() & Qt::RightButton)) {
+            _translateX += diff.x()/100;
+            _translateY -= diff.y()/100;
+        }
+        else
+        {
+        QVector3D n = QVector3D(diff.y(), diff.x(), 0.0).normalized();
+        qreal acc = diff.length() / 4.0;
+        _rotationAxis = (_rotationAxis * _angularChange + n * acc).normalized();
+        _angularChange = acc;
+        _rotation = QQuaternion::fromAxisAndAngle(_rotationAxis, _angularChange) * _rotation;
+        }
+    }
+    else
+    {
+        if (is(DRAGMODE_ON))
+           Session::get()->selectionMan()->dragTheSelected(p - _lastWorldP);
+    }
     _lastWorldP = p;
+    m_CameraChanged = true;
     updateGL();
 }
 
@@ -245,6 +278,16 @@ void GLWidget::wheelEvent(QWheelEvent* e ){
 
 void GLWidget::keyPressEvent(QKeyEvent * event){
 
+    switch(event->key())
+    {
+    case Qt::Key_Enter:
+        _translateX = 0;
+        _translateY = 0;
+        _translateZ = 0;
+        _rotationAxis = QVector3D(0.0,0.0,0.0);
+        _rotation = QQuaternion::fromAxisAndAngle(QVector3D(0.0,0.0,1.0),0.0);
+    }
+    updateGL();
 }
 
 int GLWidget::selectGL(int x, int y){
@@ -261,8 +304,11 @@ int GLWidget::selectGL(int x, int y){
 
     gluPickMatrix(x, ViewPort[3]-y, PICK, PICK, ViewPort);
     orthoView();
+    setView();
 
-    glMatrixMode(GL_MODELVIEW);
+//    glTranslatef(0.0,0.0,-1.0);
+//    glMatrixMode(GL_MODELVIEW);
+
     renderCanvas();
 
     glMatrixMode(GL_PROJECTION);
@@ -274,7 +320,9 @@ int GLWidget::selectGL(int x, int y){
 }
 
 void GLWidget::orthoView(){
-    glOrtho(-1.0*_scale+_translate.x, 1.0*_scale+_translate.x, -1.0/_aspectR*_scale+_translate.y, 1.0/_aspectR*_scale+_translate.y, NEAR_P, FAR_P);
+//    glOrtho(-1.0*_scale+_translate.x, 1.0*_scale+_translate.x, -1.0/_aspectR*_scale+_translate.y, 1.0/_aspectR*_scale+_translate.y, NEAR_P, FAR_P);
+    glOrtho(-1.0*_scale, 1.0*_scale, -1.0/_aspectR*_scale, 1.0/_aspectR*_scale, NEAR_P, FAR_P);
+
 }
 
 Point GLWidget::toWorld(int x, int y){

@@ -137,14 +137,12 @@ Vec2 ShapeVertex::getTangent(){
 //Shape////////////////////////////////////////////////////////////////////////////////////
 
 Shape::Shape():Draggable(Renderable::SHAPE, &_t0){
-    _shaderParam = NULL;
     _flags = 0;
     _tM.identity();
     diffuse.setRed(255);
 }
 
 Shape::~Shape(){
-    delete _shaderParam;
     FOR_ALL_ITEMS(SVList, _vertices)
         delete (*it);
 }

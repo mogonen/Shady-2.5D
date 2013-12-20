@@ -15,7 +15,6 @@ bool Session::isRender(RenderSetting rs){
 void GLWidget::renderCanvas()
 {
     _pGLSLShader_R->release();
-    glDisable(GL_BLEND);
     if(isInRenderMode() && (is(PREVIEW_ON)||is(AMBIENT_ON)||is(SHADOWS_ON)))
     {
         glReadBuffer(GL_BACK);
@@ -82,6 +81,7 @@ void GLWidget::renderCanvas()
         }
 
         _pGLSLShader_R->bind();
+        _pGLSLShader_R->LoadShaperParameters(_pCanvas->_shapes);
         _pGLSLShader_R->setUniformValue("width", (float)width());
         _pGLSLShader_R->setUniformValue("height", (float)height());
         _pGLSLShader_R->setUniformValue("toggle_ShaAmbCos", (int)(_renderFlags>>1)&7);
@@ -91,29 +91,29 @@ void GLWidget::renderCanvas()
         glBegin(GL_QUADS);
         glColor4f(1.0, 1.0, 1.0, 1.0);
         glTexCoord2d(0.0,0.0);
-        glVertex3f(-1.0,-1.0,-0.0001);
+        glVertex2f(-1.0,-1.0);
         glTexCoord2d(0.0,1.0);
-        glVertex3f(-1.0,1.0,-0.0001);
+        glVertex2f(-1.0,1.0);
         glTexCoord2d(1.0,1.0);
-        glVertex3f(1.0,1.0,-0.0001);
+        glVertex2f(1.0,1.0);
         glTexCoord2d(1.0,0.0);
-        glVertex3f(1.0,-1.0,-0.0001);
+        glVertex2f(1.0,-1.0);
         glEnd();
 
         _pGLSLShader_R->release();
+        glDisable(GL_TEXTURE_2D);
+        glDisable(GL_BLEND);
 
         if (is(DRAGMODE_ON))
         {
+            glColor3f(1.0, 1.0, 0);
             _pCanvas->_lights[0]->render(DRAG_MODE);
         }
-        glDisable(GL_TEXTURE_2D);
-        glDisable(GL_BLEND);
 
     }
     else
     {
         _pGLSLShader_R->release();
-
 
         _pGLSLShader_R->SetInitialized(false);
         if (is(DRAGMODE_ON) && (is(SHADING_ON) || is(PREVIEW_ON)))
@@ -151,8 +151,6 @@ void GLWidget::renderCanvas()
 //        glPushMatrix();
 //        glTranslatef(0.5,0.5,0.0);
 //        glScalef(0.25,0.25,0.25);
-
-
 
 //        glColor3f(1.0,1.0,0.0);
 //        glBegin(GL_LINE_LOOP);

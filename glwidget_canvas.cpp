@@ -8,7 +8,7 @@ GLuint texture[30];
 
 void Canvas::insert(Shape_p sp){
     _shapes.push_front(sp);
-    _depthUpdated = false;
+    updateDepth();
     UPDATE_GL
 }
 
@@ -16,7 +16,7 @@ void Canvas::remove(Shape_p sp){
 //  m_GLSLShader->RemoveParamSet(sp->getShaderParam());
     _shapes.remove(sp);
     delete sp;
-    _depthUpdated = false;
+    updateDepth();
 }
 
 Shape_p Canvas::findPrev(Shape_p pShape){
@@ -60,7 +60,7 @@ void Canvas::moveDown(Shape_p pShape){
     Shape_p tmp = *it;
     (*it) = *itn;
     (*itn) = tmp;
-    _depthUpdated = false;
+    updateDepth();
 }
 
 void Canvas::moveUp(Shape_p pShape){
@@ -76,7 +76,7 @@ void Canvas::moveUp(Shape_p pShape){
     Shape_p tmp = *it;
     (*it) = *itp;
     (*itp) = tmp;
-    _depthUpdated = false;
+    updateDepth();
 }
 
 void Canvas::sendToBack(Shape_p pShape){
@@ -84,7 +84,7 @@ void Canvas::sendToBack(Shape_p pShape){
         return;
     _shapes.remove(pShape);
     _shapes.push_back(pShape);
-    _depthUpdated = false;
+    updateDepth();
 }
 
 void Canvas::sendToFront(Shape_p pShape){
@@ -92,14 +92,14 @@ void Canvas::sendToFront(Shape_p pShape){
         return;
     _shapes.remove(pShape);
     _shapes.push_front(pShape);
-    _depthUpdated = false;
+    updateDepth();
 }
 
 void Canvas::clear(){
     FOR_ALL_ITEMS(ShapeList,_shapes)
         delete *it;
     _shapes.clear();
-    _depthUpdated = false;
+    updateDepth();
 }
 
 void Canvas::setImagePlane(const string &filename){
@@ -115,7 +115,6 @@ void Canvas::setImagePlane(const string &filename){
 
 void Canvas::updateDepth()
 {
-    _depthUpdated = true;
     unsigned char m=0;
     FOR_ALL_ITEMS(ShapeList,_shapes)
     {

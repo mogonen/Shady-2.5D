@@ -1,5 +1,5 @@
-attribute vec4 gl_Color;
-varying out vec4 theColor;
+#version 130
+out vec4 theColor;
 
 void main()
 {
