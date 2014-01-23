@@ -37,16 +37,20 @@ public:
     void LoadTextureImage(int );
     void LoadTextureImage();
     void SetPenal(ImageShapeCustomDialog *penal){m_penal = penal;}
+    float CapValue(float in_num, float low_cap, float high_cap);
+
     ImageShapeCustomDialog* GetPenal(){return m_penal;}
 
     enum{NO_UPDATE = 0, UPDATE_SM = 1, UPDATE_BRIGHT = 2, UPDATE_DARK = 4} texType;
 
     double m_alpha_th;
     double m_stretch;
+    double m_assignedDepth;
 
     double m_width;
     double m_height;
     int m_texUpdate;
+    bool m_shadowCreator;
     GLuint m_texSM;
     GLuint m_texDark;
     GLuint m_texBright;

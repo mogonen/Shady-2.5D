@@ -151,7 +151,7 @@ public:
 
 
     //Shader related funcs
-    virtual void calAverageNormal(){_shaderParam.m_averageNormal = QVector3D(0.0,0.0,1.0);}
+    virtual void calAverageNormal(){_shaderParam.m_averageNormal = QVector2D(0.0,0.0);}
     ShaderParameters getShaderParam(){return _shaderParam;}
     void setLayerLabel(unsigned char dep = 0){_shaderParam.m_layerLabel = dep;}
 //    ShaderParameters* shader() const {return _shaderParam;}

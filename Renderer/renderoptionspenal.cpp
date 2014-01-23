@@ -49,8 +49,8 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
 //    connect(m_ButtonSaveProj, SIGNAL(clicked()), this, SLOT(SaveProject()));
 //    m_ButtonSave = new QPushButton("Save Image");
 //    connect(m_ButtonSave, SIGNAL(clicked()), this, SLOT(SaveImage()));
-//    m_ReloadShader = new QPushButton("Reload Shader");
-//    connect(m_ReloadShader, SIGNAL(clicked()), this, SLOT(ReloadShader()));
+    m_ReloadShader = new QPushButton("Reload Shader");
+    connect(m_ReloadShader, SIGNAL(clicked()), this, SLOT(ReloadShader()));
 //    m_ButtonAbout = new QPushButton("About");
 //    connect(m_ButtonAbout, SIGNAL(clicked()), this, SLOT(About()));
 
@@ -100,6 +100,12 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
     m_CartoonShaSpinbox->SetChangeStep(0.01);
     m_CartoonShaValue = new QLabel("Cartoon");
 
+
+    m_SurfDispSpinbox = new QSliderSpinBox();
+    m_SurfDispSpinbox->SetRatio(1000);
+    m_SurfDispSpinbox->SetChangeRange(-250, 250);
+    m_SurfDispSpinbox->SetChangeStep(0.01);
+    m_SurfDispValue = new QLabel("Surface");
     ///attach to widget
 //    mainLayout->addWidget(m_FileWidget, 0,0,6,1);
 
@@ -122,7 +128,7 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
 
 
 //    mainLayout->addWidget(m_ButtonAbout,5,3,1,3);
-//    mainLayout->addWidget(m_ReloadShader,5,3,1,3);
+    mainLayout->addWidget(m_ReloadShader,7,3,1,3);
     int SliderStart_pos = 0;
 
     mainLayout->addWidget(m_DepthSliderSpinbox->m_Slider,SliderStart_pos,0,1,1);
@@ -145,6 +151,12 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
     mainLayout->addWidget(m_AmbValue,SliderStart_pos+3,1,1,1);
     connect(m_AmbSliderSpinbox, SIGNAL(SliderSpinboxValueChange(double)), this, SLOT(SetAmbValue(double)));
 
+    mainLayout->addWidget(m_CartoonShaSpinbox->m_Slider,SliderStart_pos+4,0,1,1);
+    mainLayout->addWidget(m_CartoonShaSpinbox,SliderStart_pos+4,2,1,1);
+    mainLayout->addWidget(m_CartoonShaValue,SliderStart_pos+4,1,1,1);
+    connect(m_CartoonShaSpinbox, SIGNAL(SliderSpinboxValueChange(double)), this, SLOT(SetCartoonSha(double)));
+
+
     mainLayout->addWidget(m_LODSliderSpinbox->m_Slider,SliderStart_pos+5,0,1,1);
     mainLayout->addWidget(m_LODSliderSpinbox,SliderStart_pos+5,2,1,1);
     mainLayout->addWidget(m_LODValue,SliderStart_pos+5,1,1,1);
@@ -155,19 +167,17 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
     mainLayout->addWidget(m_SMQualityValue,SliderStart_pos+6,1,1,1);
     connect(m_SMQualitySpinbox, SIGNAL(SliderSpinboxValueChange(double)), this, SLOT(SetSMQuality(double)));
 
-    mainLayout->addWidget(m_CartoonShaSpinbox->m_Slider,SliderStart_pos+4,0,1,1);
-    mainLayout->addWidget(m_CartoonShaSpinbox,SliderStart_pos+4,2,1,1);
-    mainLayout->addWidget(m_CartoonShaValue,SliderStart_pos+4,1,1,1);
-    connect(m_CartoonShaSpinbox, SIGNAL(SliderSpinboxValueChange(double)), this, SLOT(SetCartoonSha(double)));
+    mainLayout->addWidget(m_SurfDispSpinbox->m_Slider,SliderStart_pos+7,0,1,1);
+    mainLayout->addWidget(m_SurfDispSpinbox,SliderStart_pos+7,2,1,1);
+    mainLayout->addWidget(m_SurfDispValue,SliderStart_pos+7,1,1,1);
+    connect(m_SurfDispSpinbox, SIGNAL(SliderSpinboxValueChange(double)), this, SLOT(SetSurfDisplacement(double)));
+
 
     //add check box
     m_ShowLight = new QCheckBox();
     mainLayout->addWidget(m_ShowLight,SliderStart_pos,3,1,1, Qt::AlignRight);
     mainLayout->addWidget(new QLabel("Toggle Light"),SliderStart_pos,4,1,2);
     connect(m_ShowLight, SIGNAL(toggled(bool)), this, SLOT(ToggleInfor(bool)));
-
-
-
 
     m_ShowCos = new QCheckBox();
     m_ShowCos->setChecked(true);
@@ -207,8 +217,8 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
 
     m_ShowTex = new QComboBox();
     m_ShowTex->addItems(QString("None|ShapeMap|Dark|Bright|Background|Label|Depth|Enviroment").split("|", QString::SkipEmptyParts));
-    mainLayout->addWidget(m_ShowTex,SliderStart_pos+7,0,1,1, Qt::AlignRight);
-    mainLayout->addWidget(new QLabel("Current Tex"),SliderStart_pos+7,1,1,2);
+    mainLayout->addWidget(m_ShowTex,SliderStart_pos+8,0,1,1, Qt::AlignRight);
+    mainLayout->addWidget(new QLabel("Current Tex"),SliderStart_pos+8,1,1,2);
     connect(m_ShowTex,SIGNAL(currentIndexChanged(int)), this, SLOT(SetCurTex(int)));
 
     //set m_ain layout
@@ -233,6 +243,7 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
     m_LODSliderSpinbox->setValue(0);
     m_SMQualitySpinbox->setValue(0.5);
     m_CartoonShaSpinbox->setValue(0.1);
+    m_SurfDispSpinbox->setValue(0.01);
 
     m_FileDir = NULL;
 
@@ -833,6 +844,19 @@ void RenderOptionsPenal::SetCartoonSha(double Strength)
     m_RenderWindow->updateGL();
 }
 
+void RenderOptionsPenal::SetSurfDisplacement(double surf_disp)
+{
+    ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+    if(ShaderP&&ShaderP->isInitialized())
+    {
+        ShaderP->bind();
+        ShaderP->SetSurfDisp(surf_disp);
+    }
+    m_RenderWindow->updateGL();
+
+}
+
+
 void RenderOptionsPenal::ToggleCos(bool info)
 {
     ShaderProgram *ShaderP = m_RenderWindow->getRShader();
@@ -898,5 +922,11 @@ void RenderOptionsPenal::SetCurTex(int index)
         ShaderP->bind();
         ShaderP->SetCurTex(index);
     }
+    m_RenderWindow->updateGL();
+}
+
+void RenderOptionsPenal::ReloadShader()
+{
+    m_RenderWindow->reloadShader();
     m_RenderWindow->updateGL();
 }

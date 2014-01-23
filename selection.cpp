@@ -81,14 +81,14 @@ void SelectionManager::reset(){
     _count = 0;
 }
 
-bool SelectionManager::dragTheSelected(const Point& t){
+bool SelectionManager::dragTheSelected(const Point& t, int button){
 
     if (!_theSelected || !_theSelected->isDraggable())
         return false;
     Draggable_p dragged = ((Draggable_p)_theSelected);
     if (dragged->isLocked)
         return false;
-    dragged->drag(t);
+    dragged->drag(t, button);
     return true;
 }
 

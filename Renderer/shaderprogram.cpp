@@ -8,12 +8,22 @@ ShaderProgram::ShaderProgram(SHADER_TYPE type)
     switch(type)
     {
     case(TYPE_RENDER):
-        m_VShaderFile = QString(":Basic.vsh");
-        m_FShaderFile = QString(":Basic.fsh");
+//        m_VShaderFile = QString(":Basic.vsh");
+//        m_FShaderFile = QString(":Basic.fsh");
+        m_VShaderFile = QString(".//../Shady-2.5D/Renderer/Basic.vsh");
+        m_FShaderFile = QString(".//../Shady-2.5D/Renderer/Basic.fsh");
         break;
     case(TYPE_MODEL):
+//        m_VShaderFile = QString(":Basic.vsh");
+//        m_FShaderFile = QString(":Modelling.fsh");
         m_VShaderFile = QString(":Basic.vsh");
         m_FShaderFile = QString(":Modelling.fsh");
+        break;
+    case(TYPE_AMB):
+//        m_VShaderFile = QString(":Basic.vsh");
+//        m_FShaderFile = QString(":Modelling.fsh");
+        m_VShaderFile = QString(".//../Shady-2.5D/Renderer/Basic.vsh");
+        m_FShaderFile = QString(".//../Shady-2.5D/Renderer/Ambient.fsh");
         break;
     }
     m_VertexShader = NULL;
@@ -59,6 +69,34 @@ void ShaderProgram::Initialize()
 
     InitializeTextures();
     InitializeParameters();
+    SetParametersToShader();
+
+}
+
+void ShaderProgram::InitializeParameters()
+{
+    m_Dist = 0.0;
+    m_Alpha = 1.0;
+    m_filter_size = 1.0;
+    m_amb_strength = 0.25;
+    m_Cartoon_sha = 0.5;
+
+    m_Width = 1.0;
+    m_Height = 1.0;
+    m_SM_Quality = 0.5;
+    m_surface_disp = 0.01;
+
+    m_toggle_Mirror = false;
+    m_toggle_Point = true;
+
+    m_SMInitialized = false;
+    m_DarkInitialized = false;
+    m_BrightInitialized = false;
+    m_LDInitialized = false;
+}
+
+void ShaderProgram::SetParametersToShader()
+{
     this->setUniformValue("tex_SM", 0);
     this->setUniformValue("tex_DI_Dark", 1);
     this->setUniformValue("tex_DI_Bright", 2);
@@ -76,7 +114,9 @@ void ShaderProgram::Initialize()
 
     this->setUniformValue("toggle_Point", m_toggle_Point);
     this->setUniformValue("Cartoon_sha", (float)m_Cartoon_sha);
-    this->setUniformValue("light_dir", -QVector3D(0,0.0,1.0));
+    this->setUniformValue("surface_disp", m_surface_disp);
+
+    this->setUniformValue("light_dir", m_MousePos);
 
     this->setUniformValue("dist", (float)m_Dist);
     this->setUniformValue("alpha", (float)m_Alpha);
@@ -85,32 +125,24 @@ void ShaderProgram::Initialize()
     this->setUniformValue("toggle_Mirror", m_toggle_Mirror);
     this->setUniformValue("SM_Quality", (float)m_SM_Quality);
 
-    this->setUniformValue("current_show", (int)0);
 }
 
-void ShaderProgram::InitializeParameters()
+
+void ShaderProgram::ReloadShader()
 {
-    m_Dist = 0.0;
-    m_Alpha = 1.0;
-    m_filter_size = 1.0;
-    m_amb_strength = 0.25;
-    m_Cartoon_sha = 0.5;
-
-    m_Width = 1.0;
-    m_Height = 1.0;
-    m_SM_Quality = 0.5;
-
-    m_toggle_Mirror = false;
-    m_toggle_Point = true;
-
-    m_SMInitialized = false;
-    m_DarkInitialized = false;
-    m_BrightInitialized = false;
-    m_LDInitialized = false;
+    LoadShader();
+    SetParametersToShader();
 }
+
 
 void ShaderProgram::LoadShader(const QString& vshader,const QString& fshader)
 {
+    if(this->isLinked())
+    {
+        this->release();
+        this->removeAllShaders();
+    }
+
     if(!vshader.isEmpty())
     {
         m_VShaderFile = vshader;
@@ -162,6 +194,7 @@ void ShaderProgram::LoadShader(const QString& vshader,const QString& fshader)
                               QString("GLSL ")+this->log());
     }
     else this->bind();
+
 }
 
 
@@ -285,15 +318,15 @@ void ShaderProgram::ResetBrightImage()
 void ShaderProgram::ResetLDImage()
 {
     //set LD image as all black
-    char temp[4];
-    memset(temp,127,3);
-    temp[3] = 255;
+    float temp[4];
+    memset(temp,0.5,3);
+    temp[3] = 1;
     glBindTexture(GL_TEXTURE_2D, m_LD);
     glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA,
                   1, 1,
-                  0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+                  0, GL_RGBA, GL_FLOAT, temp);
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 }
 
 
@@ -331,6 +364,22 @@ void ShaderProgram::LoadBGImage(unsigned char *data, int width, int height)
     glActiveTexture(GL_TEXTURE0);
     glDisable(GL_TEXTURE0);
 }
+
+//void ShaderProgram::LoadBGImage(unsigned char *data, int width, int height)
+//{
+//    glActiveTexture(GL_TEXTURE0+3);
+//    glBindTexture(GL_TEXTURE_2D, m_BG);
+//    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA,
+//                  width, height,
+//                  0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+//    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+//    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+//    glDisable(GL_TEXTURE0+3);
+
+//    glActiveTexture(GL_TEXTURE0);
+//    glDisable(GL_TEXTURE0);
+//}
+
 
 void ShaderProgram::GrabShapeMap(int w, int h)
 {
@@ -434,6 +483,14 @@ void ShaderProgram::SetCartoonSha(double Strength)
     this->setUniformValue("Cartoon_sha", m_Cartoon_sha);
 
 }
+void ShaderProgram::SetSurfDisp(double Disp)
+{
+    m_surface_disp = Disp;
+    //    qDebug()<<m_CartoonSha;
+    this->setUniformValue("surface_disp", m_surface_disp);
+
+}
+
 
 void ShaderProgram::ToggleCos(bool info)
 {
@@ -477,20 +534,43 @@ void ShaderProgram::SetCurTex(int index)
     this->setUniformValue("cur_tex", m_cur_tex);
 }
 
+void ShaderProgram::SetLightPos(QVector3D light_pos)
+{
+    m_MousePos = light_pos;
+    qDebug()<<"Mouse pos in shader"<<m_MousePos;
+    this->setUniformValue("light_dir", m_MousePos);
+}
 
 void ShaderProgram::LoadShaperParameters(ShapeList Shapes)
 {
     float refValues[10];
     QVector3D normalValues[10];
-    int m=0;
+    QVector3D centerDepth[10];
+    float boundingbox[40];
+    int shadowcreator[10];
+//    for(int i=0;i<10;i++)
+//        normalValues[i] = QVector3D(0.0,0.0,0.0);
+
+    //position 0 is (0,0,0),
+    //since shader takes 0 as background
+    int m=1;
     FOR_ALL_CONST_ITEMS(ShapeList, Shapes){
         ShaderParameters Param = (*it)->getShaderParam();
         refValues[m] = Param.m_alphaValue;
-        normalValues[m] = Param.m_averageNormal;
+//        normalValues[m] = QVector3D(Param.m_trueNormal/2,0.0)+QVector3D(0.5,0.5,0.0);
+        normalValues[m] = Param.m_trueNormal;
+        centerDepth[m] = Param.m_centerDepth;
+        shadowcreator[m] = Param.m_shadowcreator;
+        qDebug()<<"passed to shader center"<<m<<centerDepth[m];
+        qDebug()<<"passed to shader normal"<<m<<normalValues[m];
+        for(int i=0;i<4;i++)
+            boundingbox[m*4+i] = Param.m_boundingbox[i];
         m++;
     }
-
     this->setUniformValueArray("refValues", refValues, 10,1);
     this->setUniformValueArray("normalValues", normalValues, 10);
+    this->setUniformValueArray("centerDepth", centerDepth, 10);
+    this->setUniformValueArray("boundingbox", boundingbox, 40,1);
+    this->setUniformValueArray("shadowcreator",shadowcreator,10);
 }
 

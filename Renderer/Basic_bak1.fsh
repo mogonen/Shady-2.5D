@@ -424,36 +424,36 @@ bool checkEqual(vec2 pos1, vec2 pos2, float range)
 
 bool checkOnline(vec2 v, vec2 w, vec2 p, float range)
 {
-    // Return minimum distance between line segment vw and point p
-    float l2 = dot(w-v,w-v);  // i.e. |w-v|^2 -  avoid a sqrt
-    float dd;
+  // Return minimum distance between line segment vw and point p
+  float l2 = dot(w-v,w-v);  // i.e. |w-v|^2 -  avoid a sqrt
+  float dd;
 
-    if (l2 == 0.0)
-        dd = distance(p, v);   // v == w case
-    // Consider the line extending the segment, parameterized as v + t (w - v).
-    // We find projection of point p onto the line.
-    // It falls where t = [(p-v) . (w-v)] / |w-v|^2
-    float t = dot(p - v, w - v) / l2;
-    if (t < 0.0)
-        dd = distance(p, v);       // Beyond the 'v' end of the segment
-    else
-        if (t > 1.0)
-            dd = distance(p, w);  // Beyond the 'w' end of the segment
-        else
-        {
-            vec2 projection = v + t * (w - v);  // Projection falls on the segment
-            dd = distance(p, projection);
-        }
-    if(dd <range)
-        return true;
-    else
-        return false;
+  if (l2 == 0.0)
+      dd = distance(p, v);   // v == w case
+  // Consider the line extending the segment, parameterized as v + t (w - v).
+  // We find projection of point p onto the line.
+  // It falls where t = [(p-v) . (w-v)] / |w-v|^2
+  float t = dot(p - v, w - v) / l2;
+  if (t < 0.0)
+      dd = distance(p, v);       // Beyond the 'v' end of the segment
+  else
+      if (t > 1.0)
+          dd = distance(p, w);  // Beyond the 'w' end of the segment
+  else
+      {
+        vec2 projection = v + t * (w - v);  // Projection falls on the segment
+        dd = distance(p, projection);
+      }
+  if(dd <range)
+      return true;
+  else
+      return false;
 }
 
 vec3 projectOnLayerInd(in vec3 Pp, in int LayerInd, out float height)
 {
     vec3 LayerNormal = normalValues[LayerInd];
-    vec3 LayerCenter = vec3(centerDepth[LayerInd].r,centerDepth[LayerInd].g,centerDepth[LayerInd].b);
+    vec3 LayerCenter = centerDepth[LayerInd];
     float dist = dot(Pp-LayerCenter, LayerNormal);
     height = dist;
     return Pp-dist*LayerNormal;
@@ -480,19 +480,8 @@ void getEstNormal(in vec2 coord,in float sm_smooth, out vec4 raw_value, out vec3
 void getCurLabelDepth(in vec3 p, out int label, out float depth)
 {
     vec4 label_depth = texture2D(tex_LD, (p.xy+1)/2);
-    label = int(label_depth.b*255+0.1);
+    label = int(label_depth.b*255);
     depth = label_depth.g;
-}
-
-
-float colorTest(vec3 Pp, int Tlabel)
-{
-    vec4 label_depth = texture2D(tex_LD, (Pp.xy+1)/2);
-    int label = int(label_depth.b*255+0.001);
-    if(Tlabel==label)
-        return 1;
-    else
-        return 0;
 }
 
 float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
@@ -503,13 +492,10 @@ float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
     float sm_smooth = 1;
 
     float int_length = 0;
-    float thickness_disp = 0.0;
-    float thickness_mult = 0.1;
+
     for(int j=1;j<10;j++)
     {
-
         int LayerInd = j;
-
         //if this layer is empty
         if(length(normalValues[LayerInd])==0)
             break;
@@ -538,33 +524,25 @@ float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
         Lpp = TLpp;
         Ppp = TPpp;
 
-//        if(Plabel!=LayerInd)
-//            return old_length;
-
-
         //projected light direction
         float light_length = length(Lpp-Ppp);
 
         //layer normal - N
-        vec3 layer_normal = (normalValues[LayerInd]);
+        vec3 layer_normal = normalize(normalValues[LayerInd]);
 
         int i;
         //    int n_steps = 100;
         //step size is ratio to width
-        int n_step = int(50+50/(filter_size+1));
+        int n_step = int(500+32/(filter_size+1));
         float step = (filter_size+1)/length(vec2(width,height));
         if(LayerInd != Plabel)
         {
-            sm_smooth = 0.01;
-            thickness_disp = 0.01;
-            thickness_mult = 0.01;
+            sm_smooth = 0.1;
             n_step = int(light_length/step);
         }
         else
         {
-            sm_smooth = 1.5;
-            thickness_disp = 0.1;
-            thickness_mult = 0.1;
+            sm_smooth = 1;
             if(step*n_step>light_length)
                 n_step = int(light_length/step);
         }
@@ -584,19 +562,16 @@ float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
         vec3 cur_p =Ppp, next_p;
         //cur_p_h - p_hat, position along light direction
         vec3 cur_p_h = cur_p, next_p_h;
-        vec3 SM_normal;// = vec3(0.0,0.0,1.0);
-        vec4 SM_value;// = vec4(1.0);
+        vec3 SM_normal;
+        vec4 SM_value;
         float negativenum;
-        float cur_light_height;
 
 
         vec3 step_vec = plight_direct*step;
         //loop for 10 layers
 
-        int lastLabel = Plabel;
         for(i=0;i<n_step;i++)
         {
-            multfactor = 0;
             //check the stepped position is still inside the image
             if(cur_p_h.x<1&&cur_p_h.x>-1&&cur_p_h.y<1&&cur_p_h.x>-1)
             {
@@ -606,12 +581,11 @@ float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
                 //get the label
                 int label;
                 vec4 label_depth = texture2D(tex_LD, (next_p_h.xy+1)/2);
-                label = int(label_depth.b*255+0.001);
+                label = int(label_depth.b*255);
                 //            next_p_h.z = label_depth.g*128.0/127.0;
 
                 //            //check if this point is transparant
                 //            float coef= SM_value.a*SM_value.b;
-
 
                 //make sure integral does not go to another layer
                 if(label == LayerInd)
@@ -627,56 +601,40 @@ float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
                     acc_height = dot(next_p-next_p_h, layer_normal);
                     //set next integral position
                     cur_p = next_p;
-                    if(Plabel==LayerInd)
-                    {
-                        multfactor=0.15*step;
-                    }
-                    else
-                    {
-//                        if(lastLabel == label)
-                            multfactor=0.95*step;
-//                        else
-//                            multfactor = 0;
 
-                    }
-                }
-                else
-                {
-
-                    if(Plabel==LayerInd)
-                    {
-                        multfactor=0.15*step;
-                    }
-                    else
-                    {
-                        multfactor=0;
-                    }
-
-
-//                    next_p = cur_p+step_vec;
-//                    acc_height = dot(next_p-next_p_h, layer_normal);
-//                    cur_p = next_p;
-                    cur_p = cur_p_h+layer_normal*acc_height;
-                }
-
-                if(multfactor!=0)
-                {
+                    float cur_light_height;
                     //current light height, a ratio of step size and light direction length\
-                    if(Plabel==LayerInd)
-                       cur_light_height = mix(amb*0.01,lHeight,(i*step+forwarded_length)/old_length);
+                    if(Plabel==label)
+                      cur_light_height = mix(amb*0.01,lHeight,(i*step+forwarded_length)/old_length);
                     else
                        cur_light_height = mix(pHeight,lHeight,(i*step+forwarded_length)/old_length);
-                    negativenum =4*(acc_height + surface_disp- cur_light_height)* (acc_height - (SM_value.b*thickness_mult+thickness_disp - surface_disp) - cur_light_height)/ (SM_value.b*SM_value.b);
 
-//                    negativenum =4*(acc_height + surface_disp- cur_light_height)* (acc_height - (SM_value.b/16. - surface_disp) - cur_light_height)/ (SM_value.b*SM_value.b);
+//                    float cur_light_height = mix(amb,lHeight,i*step/light_length);
+//                    float cur_light_height = mix(0,lHeight,i*step/light_length);
+      //                float cur_light_height = mix(lHeight,pHeight,i*step/light_length);
+
+
+                    //see if light ray goes through the shape
+                    negativenum =4*(acc_height + surface_disp- cur_light_height)* (acc_height - (SM_value.b/16. - surface_disp) - cur_light_height)/ (SM_value.b*SM_value.b);
                     count++;
 
-                    if(negativenum<0)
-                        shadow_strength+=multfactor;
+                    //multfactor= (1.-count*smp);
+                    multfactor=0.15*step;
+                    if (multfactor<0)
+                        multfactor=0;
+
+                        if(negativenum<0)
+//                            shadow_strength+=multfactor/n_step;
+//                            if(Plabel==label)
+                                shadow_strength+=multfactor;
+//                            else
+//                                shadow_strength+=2*multfactor;
+
+                    //shadow_strength-=negativenum;
                 }
 
                 cur_p_h= next_p_h;
-                lastLabel = label;
+
             }
         }
         //end of layer loop
@@ -772,16 +730,8 @@ void main()
 
     AmbientShadow(cood_center, Amb, label);
 
-
-//    float tt =  colorTest(true_position,3);
-//    gl_FragColor = vec4(tt,tt,tt,1.0);
-//    return;
-
     if(label==0)
-    {
-        gl_FragColor = texture2D(tex_BG, gl_TexCoord[0].st);
         return;
-    }
 
     true_position.b = true_depth;
     GetCenterCos(true_position,center_cos);
@@ -876,7 +826,7 @@ void main()
     else if(cur_tex == 4)
             gl_FragColor = texture2D(tex_BG, gl_TexCoord[0].st);
     else if(cur_tex == 5)
-            gl_FragColor = texture2D(tex_LD, gl_TexCoord[0].st).bbba;
+            gl_FragColor = texture2D(tex_LD, gl_TexCoord[0].st).rrra;
     else if(cur_tex == 6)
             gl_FragColor = texture2D(tex_LD, gl_TexCoord[0].st).ggga;
     else if(cur_tex == 7)

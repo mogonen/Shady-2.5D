@@ -17,10 +17,11 @@ typedef class Light:public Draggable
 
 protected:
 
-    void onDrag(const Vec2& t){
-       _z+= 2*(t.x-t.y);
-       qDebug()<<_p0.x<<_p0.y<<_z;
-       updateGLSLLight(_p0.x, _p0.y, 2);
+    void onDrag(const Vec2& t, int button = 0){
+       if(button != 0)
+           _z+= 2*(t.x+t.y);
+       updateGLSLLight(_p0.x, _p0.y, _z);
+
     }
 
 public:

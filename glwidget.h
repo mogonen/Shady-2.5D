@@ -91,6 +91,7 @@ public:
     Shape*              removeActive();
     ShaderProgram*      getRShader(){return _pGLSLShader_R;}
     ShaderProgram*      getMShader(){return _pGLSLShader_M;}
+    void                reloadShader(){_pGLSLShader_R->ReloadShader();_pGLSLShader_M->ReloadShader();}
 
     void                clear();
     void                keyPressEvent(QKeyEvent *);

@@ -535,7 +535,7 @@ void ImageShape::InitializeTex()
         {
             loadedImage = QImage(1,1,QImage::Format_ARGB32);
             loadedImage.setPixel(0,0,qRgba(0.0,0.0,255.0,255.0));
-            _shaderParam.m_averageNormal = QVector3D(0.0,0.0,1.0);
+            _shaderParam.m_averageNormal = QVector2D(0.0,0.0);
         }
         else
         {
@@ -624,56 +624,100 @@ void ImageShape::render(int mode)
     int total_num = Session::get()->canvas()->getNumShapes();
     qDebug()<<"normal"<<_shaderParam.m_averageNormal;
 //    glDepthMask(GL_FALSE);
-    glBegin(GL_QUADS);
-    double delta_LB2RT = (_shaderParam.m_averageNormal.x()*m_width+_shaderParam.m_averageNormal.y()*m_height)*m_stretch;
-    double delta_LT2BR = (_shaderParam.m_averageNormal.x()*m_width-_shaderParam.m_averageNormal.y()*m_height)*m_stretch;
-    double center_depth = (float)(_shaderParam.m_layerLabel+1)/(total_num+1);
+    double delta_LB2RT = -(_shaderParam.m_averageNormal.x()*m_width+_shaderParam.m_averageNormal.y()*m_height)*m_stretch;
+    double delta_LT2BR = -(_shaderParam.m_averageNormal.x()*m_width-_shaderParam.m_averageNormal.y()*m_height)*m_stretch;
+    double center_depth = this->m_assignedDepth;//(float)(_shaderParam.m_layerLabel+1)/(total_num+1);
+
     qDebug()<<"_layerLabel"<<(int)_shaderParam.m_layerLabel;
     qDebug()<<"total_num"<<(int)total_num;
     qDebug()<<"center_depth"<<center_depth;
     qDebug()<<"delta_LB2RT"<<delta_LB2RT;
     qDebug()<<"delta_LT2BR"<<delta_LT2BR;
 
-    if(_shaderParam.m_averageNormal.z()<0)
-    {
-        delta_LB2RT =-delta_LB2RT;
-        delta_LT2BR =-delta_LT2BR;
-    }
 
-    glColor4f(center_depth,center_depth-delta_LB2RT,_shaderParam.m_layerLabel,1.0);
+//    if(_shaderParam.m_averageNormal.z()<0)
+//    {
+//        delta_LB2RT =-delta_LB2RT;
+//        delta_LT2BR =-delta_LT2BR;
+//    }
+
+
+    //1.1 is for numerical issue
+
+    float blf = (center_depth-delta_LB2RT);
+    blf = CapValue(blf,0,1);
+    float tlf = (center_depth-delta_LT2BR);
+    tlf = CapValue(tlf,0,1);
+    float trf = (center_depth+delta_LB2RT);
+    trf = CapValue(trf,0,1);
+    float brf = (center_depth+delta_LT2BR);
+    brf = CapValue(brf,0,1);
+
+    glBegin(GL_QUADS);
+    glColor4f(center_depth,blf,((float)_shaderParam.m_layerLabel+1.01)/255.0,1.0);
     glTexCoord2d(0.0,0.0);
-    glVertex3f(-m_width,-m_height,-(center_depth-delta_LB2RT));
-    QVector3D bl(-m_width,-m_height,center_depth-delta_LB2RT);
+    glVertex3f(-m_width,-m_height,blf);
+    QVector3D bl(-m_width,-m_height,blf);
 //    glVertex3f(-m_width,-m_height,0.5);
 
-    glColor4f(center_depth,center_depth-delta_LT2BR,_shaderParam.m_layerLabel,1.0);
+    glColor4f(center_depth,tlf,((float)_shaderParam.m_layerLabel+1.01)/255.0,1.0);
     glTexCoord2d(0.0,1.0);
-    glVertex3f(-m_width,m_height,-(center_depth-delta_LT2BR));
-    QVector3D tl(-m_width,m_height,center_depth-delta_LT2BR);
+    glVertex3f(-m_width,m_height,tlf);
+    QVector3D tl(-m_width,m_height,tlf);
 //    glVertex3f(-m_width,m_height,0.5);
 
-    glColor4f(center_depth,center_depth+delta_LB2RT,_shaderParam.m_layerLabel,1.0);
+    glColor4f(center_depth,trf,((float)_shaderParam.m_layerLabel+1.01)/255.0,1.0);
     glTexCoord2d(1.0,1.0);
-    glVertex3f(m_width,m_height,-(center_depth+delta_LB2RT));
-    QVector3D tr(m_width,m_height,center_depth+delta_LB2RT);
+    glVertex3f(m_width,m_height,trf);
+    QVector3D tr(m_width,m_height,trf);
 
 //    glVertex3f(m_width,m_height,0.5);
 
-    glColor4f(center_depth,center_depth+delta_LT2BR,_shaderParam.m_layerLabel,1.0);
+    glColor4f(center_depth,brf,((float)_shaderParam.m_layerLabel+1.01)/255.0,1.0);
     glTexCoord2d(1.0,0.0);
-    glVertex3f(m_width,-m_height,-(center_depth+delta_LT2BR));
-    QVector3D br(m_width,-m_height,center_depth+delta_LT2BR);
+    glVertex3f(m_width,-m_height,brf);
+    QVector3D br(m_width,-m_height,brf);
+    glEnd();
 
-    QVector3D n1 = QVector3D::crossProduct(bl-tl,bl-br);
-    QVector3D n2 = QVector3D::crossProduct(tr-br,tr-tl);
-    qDebug()<<"n1"<<n1;
-    qDebug()<<"n2"<<n2;
+    QVector3D n1 = QVector3D::crossProduct(br-bl,tl-bl);
+//    QVector3D n2 = QVector3D::crossProduct(tr-br,tr-tl);
+    _shaderParam.m_trueNormal = QVector3D(n1.x(),n1.y(), n1.z()).normalized();
+//    if(n1.z()>0)
+//        _shaderParam.m_trueNormal = n1.normalized();
+//    else
+//        _shaderParam.m_trueNormal = -n1.normalized();
+
+    qDebug()<<"bl"<<blf<<"tl"<<tlf<<"tr"<<trf<<"br"<<brf;
+    qDebug()<<"bl"<<bl<<"tl"<<tl<<"tr"<<tr<<"br"<<br;
+
+    //    qDebug()<<"n1"<<n1;
+//    qDebug()<<"n2"<<n2;
 
 //    glVertex3f(m_width,-m_height,0.5);
 
-    glEnd();
 //    glDepthMask(GL_TRUE);
     Session::get()->glWidget()->getMShader()->release();
     glDisable(GL_TEXTURE_2D);
+    _shaderParam.m_centerDepth = QVector3D(m_width+P().x,-m_height+P().y,brf);
+    _shaderParam.m_boundingbox[0] = -m_width+P().x;
+    _shaderParam.m_boundingbox[1] = m_width+P().x;
+    _shaderParam.m_boundingbox[2] = -m_height+P().y;
+    _shaderParam.m_boundingbox[3] = m_height+P().y;
+    _shaderParam.m_shadowcreator = this->m_shadowCreator;
+//    glMatrixMode(GL_MODELVIEW);
+//    glLoadIdentity();
+//    glBegin(GL_POINTS);
+//    glColor3f(1.0,1.0,0.0);
+//    glVertex3f(_shaderParam.m_centerDepth.x(),_shaderParam.m_centerDepth.y(),0.0);
+//    glEnd();
+
 }
 
+float ImageShape::CapValue(float in_num, float low_cap, float high_cap)
+{
+    if(in_num<low_cap)
+        return low_cap;
+    if(in_num>high_cap)
+        return high_cap;
+    return in_num;
+}

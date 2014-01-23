@@ -154,7 +154,7 @@ public:
 
     void                startSelect(Selectable_p pObj, bool isselect, bool isMultiSelect);
     void                stopSelect();
-    bool                dragTheSelected(const Vec2& t);
+    bool                dragTheSelected(const Vec2& t, int button = 0);
     void                reset();
 
     bool                isSelect;
@@ -170,7 +170,7 @@ class Draggable:public Selectable{
 
 protected:
 
-    virtual void onDrag(const Point&){}
+    virtual void onDrag(const Point&, int button = 0){}
 
 public:
 
@@ -196,9 +196,10 @@ public:
 
     void flipLock(){isLocked =!isLocked;}
 
-    void drag(const Point& t){
-        _pP->set(*_pP + t);
-        onDrag(t);
+    void drag(const Point& t, int button = 0){
+        if(button == 0)
+            _pP->set(*_pP + t);
+        onDrag(t, button);
     }
 
     bool isChild() const {return _parent!=0;}

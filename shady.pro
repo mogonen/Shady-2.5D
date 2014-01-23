@@ -102,5 +102,6 @@ RESOURCES += \
 OTHER_FILES += \
     Renderer/Basic.vsh \
     Renderer/Basic.fsh \
-    Renderer/Modelling.fsh
+    Renderer/Modelling.fsh \
+    Renderer/Ambient.fsh
 

@@ -52,6 +52,8 @@ public:
     QLabel *m_SMQualityValue;
     QSliderSpinBox *m_CartoonShaSpinbox;
     QLabel *m_CartoonShaValue;
+    QSliderSpinBox *m_SurfDispSpinbox;
+    QLabel *m_SurfDispValue;
 
     QCheckBox *m_ShowLight;
     QComboBox *m_ShowTex;
@@ -75,6 +77,7 @@ public slots:
     void SetFolder();
     void BuildFileList();
     void GetBG();
+    void ReloadShader();
 //    void GetLense();
 //    void GetGradLense();
 //    void GetDIDark();
@@ -92,6 +95,7 @@ public slots:
     void SetLevelOfDetail(double LOD);
     void SetSMQuality(double Quality);
     void SetCartoonSha(double Strength);
+    void SetSurfDisplacement(double SurfDisp);
 
 //    void ToggleInfor(bool info){m_ShowInfo = info;updateGL();}
     void ToggleCos(bool info);

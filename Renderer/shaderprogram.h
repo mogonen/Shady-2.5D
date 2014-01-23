@@ -11,7 +11,7 @@ class shape;
 class ShaderProgram : public QGLShaderProgram, public QGLFunctions
 {
 public:
-    enum SHADER_TYPE {TYPE_RENDER, TYPE_MODEL};
+    enum SHADER_TYPE {TYPE_RENDER, TYPE_MODEL, TYPE_AMB};
     ShaderProgram(SHADER_TYPE type = TYPE_RENDER);
     ShaderProgram(const QString &VFile, const QString &FFile);
     ~ShaderProgram();
@@ -19,7 +19,10 @@ public:
     void GrabResultsTes();
     void Initialize();
     void InitializeParameters();
+    void SetParametersToShader();
+
     void LoadShader(const QString& vshader = QString(),const QString& fshader = QString());
+    void ReloadShader();
     static GLuint SetTexture(QPixmap TextureMap, bool isMipmap, bool isReversed);
 
     void SetTextureToShader();
@@ -29,6 +32,7 @@ public:
     void LoadDarkImage(unsigned char *data, int width, int height);
     void LoadBrightImage(unsigned char *data, int width, int height);
     void LoadBGImage(unsigned char *data, int width, int height);
+    void ComputeAmbImage();
 
     void InitializeTextures();
     void GrabShapeMap(int w, int h);
@@ -44,7 +48,7 @@ public:
     void SetLevelOfDetail(double LOD);
     void SetSMQuality(double Quality);
     void SetCartoonSha(double Strength);
-
+    void SetSurfDisp(double Disp);
 //    void ToggleInfor(bool info){m_ShowInfo = info;updateGL();}
     void ToggleCos(bool info);
     void ToggleAmb(bool info);
@@ -52,6 +56,9 @@ public:
     void ToggleMirror(bool info);
     void TogglePoint(bool info);
     void SetCurTex(int index);
+    void SetLightPos(QVector3D light_pos);
+
+
 //    void GetMyTexture();
 //    void SetDepthValue(double dep);
 //    void SetAlphaValue(double alp);
@@ -96,6 +103,7 @@ public:
     float m_LOD;
     float m_SM_Quality;
     float m_Cartoon_sha;
+    float m_surface_disp;
     bool m_toggle_Point;
     bool m_toggle_Mirror;
     int m_toggle_ShaAmbCos;

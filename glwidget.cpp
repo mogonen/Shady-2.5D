@@ -91,7 +91,7 @@ void GLWidget::initializeGL()
      glShadeModel(GL_SMOOTH);
      //glDepthRange(0.0, 1.0);
 
-     glClearColor(0.1,0.1,0.1,0.0);
+     glClearColor(0.0,0.0,0.0,0.0);
 
      glEnable(GL_DEPTH_TEST);
      glEnable(GL_NORMALIZE);
@@ -126,7 +126,7 @@ void GLWidget::initializeGL()
 
      glMatrixMode(GL_MODELVIEW);
      glLoadIdentity();
-     glTranslatef(0, 0, -1.0);
+     glTranslatef(0, 0, -2.0);
 
      _pGLSLShader_R = new ShaderProgram();
      _pGLSLShader_R->Initialize();
@@ -259,8 +259,16 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     }
     else
     {
-        if (is(DRAGMODE_ON))
-           Session::get()->selectionMan()->dragTheSelected(p - _lastWorldP);
+        if(event->buttons() & Qt::LeftButton)
+        {
+            if (is(DRAGMODE_ON))
+                Session::get()->selectionMan()->dragTheSelected(p - _lastWorldP);
+        }
+        else
+        {
+            if (is(DRAGMODE_ON))
+                Session::get()->selectionMan()->dragTheSelected(p - _lastWorldP, 1);
+        }
     }
     _lastWorldP = p;
     m_CameraChanged = true;
@@ -367,6 +375,6 @@ void GLWidget::loadCameraParameters()
 void GLWidget::updateGLSLLight(float x, float y, float z)
 {
     _pGLSLShader_R->bind();
-    _pGLSLShader_R->setUniformValue("light_dir", -QVector3D(x, y, z));
+    _pGLSLShader_R->SetLightPos(QVector3D(x,y,z));
     _pGLSLShader_R->release();
 }

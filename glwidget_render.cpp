@@ -110,11 +110,16 @@ void GLWidget::renderCanvas()
             _pCanvas->_lights[0]->render(DRAG_MODE);
         }
 
+        glColor3f(1.0, 1.0, 0);
+        QFont m_font;
+        m_font.setPointSize(15);
+        QVector3D mousePos = _pGLSLShader_R->m_MousePos;
+        QString z_pos = QString("pos: %1 %2 %3").arg(mousePos.x(),0,'f',3).arg(mousePos.y(),0,'f',3).arg(mousePos.z(),0,'f',3);
+        renderText(10, 20, z_pos, m_font);
     }
     else
     {
         _pGLSLShader_R->release();
-
         _pGLSLShader_R->SetInitialized(false);
         if (is(DRAGMODE_ON) && (is(SHADING_ON) || is(PREVIEW_ON)))
         {
@@ -125,6 +130,7 @@ void GLWidget::renderCanvas()
             if (!s->isChild())
                 render(*it);
         }
+
     }
 //    glBindTexture(GL_TEXTURE_2D, tt);
 ////    if (!firstTime)

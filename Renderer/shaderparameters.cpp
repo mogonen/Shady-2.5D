@@ -4,10 +4,11 @@ ShaderParameters::ShaderParameters()
 {
     m_alphaValue = 1.0;
     m_translucency = 0.0;
-    m_centerDepth = 0.0;
+    m_centerDepth = QVector3D(0.0,0.0,0.0);
     m_layerLabel = 0;
     m_SMQuality = 0.5;
-    m_averageNormal = QVector3D(0.0,0.0,1.0);
+    m_averageNormal = QVector2D(0.0,0.0);
+    m_trueNormal = QVector3D(0.0,0.0,1.0);
 }
 
 ShaderParameters::~ShaderParameters()

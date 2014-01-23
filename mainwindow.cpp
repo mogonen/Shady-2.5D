@@ -543,12 +543,12 @@ void MainWindow::flipDrag()
 
 void MainWindow::flipRender()
 {
-    shadingOnAct->setChecked(renderAct->isChecked());
-    ambientOnAct->setChecked(renderAct->isChecked());
+//    shadingOnAct->setChecked(renderAct->isChecked());
+//    ambientOnAct->setChecked(renderAct->isChecked());
     shadowOnAct->setChecked(renderAct->isChecked());
     previewOnAct->setChecked(renderAct->isChecked());
-    emit(shadingOnAct->triggered());
-    emit(ambientOnAct->triggered());
+//    emit(shadingOnAct->triggered());
+//    emit(ambientOnAct->triggered());
     emit(shadowOnAct->triggered());
     emit(previewOnAct->triggered());
     glWidget->setRender(PREVIEW_ON, renderAct->isChecked());
