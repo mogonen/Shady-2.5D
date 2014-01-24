@@ -185,7 +185,8 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     {
         if (hit){
             Selectable_p pSel = select(hit, SelectBuff);
-            if (is(DRAGMODE_ON) && pSel->type() == Renderable::UI){
+            if (is(DRAGMODE_ON) && pSel->type() == Renderable::UI)
+            {
                 Session::get()->selectionMan()->startSelect(pSel, event->button() == Qt::LeftButton, event->modifiers() & Qt::ControlModifier);
             }
         }
@@ -237,10 +238,6 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     QVector2D diff = QVector2D(event->pos()-_lastP);
     _lastP  = event->pos();
     Point p = toWorld(_lastP.x(), _lastP.y());
-
-
-
-
 
     if(event->modifiers() & Qt::ShiftModifier)
     {
@@ -330,7 +327,6 @@ int GLWidget::selectGL(int x, int y){
 void GLWidget::orthoView(){
 //    glOrtho(-1.0*_scale+_translate.x, 1.0*_scale+_translate.x, -1.0/_aspectR*_scale+_translate.y, 1.0/_aspectR*_scale+_translate.y, NEAR_P, FAR_P);
     glOrtho(-1.0*_scale, 1.0*_scale, -1.0/_aspectR*_scale, 1.0/_aspectR*_scale, NEAR_P, FAR_P);
-
 }
 
 Point GLWidget::toWorld(int x, int y){

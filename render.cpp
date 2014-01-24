@@ -47,10 +47,12 @@ Selectable_p select(GLint hits, GLuint *buff){
    //only one selectable object in the stack for now
    unsigned int name = buff[3];
    Selectable_p pSel =0;
-   if ( name & ( 1 << UI_BIT ) ){
+   if ( name & ( 1 << UI_BIT ) )
+   {
       pSel =Session::get()->controller();
      Session::get()->controller()->startSelect(name);
-   }else
+   }
+   else
       pSel = Session::get()->selectionMan()->get(buff[3]);
 
    return pSel;
@@ -68,12 +70,7 @@ inline bool selectionColor(Selectable_p pSel){
     }
     return false;
 }
-
-
-
 // now all renders here
-
-
 
 void SampleShape::render(int mode) {
 

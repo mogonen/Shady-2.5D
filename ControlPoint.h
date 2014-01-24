@@ -23,7 +23,7 @@ protected:
             _pTheActive = this;
     }
 
-    virtual void onDrag(const Point& t){ // move the children
+    virtual void onDrag(const Point& t, int button){ // move the children
         if (isParent()){
             DraggableList childs = getChilds();
             for(DraggableList::iterator it = childs.begin(); it!= childs.end(); it++)

@@ -10,8 +10,8 @@ ShaderProgram::ShaderProgram(SHADER_TYPE type)
     case(TYPE_RENDER):
 //        m_VShaderFile = QString(":Basic.vsh");
 //        m_FShaderFile = QString(":Basic.fsh");
-        m_VShaderFile = QString(".//../Shady-2.5D/Renderer/Basic.vsh");
-        m_FShaderFile = QString(".//../Shady-2.5D/Renderer/Basic.fsh");
+        m_VShaderFile = QString(".//../shady-master/Renderer/Basic.vsh");
+        m_FShaderFile = QString(".//../shady-master/Renderer/Basic.fsh");
         break;
     case(TYPE_MODEL):
 //        m_VShaderFile = QString(":Basic.vsh");
@@ -22,8 +22,8 @@ ShaderProgram::ShaderProgram(SHADER_TYPE type)
     case(TYPE_AMB):
 //        m_VShaderFile = QString(":Basic.vsh");
 //        m_FShaderFile = QString(":Modelling.fsh");
-        m_VShaderFile = QString(".//../Shady-2.5D/Renderer/Basic.vsh");
-        m_FShaderFile = QString(".//../Shady-2.5D/Renderer/Ambient.fsh");
+        m_VShaderFile = QString(".//../shady-master/Renderer/Basic.vsh");
+        m_FShaderFile = QString(".//../shady-master/Renderer/Ambient.fsh");
         break;
     }
     m_VertexShader = NULL;

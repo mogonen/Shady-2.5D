@@ -14,7 +14,7 @@ void ShapeControl::startSelect(unsigned int svname){
     _theSelected = ShapeVertex::get(svid);
 }
 
-void ShapeControl::onDrag(const Vec2& t){
+void ShapeControl::onDrag(const Vec2& t, int){
     if (_theSelected){
         _theSelected->drag(t, isNormalControl);
     }

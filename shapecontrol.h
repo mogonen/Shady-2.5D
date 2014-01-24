@@ -34,7 +34,8 @@ class TransformHandler:public Draggable{
 
 protected:
 
-    void onUpdate(){
+    void onUpdate()
+    {
 
         if (!_pShape)
             return;
@@ -103,7 +104,7 @@ class ShapeControl: public Draggable{
 
 protected:
 
-    void onDrag(const Vec2& t);
+    void onDrag(const Vec2& t, int);
 
 public:
 
