@@ -11,13 +11,12 @@ ImageShapeCustomDialog::ImageShapeCustomDialog(ImageShape* imgS, QString title, 
     m_imgShape = imgS;
     m_imgShape->SetPenal(this);
     Initialize();
-
 }
 
 void ImageShapeCustomDialog::Initialize()
 {
-    m_returnWidth = this->addDblSpinBoxF("Width:", 0, 2, &m_imgShape->m_width, 2);
-    m_returnHeight = this->addDblSpinBoxF("Height:", 0,2, &m_imgShape->m_height, 2);
+    //m_returnWidth = this->addDblSpinBoxF("Width:", 0, 2, &m_imgShape->m_width, 2);
+    //m_returnHeight = this->addDblSpinBoxF("Height:", 0,2, &m_imgShape->m_height, 2);
     this->addDblSpinBoxF("Alpha:", 0, 1, &m_imgShape->m_alpha_th, 2);
     this->addDblSpinBoxF("Strech:", -10, 10, &m_imgShape->m_stretch, 1);
     this->addDblSpinBoxF("Depth:", 0, 1, &m_imgShape->m_assignedDepth, 2);
@@ -31,12 +30,13 @@ void ImageShapeCustomDialog::Initialize()
 
 void ImageShapeCustomDialog::SetNewSize(double w, double h)
 {
-    m_returnWidth->blockSignals(true);
+    /*   m_returnWidth->blockSignals(true);
     m_returnHeight->blockSignals(true);
     m_returnWidth->setValue(w);
     m_returnHeight->setValue(h);
     m_returnWidth->blockSignals(false);
     m_returnHeight->blockSignals(false);
+    */
 }
 
 void ImageShapeCustomDialog::LoadTextureImage(int cur)
@@ -84,6 +84,13 @@ ImageShape::~ImageShape()
     glDeleteTextures(1,&m_texDark);
     glDeleteTextures(1,&m_texBright);
     glDeleteTextures(1,&m_texSM);
+}
+
+
+void ImageShape::getBBox(BBox& bbox) const
+{
+    bbox.P[0].set(-m_width, -m_height);
+    bbox.P[1].set(m_width, m_height);
 }
 
 void ImageShape::calAverageNormal()

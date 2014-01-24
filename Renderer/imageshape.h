@@ -27,8 +27,20 @@ private:
 
 class ImageShape : public Shape
 {
+
+protected:
+    void onApplyT(const Matrix3x3& tM)
+    {
+        Vec3 v   = tM*Vec3(m_width, m_height, 0);
+        m_width  = v.x;
+        m_height = v.y;
+
+        v = tM*Vec3(0, 0, 1);
+        pP()->set(P() + Point(v.x/v.z, v.y/v.z));
+    }
+
 public:
-    ImageShape(int w = 1, int h = 1);
+    ImageShape(int w = 0.5, int h = 0.5);
     ~ImageShape();
     void render(int mode);
     void calAverageNormal();
@@ -38,6 +50,10 @@ public:
     void LoadTextureImage();
     void SetPenal(ImageShapeCustomDialog *penal){m_penal = penal;}
     float CapValue(float in_num, float low_cap, float high_cap);
+
+    void getBBox(BBox& bbox) const;
+
+
 
     ImageShapeCustomDialog* GetPenal(){return m_penal;}
 
