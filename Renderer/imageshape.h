@@ -19,8 +19,9 @@ public:
 private slots:
     void LoadTextureImage(int );
     void LoadTextureImage();
+
 private:
-    ImageShape* m_imgShape;
+    ImageShape*     m_imgShape;
     QDoubleSpinBox* m_returnWidth;
     QDoubleSpinBox* m_returnHeight;
 };
@@ -29,6 +30,7 @@ class ImageShape : public Shape
 {
 
 protected:
+
     void onApplyT(const Matrix3x3& tM)
     {
         Vec3 v   = tM*Vec3(m_width, m_height, 0);
@@ -40,7 +42,8 @@ protected:
     }
 
 public:
-    ImageShape(int w = 0.5, int h = 0.5);
+
+    ImageShape(int w = 1.0, int h = 1.0);
     ~ImageShape();
     void render(int mode);
     void calAverageNormal();
@@ -52,8 +55,6 @@ public:
     float CapValue(float in_num, float low_cap, float high_cap);
 
     void getBBox(BBox& bbox) const;
-
-
 
     ImageShapeCustomDialog* GetPenal(){return m_penal;}
 

@@ -8,33 +8,38 @@
 //#include "FacialShape/facialshape.h"
 #endif
 
-QWidget* createAttrWidget(Shape_p pShape){
+QWidget* createAttrWidget(Shape_p pShape)
+{
     CustomDialog * widget = new CustomDialog("Shape Attr");
     //widget->addSpinBox("test:", 1, 8, &MeshShape::GRID_N, 1, "Rows");
-    widget->addColorSel("Diffuse:",&pShape->diffuse,"" );
+    widget->addColorSel("Diffuse:", &pShape->diffuse, "");
     QObject::connect(widget,SIGNAL(ValueUpdated()),Session::get()->glWidget(),SLOT(updateGL()));
     return widget;
 }
 
-QWidget* createImageShapeAttrWidget(ImageShape* ImgShape){
-    CustomDialog * widget = new ImageShapeCustomDialog(ImgShape, "Shape Attr");//, 0, "Set Texture", ImgShape->LoadTextureImage());
+QWidget* createImageShapeAttrWidget(ImageShape* ImgShape)
+{
+    CustomDialog * widget = new ImageShapeCustomDialog(ImgShape, "Shape Attr"); //, 0, "Set Texture", ImgShape->LoadTextureImage());
     QObject::connect(widget,SIGNAL(ValueUpdated()),Session::get()->glWidget(),SLOT(updateGL()));
     return widget;
 }
 
 
-void executeMeshShapeOperations(){
+void executeMeshShapeOperations()
+{
     MeshShape::executeStackOperation();
     MainWindow::updateGL();
 }
 
-void createGrid(){
+void createGrid()
+{
     MeshShape* pMS =MeshShape::insertGrid(Point(), MeshShape::GRID_LEN, MeshShape::GRID_M, MeshShape::GRID_N);
     Session::get()->mainWindow()->addAttrWidget(createAttrWidget((Shape_p)pMS), (void*)pMS);
     Session::get()->glWidget()->insertShape(pMS);
 }
 
-void createNGon(){
+void createNGon()
+{
     MeshShape* pMS = MeshShape::insertNGon(Point(), MeshShape::NGON_N, MeshShape::NGON_SEG_V, MeshShape::NGON_RAD);
     Session::get()->mainWindow()->addAttrWidget(createAttrWidget((Shape_p)pMS), (void*)pMS);
     Session::get()->glWidget()->insertShape(pMS);
@@ -46,7 +51,8 @@ void createTorus(){
     Session::get()->glWidget()->insertShape(pMS);
 }
 
-void createSpine(){
+void createSpine()
+{
     Shape_p shape = Session::get()->theShape();
     SpineShape* spine = dynamic_cast<SpineShape*>(shape);
     if (spine==0)
@@ -56,8 +62,9 @@ void createSpine(){
     Session::get()->glWidget()->insertShape(pMS);;
 }
 
-void createShapeImage(){
-//    MeshShape* pMS =ImageShape::insertGrid(Point(), MeshShape::GRID_LEN, MeshShape::GRID_M, MeshShape::GRID_N);
+void createShapeImage()
+{
+//  MeshShape* pMS =ImageShape::insertGrid(Point(), MeshShape::GRID_LEN, MeshShape::GRID_M, MeshShape::GRID_N);
     ImageShape* pMS = new ImageShape(1.0,1.0);
     Session::get()->mainWindow()->addAttrWidget(createImageShapeAttrWidget(pMS), (void*)pMS);
     Session::get()->glWidget()->insertShape(pMS);

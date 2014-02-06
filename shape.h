@@ -38,20 +38,19 @@ struct textureInfo
 
 struct BBox{
     Point P[2];
-
-    Vec2        diag() const  {return P[1] - P[0];}
-    Point       pivot() const {return (P[0]+P[1])*0.5;}
+    Vec2                diag() const  {return P[1] - P[0];}
+    Point               pivot() const {return (P[0]+P[1])*0.5;}
 };
 
-struct ShapeVertex {
+struct ShapeVertex
+{
+    Point               P;
+    Normal              N;
+    unsigned long       flag;
+    void*               pRef;
+    bool                isPositionControl, isNormalControl;
 
-    Point           P;
-    Normal          N;
-    unsigned long   flag;
-    void*           pRef;
-    bool            isPositionControl, isNormalControl;
-
-    //enum SVType     {POINT, TANGENT};
+    QColor              C0, C1; //dark & bright images -> later should be moved to somewhere else
 
     void drag(const Vec2& t, bool isNormal = false);
 
@@ -70,7 +69,6 @@ struct ShapeVertex {
     inline int           id()           const {return _id;}
     inline bool          hasChilds()    const {return _childs.size()>0;}
     inline SVList        getChilds()    const {return _childs;}
-
 
     void                 outdate();
     static ShapeVertex_p get(int id);
@@ -95,21 +93,22 @@ private:
 
 class Shape:public Draggable{
 
-    Point                   _t0;
-    Matrix3x3               _tM; //the transform matrix
-    Point                   _piv;
+    Point                _t0;
+    Matrix3x3            _tM; //the transform matrix
+    Point                _piv;
 
-    unsigned int            _flags;
-    SVList                  _vertices;
-    //Shader*                 _pShader;
+    unsigned int         _flags;
+    SVList               _vertices;
+    //Shader*            _pShader;
 
 protected:
-    virtual void onDrag(const Vec2&){}
-    virtual void onRotate(double ang){}
-    virtual void onScale(const Vec2&){}
-    virtual void onApplyT(const Matrix3x3&){}
-    virtual void onClick(const Point&, Click_e){}
+    virtual void        onDrag(const Vec2&){}
+    virtual void        onRotate(double ang){}
+    virtual void        onScale(const Vec2&){}
+    virtual void        onApplyT(const Matrix3x3&){}
+    virtual void        onClick(const Point&, Click_e){}
     ShaderParameters       _shaderParam;
+
 public:
 
     Shape();
@@ -150,12 +149,32 @@ public:
 
 
 
-    //Shader related funcs
-    virtual void calAverageNormal(){_shaderParam.m_averageNormal = QVector2D(0.0,0.0);}
-    ShaderParameters getShaderParam(){return _shaderParam;}
-    void setLayerLabel(unsigned char dep = 0){_shaderParam.m_layerLabel = dep;}
+    //Shader related funcs --> actually should not be here
+    virtual void        calAverageNormal(){_shaderParam.m_averageNormal = QVector2D(0.0,0.0);}
+    ShaderParameters    getShaderParam(){return _shaderParam;}
+    void                setLayerLabel(unsigned char dep = 0){_shaderParam.m_layerLabel = dep;}
+
+
+
+    textureInfo m_brightTex;
+    textureInfo m_darkTex;
+    textureInfo m_smTex;
+
+	//save&load
+    virtual int         load(std::ifstream&){return -1;}
+    virtual int         save(std::ofstream&){return -1;}
+
+    //for now
+    QColor diffuse;
+
+};
+
+#endif
+
+
+/*
 //    ShaderParameters* shader() const {return _shaderParam;}
-//    ShaderParameters* initializeParam(){
+//    ShaderParameters* initializeParam()
 //        if(_shaderParam)
 //            delete _shaderParam;
 //        _shaderParam = new ShaderParameters();
@@ -210,18 +229,4 @@ public:
 //    virtual void loadSMTex(QString name){
 
 //    }
-
-    textureInfo m_brightTex;
-    textureInfo m_darkTex;
-    textureInfo m_smTex;
-
-	//save&load
-    virtual int         load(std::ifstream&){return -1;}
-    virtual int         save(std::ofstream&){return -1;}
-
-    //for now
-    QColor diffuse;
-
-};
-
-#endif
+*/

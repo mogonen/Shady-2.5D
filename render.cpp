@@ -36,12 +36,11 @@ bool MeshShape::IsSelectMode(SELECTION_e eMode){
 //    render();
 //}
 
-void Selectable::render(int mode){
+void Selectable::render(int mode)
+{
     if(mode&DRAG_MODE)
         glLoadName(name());
 }
-
-
 
 Selectable_p select(GLint hits, GLuint *buff){
    //only one selectable object in the stack for now
@@ -678,7 +677,6 @@ void ImageShape::render(int mode)
 
     QVector3D n1 = QVector3D::crossProduct(br-bl,tl-bl);
 //    QVector3D n2 = QVector3D::crossProduct(tr-br,tr-tl);
-    _shaderParam.m_trueNormal = QVector3D(n1.x(),n1.y(), n1.z()).normalized();
 //    if(n1.z()>0)
 //        _shaderParam.m_trueNormal = n1.normalized();
 //    else
@@ -695,6 +693,7 @@ void ImageShape::render(int mode)
 //    glDepthMask(GL_TRUE);
     Session::get()->glWidget()->getMShader()->release();
     glDisable(GL_TEXTURE_2D);
+    _shaderParam.m_trueNormal = QVector3D(n1.x(),n1.y(), n1.z()).normalized();
     _shaderParam.m_centerDepth = QVector3D(m_width+P().x,-m_height+P().y,brf);
     _shaderParam.m_boundingbox[0] = -m_width+P().x;
     _shaderParam.m_boundingbox[1] = m_width+P().x;

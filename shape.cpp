@@ -106,7 +106,8 @@ void ShapeVertex::drag(const Vec2 &t, bool isNormal){
        _pShape->outdate(_pair);
     }
 
-    if (hasChilds()){
+    if (hasChilds())
+    {
         FOR_ALL_CONST_ITEMS(SVList, _childs){
             (*it)->P = (*it)->P + t;
         }

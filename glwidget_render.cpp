@@ -22,7 +22,8 @@ void GLWidget::renderCanvas()
         {
             Session::get()->deactivate();
             _pGLSLShader_R->SetInitialized(true);
-            FOR_ALL_CONST_ITEMS(ShapeList, _pCanvas->_shapes){ //need to add layers
+            FOR_ALL_CONST_ITEMS(ShapeList, _pCanvas->_shapes)
+            { //need to add layers
                 Shape_p pShape = *it;
                 glPushMatrix();
                 Point p = pShape->P();
@@ -36,7 +37,8 @@ void GLWidget::renderCanvas()
             _pGLSLShader_R->GrabShapeMap(width(), height());
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            FOR_ALL_CONST_ITEMS(ShapeList, _pCanvas->_shapes){ //need to add layers
+            FOR_ALL_CONST_ITEMS(ShapeList, _pCanvas->_shapes)
+            { //need to add layers
                 Shape_p pShape = *it;
                 glPushMatrix();
                 Point p = pShape->P();
