@@ -28,6 +28,17 @@ MeshShape* MeshShape::insertGrid(const Point& p, double len, int n, int m, MeshS
 
     delete vs;
     pMS->_control->buildEdges();
+
+    FaceList faces = pMS->_control->faces();
+    FOR_ALL_ITEMS(FaceList, faces)
+    {
+        dlfl::Face_p pF = *it;
+        for(int i=0; i<4; i++)
+        {
+            pF->C(i)->E()->isU = !(i%2);
+        }
+    }
+
     pMS->makeSmoothTangents();
     pMS->Renderable::update();
     return pMS;

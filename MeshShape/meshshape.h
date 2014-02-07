@@ -50,7 +50,7 @@ public:
     static void             setOPMODE(OPERATION_e eMode);
     static SELECTION_e      GetSelectMode();
     inline static bool      IsSelectMode(SELECTION_e eMode);
-    void                    makeSmoothTangents();
+    void                    makeSmoothTangents(bool isForce = false);
     void                    makeSmoothTangents(Corner_p);
 
     static void             executeStackOperation();

@@ -125,7 +125,8 @@ void Shape::render(int mode)
     ensureUpToDate();
 }
 
-void ShapeControl::renderControls(Shape_p shape){
+void ShapeControl::renderControls(Shape_p shape)
+{
     if (_theHandler->isActive())
         return;
     //could not get pushname popname working!
@@ -179,7 +180,8 @@ void SpineShape::render(int mode){
     if(isInRenderMode()){
         glPointSize(5.0);
         glBegin(GL_POINTS);
-            FOR_ALL_CONST_ITEMS(SVertexList, _verts){
+            FOR_ALL_CONST_ITEMS(SVertexList, _verts)
+            {
                 if (!(*it)->pSV)
                     continue;
                 Point p = (*it)->P();
@@ -189,7 +191,8 @@ void SpineShape::render(int mode){
     }
 
     glBegin(GL_LINES);
-        FOR_ALL_CONST_ITEMS(SVertexList, _verts){
+        FOR_ALL_CONST_ITEMS(SVertexList, _verts)
+        {
             if (!(*it)->pSV)
                 continue;
 
@@ -207,17 +210,19 @@ void SpineShape::render(int mode){
 void MeshShape::render(int mode) {
 
     Shape::render(mode);
-    if(!(mode&SM_MODE||mode&BRIGHT_MODE||mode&DARK_MODE))
+    //if(!(mode&SM_MODE||mode&BRIGHT_MODE||mode&DARK_MODE))
+
+    if ( isInRenderMode() || (!isInRenderMode() && IsSelectMode(EDGE)) )
     {
-        if ( (isInRenderMode() || IsSelectMode(EDGE) )){
-            EdgeList edges = _control->edges();
-            FOR_ALL_CONST_ITEMS(EdgeList, edges){
-                render(*it);
-            }
+        EdgeList edges = _control->edges();
+        FOR_ALL_CONST_ITEMS(EdgeList, edges){
+            render(*it);
         }
     }
+
     //too messy, fix it!
-    if (isInRenderMode() || (IsSelectMode(FACE) || Session::isRender(DRAGMODE_ON) ) ){
+    if (isInRenderMode() || ( !isInRenderMode() && (IsSelectMode(FACE)|| (mode&DRAG_MODE) )) )
+    {
 
         qreal r, g, b;
         diffuse.getRgbF(&r,&g,&b);
@@ -320,7 +325,9 @@ void Curve::render(int mode) {
 
 void Patch4::render(int mode){
 
-//    Patch::render(mode);
+    if (!mode&DRAG_MODE )
+        Patch::render(mode);
+
     for(int j=0; j < Ni; j++){
         for(int i = 0; i< Ni; i++){
 
@@ -377,8 +384,6 @@ void Patch4::render(int mode){
                 glEnd();
 
             }
-
-
 
             if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON) ){
                 glEnable(GL_LIGHTING);

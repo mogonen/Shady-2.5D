@@ -82,10 +82,14 @@ void MeshShape::onEnsureUpToDate(){
     }
 }
 
-void MeshShape::makeSmoothTangents(){
+void MeshShape::makeSmoothTangents(bool isForce){
+
+    if (!(isSMOOTH || isForce))
+        return;
 
     EdgeList edges = _control->edges();
-    FOR_ALL_ITEMS(EdgeList, edges){
+    FOR_ALL_ITEMS(EdgeList, edges)
+    {
         Edge_p e = (*it);
         makeSmoothTangents(e->C0());
     }

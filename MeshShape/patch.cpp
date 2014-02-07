@@ -1,4 +1,4 @@
-#include "Patch.h"
+ #include "Patch.h"
 #include "../curve.h"
 #include <QDebug>
 
@@ -153,6 +153,7 @@ Vec3 Patch::compose(const Vec3& v, const Vec3& nx){
 }
 
 Point Patch::K(int ei, int i){
+    ei = (ei + C(0)->E()->isU)%4;
     Corner* ci = C(ei);
     Spline* c = ci->E()->pData->pCurve;
     /*if (!c)

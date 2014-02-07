@@ -139,6 +139,8 @@ public:
     void set(Corner_p, int i=-1);
 	bool isBorder();
 
+    bool isU;
+
     EdgeData* pData;
 };
 
