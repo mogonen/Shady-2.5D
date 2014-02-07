@@ -257,7 +257,7 @@ Edge_p MeshShape::extrude(Edge_p e0, double t, VertexMap *pVMap){
     f->Face::update();
 
     for(int i=0; i <4; i++){
-        f->C(i)->E()->isU = (i%2 + e0->isU);
+        f->C(i)->E()->isU = (i + e0->isU)%2;
     }
 
     if (isSMOOTH && !pVMap){

@@ -152,8 +152,7 @@ Vec3 Patch::compose(const Vec3& v, const Vec3& nx){
     return nx*v.x + ny*v.y + nz*v.z;
 }
 
-Point Patch::K(int ei, int i){
-    ei = (ei + C(0)->E()->isU)%4;
+Point Patch::K(int ei, int i){   
     Corner* ci = C(ei);
     Spline* c = ci->E()->pData->pCurve;
     /*if (!c)
