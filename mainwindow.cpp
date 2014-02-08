@@ -259,7 +259,7 @@ void MainWindow::createActions()
 
 
     renderAct = new QAction(tr("Render"), this);
-    renderAct->setShortcut(Qt::Key_Space);
+    renderAct->setShortcut(Qt::Key_F5);
     connect(renderAct, SIGNAL(triggered()), this, SLOT(flipRender()));
     //view Act
     shadingOnAct = new QAction(tr("&Shading On"), this);

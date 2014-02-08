@@ -328,7 +328,7 @@ void Patch4::render(int mode){
     if (!mode&DRAG_MODE )
         Patch::render(mode);
 
-/*    for(int j=0; j < Ni; j++){
+      for(int j=0; j < Ni; j++){
         for(int i = 0; i< Ni; i++){
 
             Point p[4];
@@ -420,16 +420,16 @@ void Patch4::render(int mode){
 
         }
     }
-    */
 
+/*
     float isU = _pFace->C(0)->E()->isU;
 
     glColor3f(1.0-isU,isU,0);
 
-    for(int v=0; v < Ni; v++)
+    for(int v=0; v < N; v++)
     {
         glBegin(GL_LINE_STRIP);
-        for(int u = 0; u< Ni; u++)
+        for(int u = 0; u< N; u++)
         {
             Point p = P(u, v);
             glVertex3f(p.x, p.y, 0);
@@ -439,16 +439,16 @@ void Patch4::render(int mode){
 
     glColor3f(isU, 1.0-isU,0);
 
-    for(int u=0; u < Ni; u++)
+    for(int u=0; u < N; u++)
     {
         glBegin(GL_LINE_STRIP);
-        for(int v = 0; v< Ni; v++)
+        for(int v = 0; v< N; v++)
         {
             Point p = P(u, v);
             glVertex3f(p.x, p.y, 0);
         }
         glEnd();
-    }
+    }*/
 }
 
 
