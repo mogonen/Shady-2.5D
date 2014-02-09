@@ -50,6 +50,8 @@ typedef std::list<Point_p> Point_pList;
 
 #define UI_BIT 31
 
+typedef unsigned long RenderMode_t;
+
 class Renderable{
 
 protected:
@@ -260,6 +262,13 @@ public:
 
     static Session*     get(){return _pSession;}
     static bool         isRender(RenderSetting rs);
+};
+
+class Renderer
+{
+
+public:
+    virtual void render(RenderMode_t mode = 0) = 0;
 };
 
 struct ShapeVertex;

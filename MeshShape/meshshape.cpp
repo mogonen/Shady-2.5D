@@ -9,12 +9,14 @@ MeshShape::MeshShape()
     _control->setCaller((void*)this);
 }
 
-void MeshShape::onClick(const Point & p, Click_e eClick){
+void MeshShape::onClick(const Point & p, Click_e eClick)
+{
 
     if (!EXEC_ONCLICK)
         return;
 
-    if (eClick == UP){
+    if (eClick == UP)
+    {
         Selectable_p obj = Session::get()->selectionMan()->getLastSelected();
 
         if (!obj || obj->type() != Renderable::SHAPE)
@@ -23,7 +25,6 @@ void MeshShape::onClick(const Point & p, Click_e eClick){
         execOP(p, obj);
     }
 }
-
 
 void MeshShape::setOPMODE(OPERATION_e eMode){
     _OPMODE = eMode;

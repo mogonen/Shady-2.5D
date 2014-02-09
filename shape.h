@@ -107,6 +107,11 @@ protected:
     virtual void        onScale(const Vec2&){}
     virtual void        onApplyT(const Matrix3x3&){}
     virtual void        onClick(const Point&, Click_e){}
+
+    virtual void        onStartDrag(ShapeVertex_p){}
+    virtual void        onStopDrag(ShapeVertex_p){}
+    virtual void        onDrag(ShapeVertex_p){}
+
     ShaderParameters       _shaderParam;
 
 public:
@@ -121,6 +126,7 @@ public:
     void                removeVertex(ShapeVertex_p sv);
     void                removeVertex(Point_p pP);
     SVList              getVertices() const {return _vertices;}
+
     virtual void        outdate(ShapeVertex_p sv){ Renderable::outdate(); }
 
 	//send generic command to the shape

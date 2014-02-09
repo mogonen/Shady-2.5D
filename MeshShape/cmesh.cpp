@@ -212,7 +212,7 @@ Face::Face(int s){
 }
 
 Corner_p  Face::C(int i) const {return _corns[(i+_size)%_size]; }
-Vertex* Face::V(int i) const{return _corns[(i+_size)%_size]->V(); }
+Vertex*   Face::V(int i) const {return _corns[(i+_size)%_size]->V(); }
 
 void Face::set(Corner_p c, int i){
 
@@ -224,14 +224,14 @@ void Face::set(Corner_p c, int i){
 	int ii = (i+_size)%_size;
 	_corns[ii] = c; 
 	c->_f = this; 
-	c->set(ii);
+    c->_i = ii;
 }
 
 void Face::set(Vertex* v, int i){
     v->set(C((i+_size)%_size));
 }
 
-void Face::update(bool links){
+void Face::update(bool links, int offset){
 
     Corner_p ci = _corns[0];
 	if (links){
@@ -244,12 +244,24 @@ void Face::update(bool links){
 
 	for(int i=0; i<_size; i++){
 		if (links){
-			_corns[i] = ci;
+            _corns[(i+offset)%_size] = ci;
 			ci = ci->next();
 		}else 
 			C(i-1)->setNext(_corns[i]);
-		set(_corns[i], i);
+        set(_corns[i], i);
 	}
+
+    if (offset && !links)
+        reoffset(offset);
+}
+
+void Face::reoffset(int off){
+    if (off==0)
+        return;
+    Corner_p c0 = C(0);
+    for(Corner_p c = c0->next(); c!=c0; c = c->next())
+        set(c, c->I() + off);
+    set(c0, c0->I() + off);
 }
 
 void Face::remove(){

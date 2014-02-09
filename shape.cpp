@@ -112,6 +112,7 @@ void ShapeVertex::drag(const Vec2 &t, bool isNormal){
             (*it)->P = (*it)->P + t;
         }
     }
+    //_pShape->onDrag(this);
 }
 
 void   ShapeVertex::setTangent(const Vec2& tan, bool isnormal, bool ispair){

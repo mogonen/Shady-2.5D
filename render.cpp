@@ -421,34 +421,6 @@ void Patch4::render(int mode){
         }
     }
 
-/*
-    float isU = _pFace->C(0)->E()->isU;
-
-    glColor3f(1.0-isU,isU,0);
-
-    for(int v=0; v < N; v++)
-    {
-        glBegin(GL_LINE_STRIP);
-        for(int u = 0; u< N; u++)
-        {
-            Point p = P(u, v);
-            glVertex3f(p.x, p.y, 0);
-        }
-        glEnd();
-    }
-
-    glColor3f(isU, 1.0-isU,0);
-
-    for(int u=0; u < N; u++)
-    {
-        glBegin(GL_LINE_STRIP);
-        for(int v = 0; v< N; v++)
-        {
-            Point p = P(u, v);
-            glVertex3f(p.x, p.y, 0);
-        }
-        glEnd();
-    }*/
 }
 
 

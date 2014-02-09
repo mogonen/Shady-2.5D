@@ -59,12 +59,10 @@ void MeshShape::execOP(const Point &p, Selectable_p obj){
 
 }
 
-void MeshShape::executeStackOperation()
-{
+void MeshShape::executeStackOperation(){
     vertexToCornerMap.clear();
     SelectionSet selects = Session::get()->selectionMan()->getSelection();
-    FOR_ALL_ITEMS(SelectionSet, selects)
-    {
+    FOR_ALL_ITEMS(SelectionSet, selects){
         MeshShape::execOP(Point(),*it);
     }
 }
@@ -254,11 +252,7 @@ Edge_p MeshShape::extrude(Edge_p e0, double t, VertexMap *pVMap){
     else
         pMesh->addEdge(f->C(3), 0); //e3
 
-    f->Face::update();
-
-    for(int i=0; i <4; i++){
-        f->C(i)->E()->isU = (i + e0->isU)%2;
-    }
+    f->Face::update(false, e0->C0()->I()+2);
 
     if (isSMOOTH && !pVMap){
         makeSmoothTangents(f->C(2));
@@ -274,8 +268,7 @@ void MeshShape::extrudeEdges(SelectionSet selection, double t){
 
     std::map<Vertex_p, Corner_p> *  pVMap = isKEEP_TOGETHER?&vertmap:0;
 
-    FOR_ALL_ITEMS(SelectionSet, selection)
-    {
+    FOR_ALL_ITEMS(SelectionSet, selection){
         Edge_p e = (Edge_p)*it;
         extrude(e, t, pVMap);
     }
@@ -299,8 +292,8 @@ void MeshShape::deleteFace(Face_p f){
 
     Mesh_p mesh = f->mesh();
     mesh->remove(f);
-    if (mesh->sizeF()==0){
-        Session::get()->removeShape((Shape_p)mesh->caller());
+    if (mesh->sizeF()==0)
+    {
+        //Session::get()->removeShape((Shape_p)mesh->caller());
     }
-
 }

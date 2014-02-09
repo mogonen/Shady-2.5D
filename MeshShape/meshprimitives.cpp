@@ -28,18 +28,8 @@ MeshShape* MeshShape::insertGrid(const Point& p, double len, int n, int m, MeshS
 
     delete vs;
     pMS->_control->buildEdges();
-
-    FaceList faces = pMS->_control->faces();
-    FOR_ALL_ITEMS(FaceList, faces)
-    {
-        dlfl::Face_p pF = *it;
-        for(int i=0; i<4; i++)
-        {
-            pF->C(i)->E()->isU = !(i%2);
-        }
-    }
-
-    pMS->makeSmoothTangents();
+    if (isSMOOTH)
+        pMS->makeSmoothTangents();
     pMS->Renderable::update();
     return pMS;
 }
@@ -74,13 +64,15 @@ MeshShape* MeshShape::insertNGon(const Point& p, int n, int segv, double rad, Me
     }
 
     int mid_off = (segv-1)*nn;
-    for(int i=0; i<n; i++)
-        pMS->_control->addQuad(vmid, vs[i*2+mid_off], vs[i*2+1+mid_off], vs[(i*2+2)%nn+mid_off]);
-
+    for(int i=0; i<n; i++){
+        Face_p f = pMS->_control->addQuad(vmid, vs[i*2+mid_off], vs[i*2+1+mid_off], vs[(i*2+2)%nn+mid_off]);
+        f->reoffset(i%4);
+    }
     delete vs;
 
     pMS->_control->buildEdges();
-    pMS->makeSmoothTangents();
+    if (isSMOOTH)
+        pMS->makeSmoothTangents();
     pMS->Renderable::update();
     return pMS;
 
@@ -114,7 +106,9 @@ MeshShape* MeshShape::insertTorus(const Point& p, int n, double rad, MeshShape* 
 
     delete vs;
     pMS->_control->buildEdges();
-    pMS->makeSmoothTangents();
+    if (isSMOOTH)
+        pMS->makeSmoothTangents();
+
     pMS->Renderable::update();
     return pMS;
 }

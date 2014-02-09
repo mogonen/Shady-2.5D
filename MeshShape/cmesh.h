@@ -139,8 +139,6 @@ public:
     void set(Corner_p, int i=-1);
 	bool isBorder();
 
-    bool isU;
-
     EdgeData* pData;
 };
 
@@ -164,7 +162,8 @@ public:
     void set(Corner_p, int i=0);
     void set(Vertex_p, int i=0);
 
-	void update(bool links=false);
+    void update(bool links=false, int offset = 0);
+    void reoffset(int);
 
     FaceData* pData;
 };
@@ -221,7 +220,7 @@ public:
     Corner_p other();
 
     void setNext(Corner_p c);
-	void set(int i){_i = i;}
+    //void set(int i){_i = i;}
 
 	bool isC0();
     bool isBorder();
