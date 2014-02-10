@@ -244,14 +244,14 @@ void Face::update(bool links, int offset){
 
 	for(int i=0; i<_size; i++){
 		if (links){
-            _corns[(i+offset)%_size] = ci;
+            _corns[i%_size] = ci;
 			ci = ci->next();
 		}else 
 			C(i-1)->setNext(_corns[i]);
         set(_corns[i], i);
 	}
 
-    if (offset && !links)
+    if (offset)
         reoffset(offset);
 }
 
@@ -381,7 +381,7 @@ Edge_p Mesh::insertEdge(Corner_p i_c0, Corner_p i_c1, bool updatefaces){
 	
 	if (updatefaces){
         f0->Face::update(true);
-        f1->Face::update(true);
+        f1->Face::update(true,2);
 	}
 
     Edge_p e = addEdge(i_c0, i_c1);

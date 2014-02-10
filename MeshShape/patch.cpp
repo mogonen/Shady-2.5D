@@ -48,6 +48,27 @@ void Patch::propateNormals(){
     }
 }
 
+Normal Patch::computeN(Corner_p c0, double t)
+{
+
+    bool isforward = (c0->V()->pData->pP() == c0->E()->pData->pCurve->pCV(0));
+    t = isforward? t :(1-t);
+
+    Normal n0 = computeN(c0);
+    Normal n1 = computeN(c0->next());
+    int i = c0->I();
+
+    Vec2 tan0 = c0->E()->pData->pCurve->evalT(0);//(_ps[edgeInd(i, 1)] - _ps[edgeInd(i, 0)]).normalize();
+    Vec2 tan1 = c0->E()->pData->pCurve->evalT(1);//(_ps[edgeInd(i, Ni)] - _ps[edgeInd(i, Ni-1)]).normalize();
+
+    Vec3 n0_d = Patch::decompose(n0, Vec3(tan0));
+    Vec3 n1_d = Patch::decompose(n1, Vec3(tan1));
+
+    Vec3 n_d = n0_d*(1-t) + n1_d*(t);
+    Vec3 tan = c0->E()->pData->pCurve->evalT(t);
+    return compose(n_d, tan);
+}
+
 Patch4::Patch4(Face_p pF):Patch(pF){
     _ps = new   Point[NN];
     _ns = new   Vec3[NN];
