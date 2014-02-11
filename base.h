@@ -27,8 +27,9 @@ class Canvas;
 class ShapeControl;
 class MainWindow;
 
-enum RenderSetting {DRAGMODE_ON, SHADING_ON, AMBIENT_ON, SHADOWS_ON, NORMALS_ON, WIREFRAME_ON, PREVIEW_ON};
-enum RenderMode {DEFAULT_MODE = 0, DRAG_MODE = 1, SM_MODE = 2, DARK_MODE = 4, BRIGHT_MODE = 8, LABELDEPTH_MODE = 16};
+enum RenderSetting  {DRAG_ON, SHADING_ON, AMBIENT_ON, SHADOWS_ON, NORMALS_ON, WIREFRAME_ON, PREVIEW_ON};
+
+enum PreviewSetting {DEFAULT_MODE = 0, SM_MODE = 1, DARK_MODE = 2, BRIGHT_MODE = 4, LABELDEPTH_MODE = 8};
 
 
 typedef void* Void_p;
@@ -118,11 +119,6 @@ public:
     virtual ~Selectable();
 
     virtual void render(int mode = 0);
-
-//    void renderNamed(bool ispush = false) const;
-//    void renderUnnamed() const{
-//        render();
-//    }
 
     inline bool isDraggable() const{return _isDraggable;}
     inline void makeDraggable(){_isDraggable = true;}

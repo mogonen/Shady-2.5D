@@ -150,7 +150,7 @@ private:
     QMenu           *toolsMenu;
     QMenu           *selectMenu;
     QMenu           *constructMenu;
-    QMenu           *renderMenu;
+    QMenu           *previewMenu;
     QMenu           *windowMenu;
     QMenu           *helpMenu;
 
@@ -181,7 +181,7 @@ private:
 
     //Tools Menu Actions
     QAction *       dragAct;
-    QAction *       renderAct;
+    QAction *       previewAct;
 
     QAction *       extrudeEdgeAct;
     QAction *       extrudeFaceAct;

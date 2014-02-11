@@ -88,7 +88,7 @@ public:
         _pShape = 0;
     }
 
-    void render() const;
+    void render();
 
     inline bool isActive() const {return _pShape;}
 

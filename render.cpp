@@ -28,7 +28,7 @@ bool isInRenderMode(){
 }
 
 bool MeshShape::IsSelectMode(SELECTION_e eMode){
-    return GetSelectMode() == eMode && !Session::isRender(DRAGMODE_ON);
+    return GetSelectMode() == eMode && !Session::isRender(DRAG_ON);
 }
 
 //void Selectable::renderNamed(bool ispush) const{
@@ -38,7 +38,7 @@ bool MeshShape::IsSelectMode(SELECTION_e eMode){
 
 void Selectable::render(int mode)
 {
-    if(mode&DRAG_MODE)
+    if (!isInRenderMode())
         glLoadName(name());
 }
 
@@ -81,7 +81,7 @@ void SampleShape::render(int mode) {
 }
 
 void Light::render(int mode) {
-    Draggable::render(mode);
+    Selectable::render(mode);
 
     glColor3f(1.0, 1.0, 0);
     glPointSize(8);
@@ -92,7 +92,7 @@ void Light::render(int mode) {
 
 void ControlPoint::render(int mode) {
 
-    Draggable::render(mode);
+    Selectable::render(mode);
 
     if (isChild() && !isActive())
         return;
@@ -118,10 +118,10 @@ void ControlPoint::render(int mode) {
 
 void Shape::render(int mode)
 {
-    if(Session::isRender(DRAGMODE_ON) && this == theSHAPE)
+    if(Session::isRender(DRAG_ON) && this == theSHAPE)
        Session::get()->controller()->renderControls((Shape_p)this);
 
-    Draggable::render(mode);
+    Selectable::render(mode);
     ensureUpToDate();
 }
 
@@ -176,7 +176,6 @@ void ShapeControl::renderControls(Shape_p shape)
 
 void SpineShape::render(int mode){
 
-    Shape::render(mode);
     if(isInRenderMode()){
         glPointSize(5.0);
         glBegin(GL_POINTS);
@@ -209,9 +208,6 @@ void SpineShape::render(int mode){
 
 void MeshShape::render(int mode) {
 
-    Shape::render(mode);
-    //if(!(mode&SM_MODE||mode&BRIGHT_MODE||mode&DARK_MODE))
-
     if ( isInRenderMode() || (!isInRenderMode() && IsSelectMode(EDGE)) )
     {
         EdgeList edges = _control->edges();
@@ -221,9 +217,8 @@ void MeshShape::render(int mode) {
     }
 
     //too messy, fix it!
-    if (isInRenderMode() || ( !isInRenderMode() && (IsSelectMode(FACE)|| (mode&DRAG_MODE) )) )
+    if (isInRenderMode() || ( !isInRenderMode() && (IsSelectMode(FACE)|| Session::isRender(DRAG_ON) )) )
     {
-
         qreal r, g, b;
         diffuse.getRgbF(&r,&g,&b);
 
@@ -241,7 +236,7 @@ void MeshShape::render(Edge_p pEdge) const{
     if (this != theSHAPE)
         return;
     if (pEdge->pData->pCurve){
-        pEdge->pData->pCurve->render(DRAG_MODE);
+        pEdge->pData->pCurve->render();
         return;
     }
     //non selectable line representation
@@ -256,18 +251,17 @@ void MeshShape::render(Edge_p pEdge) const{
 }
 
 void MeshShape::render(Face_p pFace, int mode) const{
-    if (pFace->pData->pSurface){
-        if(mode&BRIGHT_MODE)
-            glColor3f(diffuse.redF()*2.0,diffuse.greenF()*2.0,diffuse.blueF()*2.0);
-        else
-            if(mode&DARK_MODE)
-                glColor3f(1-diffuse.redF(),1-diffuse.greenF(),1-diffuse.blueF());
-            else
-                glColor3f(diffuse.redF(),diffuse.greenF(),diffuse.blueF());
+    if (!pFace->pData->pSurface)
+        return;
 
-        pFace->pData->pSurface->render(mode);
-    return;
-    }
+    if(mode&BRIGHT_MODE)
+        glColor3f(diffuse.redF()*2.0,diffuse.greenF()*2.0,diffuse.blueF()*2.0);
+    else if (mode&DARK_MODE)
+        glColor3f(1-diffuse.redF(),1-diffuse.greenF(),1-diffuse.blueF());
+    else
+        glColor3f(diffuse.redF(),diffuse.greenF(),diffuse.blueF());
+
+    pFace->pData->pSurface->render(mode);
 }
 
 #ifdef FACIAL_SHAPE
@@ -308,7 +302,7 @@ void FacialShape::render() const{
 
 void Curve::render(int mode) {
 
-    Selectable::render(mode);
+    Selectable::render();
     glColor3f(1.0, 1.0, 1.0);
     selectionColor((Selectable_p)this);
     if (isTheSelected())
@@ -325,8 +319,8 @@ void Curve::render(int mode) {
 
 void Patch4::render(int mode){
 
-    if (!mode&DRAG_MODE )
-        Patch::render(mode);
+    if (!Session::isRender(DRAG_ON))
+      Selectable::render(mode);
 
       for(int j=0; j < Ni; j++){
         for(int i = 0; i< Ni; i++){
@@ -343,7 +337,7 @@ void Patch4::render(int mode){
             n[2] = _ns[ind(i+1, j+1)];
             n[3] = _ns[ind(i, j+1)];
 
-            if (isInSelection())
+            if (isInSelection() || !isInRenderMode())
             {
                 selectionColor((Selectable_p)this);
                 glBegin(GL_POLYGON);
@@ -353,8 +347,6 @@ void Patch4::render(int mode){
                 glEnd();
                 continue;
             }
-
-
 
             if (Session::isRender(WIREFRAME_ON)){
 
@@ -385,13 +377,6 @@ void Patch4::render(int mode){
 
             }
 
-            if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON) ){
-                glEnable(GL_LIGHTING);
-                Point light0_p = Session::get()->canvas()->lightPos(0);
-                GLfloat light0_pf[] = { light0_p.x, light0_p.y, 1.0, 0.0 };
-                glLightfv(GL_LIGHT0, GL_POSITION, light0_pf);
-            }else
-                glDisable(GL_LIGHTING);
 
 
             glBegin(GL_POLYGON);
@@ -416,7 +401,7 @@ void Patch4::render(int mode){
             }
             glEnd();
 
-            glDisable(GL_LIGHTING);
+
 
         }
     }
@@ -426,7 +411,6 @@ void Patch4::render(int mode){
 
 void EllipseShape::render(int mode) {
 
-    Shape::render(mode);
     FOR_ALL_J(_segV){
         FOR_ALL_I(_segU){
 
@@ -478,13 +462,6 @@ void EllipseShape::render(int mode) {
 
             }
 
-            if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON) ){
-                glEnable(GL_LIGHTING);
-                Point light0_p = Session::get()->canvas()->lightPos(0);
-                GLfloat light0_pf[] = { light0_p.x, light0_p.y, 1.0, 0.0 };
-                glLightfv(GL_LIGHT0, GL_POSITION, light0_pf);
-            }else
-               glDisable(GL_LIGHTING);
 
 
             glBegin(GL_POLYGON);
@@ -500,18 +477,17 @@ void EllipseShape::render(int mode) {
             }
             glEnd();
 
-            glDisable(GL_LIGHTING);
         }
     }
 }
 
-void TransformHandler::render() const{
+void TransformHandler::render(){
 
     if (!_pShape || _pShape!=theSHAPE)
         return;
 
-    _handles[0]->render(DRAG_MODE);
-    _handles[1]->render(DRAG_MODE);
+    _handles[0]->render();
+    _handles[1]->render();
     //_rotHandle->renderNamed();
 
     if (isInRenderMode()){
@@ -584,10 +560,10 @@ void ImageShape::InitializeTex()
 
 void ImageShape::render(int mode)
 {
-    Shape::render(mode);
+
     if(m_texUpdate!=NO_UPDATE)
         InitializeTex();
-    if(mode&DEFAULT_MODE||mode&DRAG_MODE&&!(mode&SM_MODE||mode&DARK_MODE||mode&BRIGHT_MODE||mode&LABELDEPTH_MODE))
+    if( mode < SM_MODE)
     {
         switch(m_curTexture)
         {

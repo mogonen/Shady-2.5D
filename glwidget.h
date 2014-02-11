@@ -105,10 +105,13 @@ protected:
     void                mouseMoveEvent(QMouseEvent *event);
     void                wheelEvent(QWheelEvent* e );
     void                setView();
+
 private:
 
     void                renderCanvas();
-    void                render(Shape*);
+    void                render(Shape*, int mode=0);
+    void                renderShapes(int mode=0);
+
     int                 selectGL(int, int);
     void                orthoView();
 

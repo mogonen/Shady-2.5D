@@ -100,7 +100,7 @@ void MainWindow::initTools()
     QToolBar *toolbar = addToolBar("main toolbar");
 
     toolbar->addAction(dragAct);
-    toolbar->addAction(renderAct);
+    toolbar->addAction(previewAct);
 
     toolbar->addSeparator();
 
@@ -258,19 +258,18 @@ void MainWindow::createActions()
     connect(dragAct, SIGNAL(triggered()), this, SLOT(flipDrag()));
 
 
-    renderAct = new QAction(tr("Render"), this);
-    renderAct->setShortcut(Qt::Key_F5);
-    connect(renderAct, SIGNAL(triggered()), this, SLOT(flipRender()));
+    previewAct = new QAction(tr("Preview"), this);
+    previewAct->setShortcut(Qt::Key_F5);
+    connect(previewAct, SIGNAL(triggered()), this, SLOT(flipRender()));
     //view Act
     shadingOnAct = new QAction(tr("&Shading On"), this);
     shadingOnAct->setShortcut('S');
     shadingOnAct->setCheckable(true);
     connect(shadingOnAct, SIGNAL(triggered()), this, SLOT(toggleShading()));
 
-    previewOnAct = new QAction(tr("RenderMode On"), this);
-    previewOnAct->setShortcut('R');
+    previewOnAct = new QAction(tr("Preview On"), this);
     previewOnAct->setCheckable(true);
-    connect(previewOnAct, SIGNAL(triggered()), this, SLOT(togglePreview()));
+   // connect(previewOnAct, SIGNAL(triggered()), this, SLOT(flipRender()));
 
     ambientOnAct = new QAction(tr("&Ambient On"), this);
     ambientOnAct->setShortcut('A');
@@ -314,8 +313,8 @@ void MainWindow::createActions()
     dragAct->setCheckable(true);
     dragAct->setChecked(true);
 
-    renderAct->setCheckable(true);
-    renderAct->setChecked(false);
+    previewAct->setCheckable(true);
+    previewAct->setChecked(false);
 
     extrudeEdgeAct->setCheckable(true);
     extrudeFaceAct->setCheckable(true);
@@ -436,7 +435,7 @@ void MainWindow::createMenus()
     GeoTool->addAction(insertSegmentAct);
     GeoTool->addAction(deleteFaceAct);
 
-    QMenu *RenderTool = toolsMenu->addMenu("Render Tools");
+    QMenu *RenderTool = toolsMenu->addMenu("Preview Tools");
     RenderTool->addAction("Refraction");
     RenderTool->addAction("Alpha");
     RenderTool->addAction("Shadow");
@@ -452,10 +451,10 @@ void MainWindow::createMenus()
     selectMenu->addAction("Clear Selection");
 
 
-    renderMenu = menuBar()->addMenu(tr("Render"));
-    renderMenu->addAction("Filter Size");
-    renderMenu->addAction("Toggle Point Light");
-    renderMenu->addAction("Enviroment Map");
+    previewMenu = menuBar()->addMenu(tr("Render"));
+    previewMenu->addAction("Filter Size");
+    previewMenu->addAction("Toggle Point Light");
+    previewMenu->addAction("Enviroment Map");
 
     windowMenu  = menuBar()->addMenu(tr("Window"));
 
@@ -537,21 +536,21 @@ void MainWindow::about()
 
 void MainWindow::flipDrag()
 {
-     glWidget->setRender(DRAGMODE_ON, dragAct->isChecked());
+     glWidget->setRender(DRAG_ON, dragAct->isChecked());
 }
 
 
 void MainWindow::flipRender()
 {
-//    shadingOnAct->setChecked(renderAct->isChecked());
-//    ambientOnAct->setChecked(renderAct->isChecked());
-    shadowOnAct->setChecked(renderAct->isChecked());
-    previewOnAct->setChecked(renderAct->isChecked());
+//    shadingOnAct->setChecked(previewAct->isChecked());
+//    ambientOnAct->setChecked(previewAct->isChecked());
+    shadowOnAct->setChecked(previewAct->isChecked());
+    previewOnAct->setChecked(previewAct->isChecked());
 //    emit(shadingOnAct->triggered());
 //    emit(ambientOnAct->triggered());
     emit(shadowOnAct->triggered());
     emit(previewOnAct->triggered());
-    glWidget->setRender(PREVIEW_ON, renderAct->isChecked());
+    glWidget->setRender(PREVIEW_ON, previewAct->isChecked());
 }
 
 
@@ -559,7 +558,7 @@ void MainWindow::flipRender()
 void MainWindow::unselectDrag()
 {
     dragAct->setChecked(false);
-    glWidget->setRender(DRAGMODE_ON, false);
+    glWidget->setRender(DRAG_ON, false);
 }
 
 void MainWindow::toggleNormals(){

@@ -70,7 +70,7 @@ GLWidget::GLWidget(Canvas * pCanvas, QWidget *parent)
     _translateY = 0;
     _translateZ = 0;
 
-    setRender(DRAGMODE_ON, true);
+    setRender(DRAG_ON, true);
 }
 
 void GLWidget::setRender(RenderSetting rs, bool set){
@@ -83,7 +83,7 @@ void GLWidget::setRender(RenderSetting rs, bool set){
 }
 
 void GLWidget::flipDragMode(){
-    //_renderFlags = _renderFlags | (_renderFlags^( 1 << (int)DRAGMODE_ON));
+    //_renderFlags = _renderFlags | (_renderFlags^( 1 << (int)DRAG_ON));
 }
 
 void GLWidget::initializeGL()
@@ -185,7 +185,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     {
         if (hit){
             Selectable_p pSel = select(hit, SelectBuff);
-            if (is(DRAGMODE_ON) && pSel->type() == Renderable::UI)
+            if (is(DRAG_ON) && pSel->type() == Renderable::UI)
             {
                 Session::get()->selectionMan()->startSelect(pSel, event->button() == Qt::LeftButton, event->modifiers() & Qt::ControlModifier);
             }
@@ -195,13 +195,13 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     {
         if (hit){
             Selectable_p pSel = select(hit, SelectBuff);
-            if (is(DRAGMODE_ON) && pSel->type() == Renderable::SHAPE){
+            if (is(DRAG_ON) && pSel->type() == Renderable::SHAPE){
                 Session::get()->activate((Shape_p)pSel);
             }
             Session::get()->selectionMan()->startSelect(pSel, event->button() == Qt::LeftButton, event->modifiers() & Qt::ControlModifier);
         }
 
-        if (_pActiveShape && !is(DRAGMODE_ON)){
+        if (_pActiveShape && !is(DRAG_ON)){
             if (event->buttons()&Qt::LeftButton)
                 _pActiveShape->sendClick(_lastWorldP, Selectable::DOWN);
             else if (event->buttons()& Qt::RightButton)
@@ -222,7 +222,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
         _lastWorldP = toWorld(_lastP.x(), _lastP.y());
 
         //send the click to the active shape
-        if (_pActiveShape && !is(DRAGMODE_ON)){
+        if (_pActiveShape && !is(DRAG_ON)){
             if (event->button() == Qt::LeftButton )
                _pActiveShape->sendClick(_lastWorldP, Selectable::UP);
             else if (event->button() == Qt::RightButton)
@@ -258,12 +258,12 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     {
         if(event->buttons() & Qt::LeftButton)
         {
-            if (is(DRAGMODE_ON))
+            if (is(DRAG_ON))
                 Session::get()->selectionMan()->dragTheSelected(p - _lastWorldP);
         }
         else
         {
-            if (is(DRAGMODE_ON))
+            if (is(DRAG_ON))
                 Session::get()->selectionMan()->dragTheSelected(p - _lastWorldP, 1);
         }
     }
