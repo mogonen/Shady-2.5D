@@ -60,13 +60,15 @@ public:
     void updateDepth();
     void clear();
 
-    int getNumShapes(){return _shapes.size();}
+    inline int getNumShapes() const {return _shapes.size();}
+    inline ShapeList shapes() const {_shapes;}
 
 	int saveTo(const char * fname);
 	int loadFrom(const char * fname);
 
     void setImagePlane(const string &filename);
     Point lightPos(int i)const {return _lights[i]->P();}
+    Light_p light(int i) const {return _lights[i];}
 
 };
 

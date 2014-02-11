@@ -64,8 +64,7 @@ GLWidget::GLWidget(Canvas * pCanvas, QWidget *parent)
     _scale = 1.0;
     _renderFlags = 0x00;
     _pCanvas = pCanvas;
-    _pGLSLShader_M = NULL;
-    _pGLSLShader_R = NULL;
+
     _translateX = 0;
     _translateY = 0;
     _translateZ = 0;
@@ -128,11 +127,11 @@ void GLWidget::initializeGL()
      glLoadIdentity();
      glTranslatef(0, 0, -2.0);
 
-     _pGLSLShader_R = new ShaderProgram();
-     _pGLSLShader_R->Initialize();
-     _pGLSLShader_M = new ShaderProgram(ShaderProgram::TYPE_MODEL);
-     _pGLSLShader_M->Initialize();
+
      m_CameraChanged = true;
+
+     //meeds a better way
+     Session::get()->renderer(1)->init();
 
 }
 
@@ -368,9 +367,4 @@ void GLWidget::loadCameraParameters()
     gluProject(0,0,0, MvMatrix,ProjMatrix,ViewPort,&m_ZeroX,&m_ZeroY,&m_ZeroZ);
 }
 
-void GLWidget::updateGLSLLight(float x, float y, float z)
-{
-    _pGLSLShader_R->bind();
-    _pGLSLShader_R->SetLightPos(QVector3D(x,y,z));
-    _pGLSLShader_R->release();
-}
+

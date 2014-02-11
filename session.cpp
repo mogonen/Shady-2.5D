@@ -3,6 +3,7 @@
 #include "shapecontrol.h"
 #include "canvas.h"
 #include "glwidget.h"
+#include "Renderer/ywrenderer.h"
 
 Session* Session::_pSession = 0;
 
@@ -20,6 +21,8 @@ void Session::init(MainWindow * pMW){
     _pSession->_pController     = new ShapeControl();
     _pSession->_pCanvas         = new Canvas();
     _pSession->_pGlWidget       = new GLWidget(_pSession->_pCanvas);
+
+    _pSession->_pRenderer[1]    = new YWRenderer(); //should be somewhere else
 }
 
 void Session::activate(Shape_p sp){

@@ -13,14 +13,15 @@
 #include "qsliderspinbox.h"
 #include "../glwidget.h"
 #include "shaderprogram.h"
+#include "ywrenderer.h"
 
 class RenderOptionsPenal : public QWidget
 {
     Q_OBJECT
 
 public:
-    RenderOptionsPenal(QWidget *parent = 0, GLWidget *program = NULL);
-    void SetGL(GLWidget *p){m_RenderWindow = p;}
+    RenderOptionsPenal(QWidget *parent = 0, YWRenderer *program = NULL);
+    void SetRenderer(YWRenderer *p){m_Renderer = p;}
     QPushButton *m_ButtonSetFolder;
     QPushButton *m_ButtonSetBG;
     QPushButton *m_ButtonSetLense;
@@ -116,7 +117,7 @@ private:
     void CopyPasteFile(QString NewDir, QFileInfo FileName);
 
     QLabel *m_MiniMap;
-    GLWidget *m_RenderWindow;
+    YWRenderer *m_Renderer;
 //    QPixmap applySobelFiltering(QPixmap pixmap);
 
     bool m_ShaderSaveCheck;

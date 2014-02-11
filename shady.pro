@@ -28,7 +28,8 @@ HEADERS += glwidget.h \
     meshshape/cmesh.h \
     Renderer/qsliderspinbox.h \
     Renderer/renderoptionspenal.h \
-    Renderer/imageshape.h
+    Renderer/imageshape.h \
+    Renderer/ywrenderer.h
 
 SOURCES += glwidget.cpp \
     main.cpp \
@@ -62,7 +63,8 @@ SOURCES += glwidget.cpp \
     session.cpp \
     Renderer/qsliderspinbox.cpp \
     Renderer/renderoptionspenal.cpp \
-    Renderer/imageshape.cpp
+    Renderer/imageshape.cpp \
+    Renderer/ywrenderer.cpp
 
 QT           += opengl widgets
 

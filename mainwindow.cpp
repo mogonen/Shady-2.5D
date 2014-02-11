@@ -125,7 +125,7 @@ void MainWindow::initTools()
     rendererDockWidget = new QDockWidget(QString("Render"), this);
     attrDockWidget = new QDockWidget(QString("Attributes"), this);
 
-    rendererDockWidget->setWidget(new RenderOptionsPenal(this, glWidget));
+    rendererDockWidget->setWidget(new RenderOptionsPenal(this, (YWRenderer*)Session::get()->renderer(1)));
 
 
 //<<<<<<< HEAD
@@ -644,5 +644,5 @@ void MainWindow::insertEllipse(){
 }
 
 void updateGLSLLight(double x, double y, double z){
-    MainWindow::glWidget->updateGLSLLight(x,y,z);
+    ((YWRenderer*)Session::get()->renderer(1))->updateGLSLLight(x,y,z);
 }

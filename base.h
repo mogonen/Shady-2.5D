@@ -28,7 +28,7 @@ class ShapeControl;
 class MainWindow;
 
 enum RenderSetting {DRAGMODE_ON, SHADING_ON, AMBIENT_ON, SHADOWS_ON, NORMALS_ON, WIREFRAME_ON, PREVIEW_ON};
-enum RenderMode {DEFAULT_MODE = 0, DRAG_MODE = 1, SM_MODE = 2, DARK_MODE = 4, BRIGHT_MODE = 8, LABELDEPTH_MODE = 16};
+
 
 
 typedef void* Void_p;
@@ -228,6 +228,41 @@ public:
 };
 
 
+typedef class Renderer
+{
+protected:
+    unsigned long       _renderFlags;
+
+public:
+
+    Renderer(Canvas* pCanvas)
+    {
+        _renderFlags = 0;
+    }
+
+    //inline Canvas*     canvas() const {return _pCanvas;}
+
+    virtual void        render(int mode = 0) = 0;
+    virtual void        init()=0;
+    void                update();
+
+
+    bool                is(int rs) const {return _renderFlags&(1<<rs);}
+    void                setRender(int rs, bool set)
+    {
+        if (set)
+            _renderFlags |= (1 << (int)rs);
+        else
+            _renderFlags &=~(1 << (int)rs);
+
+        update();
+    }
+
+}* Renderer_p;
+
+#define MAX_RENDERER 4
+
+
 class Session{
 
     GLWidget*           _pGlWidget;
@@ -236,7 +271,10 @@ class Session{
     ShapeControl*       _pController;
     MainWindow*         _pMainWindow;
 
+    Renderer_p          _pRenderer[MAX_RENDERER];
+
     static Session*     _pSession;
+
 
 public:
 
@@ -245,6 +283,7 @@ public:
     SelectionManager*   selectionMan()  const {return _pSelectionMan;}
     ShapeControl*       controller()    const {return _pController;}
     MainWindow*         mainWindow()    const {return _pMainWindow;}
+    Renderer_p          renderer(int id) const {return _pRenderer[id];}
 
     Shape*              theShape() const;
     void                activate(Shape*);
@@ -264,12 +303,6 @@ public:
     static bool         isRender(RenderSetting rs);
 };
 
-class Renderer
-{
-
-public:
-    virtual void render(RenderMode_t mode = 0) = 0;
-};
 
 struct ShapeVertex;
 bool isInRenderMode();

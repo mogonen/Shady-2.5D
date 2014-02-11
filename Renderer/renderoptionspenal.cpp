@@ -6,11 +6,11 @@
 #include <QtCore>
 //#include <QSpinBox>
 
-RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
+RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, YWRenderer *program) :
     QWidget(parent)
 {
 
-    m_RenderWindow = program;
+    m_Renderer = program;
 
     setWindowTitle("Shape m_ap Control Panel");
 
@@ -225,14 +225,14 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
 
     setLayout(mainLayout);
 
-//    m_RenderWindow->show();
-//    connect(this,SIGNAL(SetBG(QPixmap)), m_RenderWindow, SLOT(SetBGTexture(QPixmap)));
-//    connect(this,SIGNAL(SetLense(QPixmap)), m_RenderWindow, SLOT(SetLenseTexture(QPixmap)));
-//    connect(this,SIGNAL(SetEnv(QPixmap)), m_RenderWindow, SLOT(SetEnvTexture(QPixmap)));
-//    connect(this,SIGNAL(SetDIDark(QPixmap)), m_RenderWindow, SLOT(SetDIDarkTexture(QPixmap)));
-//    connect(this,SIGNAL(SetDIBright(QPixmap)), m_RenderWindow, SLOT(SetDIBrightTexture(QPixmap)));
-//    connect(this,SIGNAL(SetFG(QPixmap)), m_RenderWindow, SLOT(SetFGTexture(QPixmap)));
-//    connect(this,SIGNAL(SetFG(QPixmap)), m_RenderWindow, SLOT(SetFGTexture(QPixmap)));
+//    m_Renderer->show();
+//    connect(this,SIGNAL(SetBG(QPixmap)), m_Renderer, SLOT(SetBGTexture(QPixmap)));
+//    connect(this,SIGNAL(SetLense(QPixmap)), m_Renderer, SLOT(SetLenseTexture(QPixmap)));
+//    connect(this,SIGNAL(SetEnv(QPixmap)), m_Renderer, SLOT(SetEnvTexture(QPixmap)));
+//    connect(this,SIGNAL(SetDIDark(QPixmap)), m_Renderer, SLOT(SetDIDarkTexture(QPixmap)));
+//    connect(this,SIGNAL(SetDIBright(QPixmap)), m_Renderer, SLOT(SetDIBrightTexture(QPixmap)));
+//    connect(this,SIGNAL(SetFG(QPixmap)), m_Renderer, SLOT(SetFGTexture(QPixmap)));
+//    connect(this,SIGNAL(SetFG(QPixmap)), m_Renderer, SLOT(SetFGTexture(QPixmap)));
 
 
     //set initial value of slider controllers
@@ -250,18 +250,18 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
 //    //adjust positions
 //    m_ove(100,50);
 //    adjustSize();
-//    m_RenderWindow->setWindowTitle("Rendered Scene");
-//    m_RenderWindow->move(pos().x()+size().width()+15,pos().y());
+//    m_Renderer->setWindowTitle("Rendered Scene");
+//    m_Renderer->move(pos().x()+size().width()+15,pos().y());
 //    m_MiniMap->setWindowTitle("Image Preview");
 //    m_MiniMap->show();
 //    m_MiniMap->move(pos().x(),pos().y()+size().height()+40);
 //    m_MiniMap->setPixmap(QPixmap(size().width(),sizeHint().width()));
 //    m_MiniMap->adjustSize();
-//    m_RenderWindow->sizeHint();
-//    m_RenderWindow->resize(m_MiniMap->height()+size().height()+40,mMiniMap->height()+size().height()+40);
+//    m_Renderer->sizeHint();
+//    m_Renderer->resize(m_MiniMap->height()+size().height()+40,mMiniMap->height()+size().height()+40);
 //    QSizePolicy pol;
 //    pol.setHeightForWidth(true);
-//    m_RenderWindow->setSizePolicy(pol);
+//    m_Renderer->setSizePolicy(pol);
 //    m_MiniMap->setScaledContents(true);
 }
 
@@ -301,14 +301,14 @@ void RenderOptionsPenal::GetBG()
     QImage LoadedImage;
     if(LoadedImage.load(fileName))
     {
-        ShaderProgram *ShaderP = m_RenderWindow->getRShader();
-        QImage GLImage = m_RenderWindow->convertToGLFormat(LoadedImage);
+        ShaderProgram *ShaderP = m_Renderer->getRShader();
+        QImage GLImage = Session::get()->glWidget()->convertToGLFormat(LoadedImage);
         if(ShaderP&&ShaderP->isInitialized())
         {
             ShaderP->bind();
             ShaderP->LoadBGImage(GLImage.bits(),GLImage.width(),GLImage.height());
         }
-        m_RenderWindow->updateGL();
+        m_Renderer->update();
     }
 }
 
@@ -400,7 +400,7 @@ void RenderOptionsPenal::SaveProject()
                 ts<<"ShowPoint="<<(int)m_ShowPoint->isChecked()<<"\n";
                 ts<<"ShowMirror="<<(int)m_ShowMirror->isChecked()<<"\n";
 
-//                ts<<"LightPos=["<<m_RenderWindow->m_MousePos.x()<<","<<m_RenderWindow->m_MousePos.y()<<","<<m_RenderWindow->m_MousePos.z()<<"]\n";
+//                ts<<"LightPos=["<<m_Renderer->m_MousePos.x()<<","<<m_Renderer->m_MousePos.y()<<","<<m_Renderer->m_MousePos.z()<<"]\n";
             }
             else
                 QMessageBox::critical(this, tr("Save File"),
@@ -442,7 +442,7 @@ void RenderOptionsPenal::SaveProject()
                     ts<<"SMQuality="<<m_SMQualitySpinbox->GetDoubleValue()<<"\n";
                     ts<<"Translucency="<<m_LODSliderSpinbox->GetDoubleValue()<<"\n";
                     ts<<"Cartoon="<<m_CartoonShaSpinbox->GetDoubleValue()<<"\n";
-//                    ts<<"LightPos=["<<m_RenderWindow->m_MousePos.x()<<","<<m_RenderWindow->m_MousePos.y()<<","<<m_RenderWindow->m_MousePos.z()<<"]\n";
+//                    ts<<"LightPos=["<<m_Renderer->m_MousePos.x()<<","<<m_Renderer->m_MousePos.y()<<","<<m_Renderer->m_MousePos.z()<<"]\n";
 
                     ts<<"ShowLight="<<(int)m_ShowLight->isChecked()<<"\n";
                     ts<<"ShowCos="<<(int)m_ShowCos->isChecked()<<"\n";
@@ -628,7 +628,7 @@ void RenderOptionsPenal::LoadProject()
 //                    {
 //                        if(temp.size()>=4)
 //                        {
-//                            //                            m_RenderWindow->SetMousePos(temp.at(1).toDouble(), temp.at(2).toDouble(),temp.at(3).toDouble());
+//                            //                            m_Renderer->SetMousePos(temp.at(1).toDouble(), temp.at(2).toDouble(),temp.at(3).toDouble());
 //                        }
 //                        else
 //                            QMessageBox::warning( this, "Light", "Light Information m_ust be in [x,y,z] format" );
@@ -694,7 +694,7 @@ void RenderOptionsPenal::SaveImage()
 
 //    if(!fileName.isNull())
 //    {
-//        QImage image = (m_RenderWindow->grabFrameBuffer());
+//        QImage image = (m_Renderer->grabFrameBuffer());
 //        if( !image.save(fileName))
 //        {
 //           QMessageBox::warning( this, "Save Image", "Error saving image." );
@@ -765,168 +765,168 @@ QPixmap RenderOptionsPenal::GetPixmap(int index, QFileInfo & img_name)
 void RenderOptionsPenal::closeEvent( QCloseEvent * event)
 {
 //    m_MiniMap->close();
-//    m_RenderWindow->close();
+//    m_Renderer->close();
 }
 
 
 void RenderOptionsPenal::SetDepthValue(double dep)
 {
-    ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+    ShaderProgram *ShaderP = m_Renderer->getRShader();
     if(ShaderP&&ShaderP->isInitialized())
     {
         ShaderP->bind();
         ShaderP->SetDepthValue(dep);
     }
-    m_RenderWindow->updateGL();
+    m_Renderer->update();
 }
 void RenderOptionsPenal::SetAlphaValue(double alp)
 {
-    ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+    ShaderProgram *ShaderP = m_Renderer->getRShader();
     if(ShaderP&&ShaderP->isInitialized())
     {
         ShaderP->bind();
         ShaderP->SetAlphaValue(alp);
     }
-    m_RenderWindow->updateGL();
+    m_Renderer->update();
 }
 
 void RenderOptionsPenal::SetFilterValue(double filter)
 {
-    ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+    ShaderProgram *ShaderP = m_Renderer->getRShader();
     if(ShaderP&&ShaderP->isInitialized())
     {
         ShaderP->bind();
         ShaderP->SetFilterValue(filter);
     }
-    m_RenderWindow->updateGL();
+    m_Renderer->update();
 }
 void RenderOptionsPenal::SetAmbValue(double amb)
 {
-    ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+    ShaderProgram *ShaderP = m_Renderer->getRShader();
     if(ShaderP&&ShaderP->isInitialized())
     {
         ShaderP->bind();
         ShaderP->SetAmbValue(amb);
     }
-    m_RenderWindow->updateGL();
+    m_Renderer->update();
 }
 
 void RenderOptionsPenal::SetLevelOfDetail(double LOD)
 {
-    ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+    ShaderProgram *ShaderP = m_Renderer->getRShader();
     if(ShaderP&&ShaderP->isInitialized())
     {
         ShaderP->bind();
         ShaderP->SetLevelOfDetail(LOD);
     }
-    m_RenderWindow->updateGL();
+    m_Renderer->update();
 }
 
 void RenderOptionsPenal::SetSMQuality(double Quality)
 {
-    ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+    ShaderProgram *ShaderP = m_Renderer->getRShader();
     if(ShaderP&&ShaderP->isInitialized())
     {
         ShaderP->bind();
         ShaderP->SetSMQuality(Quality);
     }
-    m_RenderWindow->updateGL();
+    m_Renderer->update();
 }
 
 void RenderOptionsPenal::SetCartoonSha(double Strength)
 {
-    ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+    ShaderProgram *ShaderP = m_Renderer->getRShader();
     if(ShaderP&&ShaderP->isInitialized())
     {
         ShaderP->bind();
         ShaderP->SetCartoonSha(Strength);
     }
-    m_RenderWindow->updateGL();
+    m_Renderer->update();
 }
 
 void RenderOptionsPenal::SetSurfDisplacement(double surf_disp)
 {
-    ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+    ShaderProgram *ShaderP = m_Renderer->getRShader();
     if(ShaderP&&ShaderP->isInitialized())
     {
         ShaderP->bind();
         ShaderP->SetSurfDisp(surf_disp);
     }
-    m_RenderWindow->updateGL();
+    m_Renderer->update();
 
 }
 
 
 void RenderOptionsPenal::ToggleCos(bool info)
 {
-    ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+    ShaderProgram *ShaderP = m_Renderer->getRShader();
     if(ShaderP&&ShaderP->isInitialized())
     {
         ShaderP->bind();
         ShaderP->ToggleCos(info);
     }
-    m_RenderWindow->updateGL();
+    m_Renderer->update();
 }
 
 void RenderOptionsPenal::ToggleAmb(bool info)
 {
-    ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+    ShaderProgram *ShaderP = m_Renderer->getRShader();
     if(ShaderP&&ShaderP->isInitialized())
     {
         ShaderP->bind();
         ShaderP->ToggleAmb(info);
     }
-    m_RenderWindow->updateGL();
+    m_Renderer->update();
 }
 
 void RenderOptionsPenal::ToggleSha(bool info)
 {
-    ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+    ShaderProgram *ShaderP = m_Renderer->getRShader();
     if(ShaderP&&ShaderP->isInitialized())
     {
         ShaderP->bind();
         ShaderP->ToggleSha(info);
     }
-    m_RenderWindow->updateGL();
+    m_Renderer->update();
 
 }
 
 void RenderOptionsPenal::ToggleMirror(bool info)
 {
-    ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+    ShaderProgram *ShaderP = m_Renderer->getRShader();
     if(ShaderP&&ShaderP->isInitialized())
     {
         ShaderP->bind();
         ShaderP->ToggleMirror(info);
     }
-    m_RenderWindow->updateGL();
+    m_Renderer->update();
 
 }
 
 void RenderOptionsPenal::TogglePoint(bool info)
 {
-    ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+    ShaderProgram *ShaderP = m_Renderer->getRShader();
     if(ShaderP&&ShaderP->isInitialized())
     {
         ShaderP->bind();
         ShaderP->TogglePoint(info);
     }
-    m_RenderWindow->updateGL();
+    m_Renderer->update();
 }
 
 void RenderOptionsPenal::SetCurTex(int index)
 {
-    ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+    ShaderProgram *ShaderP = m_Renderer->getRShader();
     if(ShaderP&&ShaderP->isInitialized())
     {
         ShaderP->bind();
         ShaderP->SetCurTex(index);
     }
-    m_RenderWindow->updateGL();
+    m_Renderer->update();
 }
 
 void RenderOptionsPenal::ReloadShader()
 {
-    m_RenderWindow->reloadShader();
-    m_RenderWindow->updateGL();
+    m_Renderer->reloadShader();
+    m_Renderer->update();
 }

@@ -38,7 +38,7 @@ bool MeshShape::IsSelectMode(SELECTION_e eMode){
 
 void Selectable::render(int mode)
 {
-    if(mode&DRAG_MODE)
+    if(!isInRenderMode())
         glLoadName(name());
 }
 
@@ -81,7 +81,7 @@ void SampleShape::render(int mode) {
 }
 
 void Light::render(int mode) {
-    Draggable::render(mode);
+    Selectable::render(mode);
 
     glColor3f(1.0, 1.0, 0);
     glPointSize(8);
@@ -92,7 +92,7 @@ void Light::render(int mode) {
 
 void ControlPoint::render(int mode) {
 
-    Draggable::render(mode);
+    Selectable::render(mode);
 
     if (isChild() && !isActive())
         return;
@@ -121,7 +121,7 @@ void Shape::render(int mode)
     if(Session::isRender(DRAGMODE_ON) && this == theSHAPE)
        Session::get()->controller()->renderControls((Shape_p)this);
 
-    Draggable::render(mode);
+    Selectable::render(mode);
     ensureUpToDate();
 }
 
@@ -221,7 +221,7 @@ void MeshShape::render(int mode) {
     }
 
     //too messy, fix it!
-    if (isInRenderMode() || ( !isInRenderMode() && (IsSelectMode(FACE)|| (mode&DRAG_MODE) )) )
+    if (isInRenderMode() || ( !isInRenderMode() && (IsSelectMode(FACE))) )
     {
 
         qreal r, g, b;
@@ -241,7 +241,7 @@ void MeshShape::render(Edge_p pEdge) const{
     if (this != theSHAPE)
         return;
     if (pEdge->pData->pCurve){
-        pEdge->pData->pCurve->render(DRAG_MODE);
+        pEdge->pData->pCurve->render();
         return;
     }
     //non selectable line representation
@@ -257,54 +257,20 @@ void MeshShape::render(Edge_p pEdge) const{
 
 void MeshShape::render(Face_p pFace, int mode) const{
     if (pFace->pData->pSurface){
-        if(mode&BRIGHT_MODE)
+        /*if(mode&BRIGHT_MODE)
             glColor3f(diffuse.redF()*2.0,diffuse.greenF()*2.0,diffuse.blueF()*2.0);
         else
             if(mode&DARK_MODE)
                 glColor3f(1-diffuse.redF(),1-diffuse.greenF(),1-diffuse.blueF());
             else
                 glColor3f(diffuse.redF(),diffuse.greenF(),diffuse.blueF());
-
+*/
         pFace->pData->pSurface->render(mode);
     return;
     }
 }
 
-#ifdef FACIAL_SHAPE
-void FacialShape::initBG(){
-    QImage img_data = QGLWidget::convertToGLFormat(QImage(QString::fromStdString(m_imgName)));
-    glGenTextures(1, &tt);
-    glBindTexture(GL_TEXTURE_2D, tt);
-    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA,
-                  0, 0,
-                  0, GL_RGBA, GL_UNSIGNED_BYTE, NULL );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-}
-void FacialShape::render() const{
-    MeshShape::render();
-//    if(texture[0])
-//    {
-//        glEnable(GL_TEXTURE_2D);
-//        glBegin(GL_QUADS);
-//        glColor4f(1.0, 1.0, 1.0, 1.0);
-//        glTexCoord2d(0.0,0.0);
-//        glVertex3f(-1.0,-1.0,0);
-//        glNormal3f(0.0,0.0,1.0);
-//        glTexCoord2d(0.0,1.0);
-//        glVertex3f(-1.0,1.0,0);
-//        glNormal3f(0.0,0.0,1.0);
-//        glTexCoord2d(1.0,1.0);
-//        glVertex3f(1.0,1.0,0);
-//        glNormal3f(0.0,0.0,1.0);
-//        glTexCoord2d(1.0,0.0);
-//        glVertex3f(1.0,-1.0,0);
-//        glNormal3f(0.0,0.0,1.0);
-//        glEnd();
-//        glDisable(GL_TEXTURE_2D);
-//    }
-}
-#endif
+
 
 void Curve::render(int mode) {
 
@@ -325,8 +291,8 @@ void Curve::render(int mode) {
 
 void Patch4::render(int mode){
 
-    if (!mode&DRAG_MODE )
-        Patch::render(mode);
+
+     Selectable::render(mode);
 
       for(int j=0; j < Ni; j++){
         for(int i = 0; i< Ni; i++){
@@ -396,24 +362,18 @@ void Patch4::render(int mode){
 
             glBegin(GL_POLYGON);
 
-            if(mode&DARK_MODE||mode&BRIGHT_MODE)
-            {
-                for(int k=0; k<4; k++){
-                   glVertex3f(p[k].x, p[k].y, 0);
-                }
-            }
-            else{
-                for(int k=0; k<4; k++){
-                    if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON))
-                        glNormal3f(n[k].x, n[k].y, n[k].z );
-                    else
-    //                    glColor3f((n[k].x+1)/2, (n[k].y+1)/2, n[k].z );
-                        glColor3f((n[k].x+1)/2, (n[k].y+1)/2, 1.0);
 
-                   glVertex3f(p[k].x, p[k].y, 0);
-                   glTexCoord2d((p[k].x+1)/2, (p[k].y+1)/2);
-                }
+            for(int k=0; k<4; k++){
+                if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON))
+                    glNormal3f(n[k].x, n[k].y, n[k].z );
+                else
+                    //                    glColor3f((n[k].x+1)/2, (n[k].y+1)/2, n[k].z );
+                    glColor3f((n[k].x+1)/2, (n[k].y+1)/2, 1.0);
+
+                glVertex3f(p[k].x, p[k].y, 0);
+                glTexCoord2d((p[k].x+1)/2, (p[k].y+1)/2);
             }
+
             glEnd();
 
             glDisable(GL_LIGHTING);
@@ -510,8 +470,8 @@ void TransformHandler::render() const{
     if (!_pShape || _pShape!=theSHAPE)
         return;
 
-    _handles[0]->render(DRAG_MODE);
-    _handles[1]->render(DRAG_MODE);
+    _handles[0]->render();
+    _handles[1]->render();
     //_rotHandle->renderNamed();
 
     if (isInRenderMode()){
@@ -525,201 +485,8 @@ void TransformHandler::render() const{
     }
 }
 
-
-void ImageShape::InitializeTex()
+void Renderer::update()
 {
-    QImage loadedImage;
-    if(m_texUpdate&UPDATE_SM)
-    {
-        if(glIsTexture(m_texSM))
-            Session::get()->glWidget()->deleteTexture(m_texSM);
-        if(m_SMFile.isEmpty()||!loadedImage.load(m_SMFile))
-        {
-            loadedImage = QImage(1,1,QImage::Format_ARGB32);
-            loadedImage.setPixel(0,0,qRgba(0.0,0.0,255.0,255.0));
-            _shaderParam.m_averageNormal = QVector2D(0.0,0.0);
-        }
-        else
-        {
-            int w = loadedImage.width();
-            int h = loadedImage.height();
-            if(w>h)
-                m_height = m_width*h/w;
-            else
-                m_width = m_height*w/h;
-            m_SMimg = loadedImage;
-            calAverageNormal();
-        }
-        m_texSM = Session::get()->glWidget()->bindTexture(loadedImage, GL_TEXTURE_2D);
-        if(GetPenal())
-            GetPenal()->SetNewSize(m_width,m_height);
-    }
-
-    if(m_texUpdate&UPDATE_DARK)
-    {
-        if(glIsTexture(m_texDark))
-            Session::get()->glWidget()->deleteTexture(m_texDark);
-        if(m_DarkFile.isEmpty()||!loadedImage.load(m_DarkFile))
-        {
-            loadedImage = QImage(1,1,QImage::Format_ARGB32);
-            loadedImage.setPixel(0,0,qRgba(0.0,0.0,0.0,255.0));
-        }
-        m_texDark = Session::get()->glWidget()->bindTexture(loadedImage, GL_TEXTURE_2D);
-    }
-
-    if(m_texUpdate&UPDATE_BRIGHT)
-    {
-        if(glIsTexture(m_texBright))
-            Session::get()->glWidget()->deleteTexture(m_texBright);
-        if(m_BrightFile.isEmpty()||!loadedImage.load(m_BrightFile))
-        {
-            loadedImage = QImage(1,1,QImage::Format_ARGB32);
-            loadedImage.setPixel(0,0,qRgba(255.0,255.0,255.0,255.0));
-        }
-        m_texBright = Session::get()->glWidget()->bindTexture(loadedImage, GL_TEXTURE_2D);
-    }
-    m_texUpdate = NO_UPDATE;
+    Session::get()->glWidget()->updateGL();
 }
 
-
-void ImageShape::render(int mode)
-{
-    Shape::render(mode);
-    if(m_texUpdate!=NO_UPDATE)
-        InitializeTex();
-    if(mode&DEFAULT_MODE||mode&DRAG_MODE&&!(mode&SM_MODE||mode&DARK_MODE||mode&BRIGHT_MODE||mode&LABELDEPTH_MODE))
-    {
-        switch(m_curTexture)
-        {
-        case 0:
-            glBindTexture(GL_TEXTURE_2D, m_texSM);
-            break;
-        case 1:
-            glBindTexture(GL_TEXTURE_2D, m_texDark);
-            break;
-        case 2:
-            glBindTexture(GL_TEXTURE_2D, m_texBright);
-            break;
-        case 3:
-            glBindTexture(GL_TEXTURE_2D, m_texSM);
-            mode = mode|LABELDEPTH_MODE;
-            break;
-        }
-    }
-    else
-        if(mode&SM_MODE||mode&LABELDEPTH_MODE)
-            glBindTexture(GL_TEXTURE_2D, m_texSM);
-        else if(mode&DARK_MODE)
-            glBindTexture(GL_TEXTURE_2D, m_texDark);
-        else if(mode&BRIGHT_MODE)
-            glBindTexture(GL_TEXTURE_2D, m_texBright);
-
-
-    Session::get()->glWidget()->getMShader()->bind();
-    Session::get()->glWidget()->getMShader()->setUniformValue("alpha_th", (float)m_alpha_th);
-    if(mode&LABELDEPTH_MODE)
-        Session::get()->glWidget()->getMShader()->setUniformValue("isLabelDepth", (float)1.0);
-    else
-        Session::get()->glWidget()->getMShader()->setUniformValue("isLabelDepth", (float)0.0);
-//    Session::get()->glWidget()->getMShader()->setUniformValue("label_depth", (float)m_alpha_th);
-
-    int total_num = Session::get()->canvas()->getNumShapes();
-    qDebug()<<"normal"<<_shaderParam.m_averageNormal;
-//    glDepthMask(GL_FALSE);
-    double delta_LB2RT = -(_shaderParam.m_averageNormal.x()*m_width+_shaderParam.m_averageNormal.y()*m_height)*m_stretch;
-    double delta_LT2BR = -(_shaderParam.m_averageNormal.x()*m_width-_shaderParam.m_averageNormal.y()*m_height)*m_stretch;
-    double center_depth = this->m_assignedDepth;//(float)(_shaderParam.m_layerLabel+1)/(total_num+1);
-
-    qDebug()<<"_layerLabel"<<(int)_shaderParam.m_layerLabel;
-    qDebug()<<"total_num"<<(int)total_num;
-    qDebug()<<"center_depth"<<center_depth;
-    qDebug()<<"delta_LB2RT"<<delta_LB2RT;
-    qDebug()<<"delta_LT2BR"<<delta_LT2BR;
-
-
-//    if(_shaderParam.m_averageNormal.z()<0)
-//    {
-//        delta_LB2RT =-delta_LB2RT;
-//        delta_LT2BR =-delta_LT2BR;
-//    }
-
-
-    //1.1 is for numerical issue
-
-    float blf = (center_depth-delta_LB2RT);
-    blf = CapValue(blf,0,1);
-    float tlf = (center_depth-delta_LT2BR);
-    tlf = CapValue(tlf,0,1);
-    float trf = (center_depth+delta_LB2RT);
-    trf = CapValue(trf,0,1);
-    float brf = (center_depth+delta_LT2BR);
-    brf = CapValue(brf,0,1);
-
-    glBegin(GL_QUADS);
-    glColor4f(center_depth,blf,((float)_shaderParam.m_layerLabel+1.01)/255.0,1.0);
-    glTexCoord2d(0.0,0.0);
-    glVertex3f(-m_width,-m_height,blf);
-    QVector3D bl(-m_width,-m_height,blf);
-//    glVertex3f(-m_width,-m_height,0.5);
-
-    glColor4f(center_depth,tlf,((float)_shaderParam.m_layerLabel+1.01)/255.0,1.0);
-    glTexCoord2d(0.0,1.0);
-    glVertex3f(-m_width,m_height,tlf);
-    QVector3D tl(-m_width,m_height,tlf);
-//    glVertex3f(-m_width,m_height,0.5);
-
-    glColor4f(center_depth,trf,((float)_shaderParam.m_layerLabel+1.01)/255.0,1.0);
-    glTexCoord2d(1.0,1.0);
-    glVertex3f(m_width,m_height,trf);
-    QVector3D tr(m_width,m_height,trf);
-
-//    glVertex3f(m_width,m_height,0.5);
-
-    glColor4f(center_depth,brf,((float)_shaderParam.m_layerLabel+1.01)/255.0,1.0);
-    glTexCoord2d(1.0,0.0);
-    glVertex3f(m_width,-m_height,brf);
-    QVector3D br(m_width,-m_height,brf);
-    glEnd();
-
-    QVector3D n1 = QVector3D::crossProduct(br-bl,tl-bl);
-//    QVector3D n2 = QVector3D::crossProduct(tr-br,tr-tl);
-//    if(n1.z()>0)
-//        _shaderParam.m_trueNormal = n1.normalized();
-//    else
-//        _shaderParam.m_trueNormal = -n1.normalized();
-
-    qDebug()<<"bl"<<blf<<"tl"<<tlf<<"tr"<<trf<<"br"<<brf;
-    qDebug()<<"bl"<<bl<<"tl"<<tl<<"tr"<<tr<<"br"<<br;
-
-    //    qDebug()<<"n1"<<n1;
-//    qDebug()<<"n2"<<n2;
-
-//    glVertex3f(m_width,-m_height,0.5);
-
-//    glDepthMask(GL_TRUE);
-    Session::get()->glWidget()->getMShader()->release();
-    glDisable(GL_TEXTURE_2D);
-    _shaderParam.m_trueNormal = QVector3D(n1.x(),n1.y(), n1.z()).normalized();
-    _shaderParam.m_centerDepth = QVector3D(m_width+P().x,-m_height+P().y,brf);
-    _shaderParam.m_boundingbox[0] = -m_width+P().x;
-    _shaderParam.m_boundingbox[1] = m_width+P().x;
-    _shaderParam.m_boundingbox[2] = -m_height+P().y;
-    _shaderParam.m_boundingbox[3] = m_height+P().y;
-    _shaderParam.m_shadowcreator = this->m_shadowCreator;
-//    glMatrixMode(GL_MODELVIEW);
-//    glLoadIdentity();
-//    glBegin(GL_POINTS);
-//    glColor3f(1.0,1.0,0.0);
-//    glVertex3f(_shaderParam.m_centerDepth.x(),_shaderParam.m_centerDepth.y(),0.0);
-//    glEnd();
-
-}
-
-float ImageShape::CapValue(float in_num, float low_cap, float high_cap)
-{
-    if(in_num<low_cap)
-        return low_cap;
-    if(in_num>high_cap)
-        return high_cap;
-    return in_num;
-}

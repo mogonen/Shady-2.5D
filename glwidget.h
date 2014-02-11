@@ -57,7 +57,7 @@
 class SelectionManager;
 class Canvas;
 class Shape;
-class ShaderProgram;
+
 
 Selectable_p select(GLint hits, GLuint* buff);
 
@@ -89,9 +89,7 @@ public:
     void                sendActiveBack();
     void                sendActiveFront();
     Shape*              removeActive();
-    ShaderProgram*      getRShader(){return _pGLSLShader_R;}
-    ShaderProgram*      getMShader(){return _pGLSLShader_M;}
-    void                reloadShader(){_pGLSLShader_R->ReloadShader();_pGLSLShader_M->ReloadShader();}
+
 
     void                clear();
     void                keyPressEvent(QKeyEvent *);
@@ -122,8 +120,7 @@ private:
 
     Shape               *_pActiveShape;
     Canvas              *_pCanvas;
-    ShaderProgram       *_pGLSLShader_R;
-    ShaderProgram       *_pGLSLShader_M;
+
 
 
 
