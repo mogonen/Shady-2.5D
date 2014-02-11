@@ -31,7 +31,6 @@ public:
     virtual void interpolateNormals()=0;
     void propateNormals();
     Normal computeN(Corner_p);
-    Normal computeN(Corner_p, double);
 
     static bool isH;
 

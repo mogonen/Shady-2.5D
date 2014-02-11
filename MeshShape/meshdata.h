@@ -27,11 +27,11 @@ struct EdgeData
        if (!pE->pData->pCurve)
            return 0;
 
-       if ((pE->C0() == pC ) || ( pE->C1() && pE->C1()->next() == pC))
+       if (pE->C0() == pC)
        {
            return pSV[1];
        }
-       else if ( (pE->C1() == pC) || (pE->C0()->next() == pC))
+       else if (pE->C0()->next() == pC)
        {
            return pSV[2];
        }
