@@ -3,6 +3,7 @@
 #include "SampleShape.h"
 #include "meshshape/spineshape.h"
 #include "meshshape/meshshape.h"
+#include "MeshShape/meshcommands.h"
 #include "glwidget.h"
 
 #ifdef FACIAL_SHAPE
@@ -27,14 +28,16 @@ bool isInRenderMode(){
     return ( mode == GL_RENDER);
 }
 
-bool MeshShape::IsSelectMode(SELECTION_e eMode){
-    return GetSelectMode() == eMode && !Session::isRender(DRAG_ON);
-}
+bool isSelectMode(MeshOperation::SelectMode eMode){
 
-//void Selectable::renderNamed(bool ispush) const{
-//    glLoadName(name());
-//    render();
-//}
+    if (isInRenderMode() || Session::isRender(DRAG_ON))
+        return false;
+
+    MeshOperation* pMO = dynamic_cast<MeshOperation*>(Session::get()->theCommand());
+    if (!pMO)
+        return false;
+   return pMO->getSelectMode() == eMode;
+}
 
 void Selectable::render(int mode)
 {
@@ -208,7 +211,7 @@ void SpineShape::render(int mode){
 
 void MeshShape::render(int mode) {
 
-    if ( isInRenderMode() || (!isInRenderMode() && IsSelectMode(EDGE)) )
+    if ( isInRenderMode() || isSelectMode(MeshOperation::EDGE)  )
     {
         EdgeList edges = _control->edges();
         FOR_ALL_CONST_ITEMS(EdgeList, edges){
@@ -217,12 +220,12 @@ void MeshShape::render(int mode) {
     }
 
     //too messy, fix it!
-    if (isInRenderMode() || ( !isInRenderMode() && (IsSelectMode(FACE)|| Session::isRender(DRAG_ON) )) )
+    if (isInRenderMode() || isSelectMode(MeshOperation::FACE) || Session::isRender(DRAG_ON) )
     {
         qreal r, g, b;
         diffuse.getRgbF(&r,&g,&b);
 
-        GLfloat mat_diff[]   = { (float)r, (float)g, (float)b, 1.0 };
+        GLfloat mat_diff[]   = { (float)1.0, (float)g, (float)b, 1.0 };
         glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diff);
 
         FaceList faces = _control->faces();
@@ -377,8 +380,6 @@ void Patch4::render(int mode){
 
             }
 
-
-
             glBegin(GL_POLYGON);
 
             if(mode&DARK_MODE||mode&BRIGHT_MODE)
@@ -392,7 +393,7 @@ void Patch4::render(int mode){
                     if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON))
                         glNormal3f(n[k].x, n[k].y, n[k].z );
                     else
-    //                    glColor3f((n[k].x+1)/2, (n[k].y+1)/2, n[k].z );
+                        //glColor3f((n[k].x+1)/2, (n[k].y+1)/2, n[k].z );
                         glColor3f((n[k].x+1)/2, (n[k].y+1)/2, 1.0);
 
                    glVertex3f(p[k].x, p[k].y, 0);
@@ -400,8 +401,6 @@ void Patch4::render(int mode){
                 }
             }
             glEnd();
-
-
 
         }
     }
@@ -461,8 +460,6 @@ void EllipseShape::render(int mode) {
                 glEnd();
 
             }
-
-
 
             glBegin(GL_POLYGON);
             for(int k = 0; k < size; k++){

@@ -86,6 +86,8 @@ public:
 
 	void updateF();
 	void enamurateVerts();
+    void enamurateEdges();
+    void enamurateFaces();
 	void buildEdges();
 
 	//set callback functions
@@ -98,6 +100,9 @@ public:
     void setCaller(void* caller){ _caller = caller;}
 
     inline void* caller() const {return _caller;}
+
+    Mesh_p deepCopy();
+
 };
 
 class Element{

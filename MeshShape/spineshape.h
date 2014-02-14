@@ -33,12 +33,13 @@ class SpineShape : public Shape
 
 protected:
 
-    void onClick(const Point &, Click_e);
+    void onClick(const Click&);
 
 public:
 
     SpineShape(){ _lastV=0; }
     void render(int mode = 0);
+    ShapeType   type() const {return SPINE_SHAPE;}
 
     MeshShape*      buildMeshShape(MeshShape* pMS=0);
 

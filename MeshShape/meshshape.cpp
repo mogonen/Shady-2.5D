@@ -1,5 +1,6 @@
 #include "meshshape.h"
 #include "../curve.h"
+#include "../commands.h"
 
 MeshShape::MeshShape()
 {
@@ -9,26 +10,6 @@ MeshShape::MeshShape()
     _control->setCaller((void*)this);
 }
 
-void MeshShape::onClick(const Point & p, Click_e eClick)
-{
-
-    if (!EXEC_ONCLICK)
-        return;
-
-    if (eClick == UP)
-    {
-        Selectable_p obj = Session::get()->selectionMan()->getLastSelected();
-
-        if (!obj || obj->type() != Renderable::SHAPE)
-            return;
-
-        execOP(p, obj);
-    }
-}
-
-void MeshShape::setOPMODE(OPERATION_e eMode){
-    _OPMODE = eMode;
-}
 
 Vertex_p MeshShape::addMeshVertex(){
     ShapeVertex_p sv = addVertex();
@@ -43,11 +24,13 @@ Vertex_p MeshShape::addMeshVertex(const Point& p){
     return v;
 }
 
-MeshShape::SELECTION_e MeshShape::GetSelectMode(){
-    static const SELECTION_e SELECTMODE[] = {NOSELECT, EDGE, FACE, FACE, CORNER, EDGE, NOSELECT};
-    if (_OPMODE > 6)
-        return NOSELECT;
-    return SELECTMODE[(int)_OPMODE];
+void MeshShape::onDrag(ShapeVertex_p pSV, const Vec2& t){
+
+    if (Drag::TOOL != Drag::AUTO_BIND || !pSV->parent() || pSV->pair() )//|| !(((Edge_p)pSV->pRef)->isBorder()))
+        return;
+
+    Corner_p pC = EdgeData::StaticGetCornerByTangent(pSV, true);
+    makeSmoothCorners(pC, false, 0);
 }
 
 /*

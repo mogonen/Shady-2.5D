@@ -47,8 +47,6 @@ void GLWidget::renderCanvas()
         _pGLSLShader_R->setUniformValue("width", (float)width());
         _pGLSLShader_R->setUniformValue("height", (float)height());
         _pGLSLShader_R->setUniformValue("toggle_ShaAmbCos", (int)(_renderFlags>>1)&7);
-        float aspect = (float)height() / width();
-
 
         glBegin(GL_QUADS);
         glColor4f(1.0, 1.0, 1.0, 1.0);

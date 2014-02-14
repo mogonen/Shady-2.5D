@@ -1,6 +1,6 @@
 #include "base.h"
 #include <qDebug>
-Selectable::Selectable(Type_e type):Renderable(type){
+Selectable::Selectable(bool isUI):Renderable(isUI){
     _isDraggable = false;
     pRef = 0;
     Session::get()->selectionMan()->insert(this);

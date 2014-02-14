@@ -10,7 +10,7 @@ double  Patch::T;
 bool    Patch::isH = true;
 
 
-Patch::Patch(Face_p pF):Selectable(Renderable::SHAPE){
+Patch::Patch(Face_p pF):Selectable(false){
     _ps = 0;
     _ns = 0;
     _pFace = pF;

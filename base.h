@@ -28,7 +28,6 @@ class ShapeControl;
 class MainWindow;
 
 enum RenderSetting  {DRAG_ON, SHADING_ON, AMBIENT_ON, SHADOWS_ON, NORMALS_ON, WIREFRAME_ON, PREVIEW_ON};
-
 enum PreviewSetting {DEFAULT_MODE = 0, SM_MODE = 1, DARK_MODE = 2, BRIGHT_MODE = 4, LABELDEPTH_MODE = 8};
 
 
@@ -51,8 +50,6 @@ typedef std::list<Point_p> Point_pList;
 
 #define UI_BIT 31
 
-typedef unsigned long RenderMode_t;
-
 class Renderable{
 
 protected:
@@ -64,10 +61,9 @@ protected:
 public:
     virtual void render(int mode = 0) = 0;
 
-    enum Type_e {NONE, UI, SHAPE};
 
-    Renderable(Type_e type):_type(type){_upToDate = false;}
-    Type_e type() const {return _type;}
+    Renderable(bool isUI):_isUI(isUI){_upToDate = false;}
+    bool isUI() const {return _isUI;}
 
 //    void renderUpToDate() {
 //        ensureUpToDate();
@@ -93,11 +89,27 @@ public:
     Void_p pRef; //generic pointer to refering object
 
 private:
-    Type_e _type;
+    bool _isUI;
     bool _upToDate;
 };
 
 
+struct Click
+{
+    enum Type {NONE, UP, DOWN, R_UP, R_DOWN};
+
+    Point       P;
+    Type        type;
+    bool        isCtrl, isAlt;
+
+    inline bool is(Type t) const {return type == t;}
+    Click(){type=NONE; isCtrl = false; isAlt = false;}
+    Click(Type t, const Point& p){
+        type = t;
+        P    = p;
+    }
+
+};
 
 class Selectable:public Renderable{
 
@@ -113,12 +125,15 @@ protected:
 
 public:
 
-    enum Click_e{UP, DOWN, R_UP, R_DOWN};
-
-    Selectable(Type_e type);
+    Selectable(bool isUI);
     virtual ~Selectable();
 
     virtual void render(int mode = 0);
+
+//    void renderNamed(bool ispush = false) const;
+//    void renderUnnamed() const{
+//        render();
+//    }
 
     inline bool isDraggable() const{return _isDraggable;}
     inline void makeDraggable(){_isDraggable = true;}
@@ -174,7 +189,7 @@ public:
 
     bool isLocked;
 
-    Draggable(Type_e type, Point_p pP = 0):Selectable(type){
+    Draggable(bool isUI, Point_p pP = 0):Selectable(isUI){
         if (pP){
             makeDraggable();
         }
@@ -223,6 +238,48 @@ public:
     DraggableList getChilds() const {return _childs;}
 };
 
+struct ShapeVertex;
+bool isInRenderMode();
+
+typedef class Command{
+    int _id;
+
+protected:
+
+    virtual void onSelect(){}
+    virtual void onUnselect(){}
+    virtual void onCancel(){}
+    virtual void onClick(const Click&){}
+
+public:
+
+    enum CommandType {NONE, MESH_OPERATION, MESH_PRIMITIVE, DRAG};//needed?
+
+    //enum ExecMode    {NONE, ON_SELECT, ON_UP, ON_DOWN, ON_};
+
+    Command(){}
+
+    virtual Command*    exec() = 0;
+    virtual Command*    unexec() = 0;
+    virtual CommandType  type() const = 0;
+
+    void            select(){onSelect();}
+    void            unselect(){onUnselect();}
+    void            cancel(){onCancel();}
+    void            sendClick(const Click& c){onClick(c);}
+
+}* Command_p;
+
+typedef list<Command_p> CommandList;
+
+class FileIO {
+
+public:
+
+    virtual bool load(const char * fname) = 0;
+    virtual bool save(const char * fname) = 0;
+};
+
 
 class Session{
 
@@ -231,43 +288,48 @@ class Session{
     SelectionManager*   _pSelectionMan;
     ShapeControl*       _pController;
     MainWindow*         _pMainWindow;
+    FileIO*             _pFileIO; //default;
+
+    const char*         _filename;
+
+    CommandList         _commands;
+    Command_p           _pCommand;
 
     static Session*     _pSession;
 
 public:
 
-    GLWidget*           glWidget() const {return _pGlWidget;}
-    Canvas*             canvas()   const {return _pCanvas;}
+    GLWidget*           glWidget()      const {return _pGlWidget;}
+    Canvas*             canvas()        const {return _pCanvas;}
     SelectionManager*   selectionMan()  const {return _pSelectionMan;}
     ShapeControl*       controller()    const {return _pController;}
     MainWindow*         mainWindow()    const {return _pMainWindow;}
+    FileIO*             fileIO()        const {return _pFileIO;}
+    Command_p           theCommand()    const {return _pCommand;}
 
     Shape*              theShape() const;
     void                activate(Shape*);
     Shape*              deactivate();
-    void                insertShape(Shape*, bool isactivate = true);
+    void                insertShape(Shape*, bool isactivate=true);
     void                removeShape(Shape*);
-
-    void                reset();
-
-    void                cancel();
-    void                exec();
-
 
     static void         init(MainWindow*);
 
     static Session*     get(){return _pSession;}
     static bool         isRender(RenderSetting rs);
+
+    void                open(const char *fname);
+    void                saveAs(const char* fname);
+    int                 save();
+    void                reset();
+
+    //Manage Commands
+    void                setCommand(Command_p);
+    void                exec();
+    int                 undo();
+    int                 redo();
+    void                cancel();
+
 };
-
-class Renderer
-{
-
-public:
-    virtual void render(RenderMode_t mode = 0) = 0;
-};
-
-struct ShapeVertex;
-bool isInRenderMode();
 
 #endif

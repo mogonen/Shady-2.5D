@@ -133,6 +133,18 @@ void Mesh::enamurateVerts(){
 		(*it)->_id = id++;
 }
 
+void Mesh::enamurateEdges(){
+    int id = 0;
+    for(std::list<Edge*>::iterator it = _edges.begin(); it!=_edges.end(); it++)
+        (*it)->_id = id++;
+}
+
+void Mesh::enamurateFaces(){
+    int id = 0;
+    for(std::list<Face*>::iterator it = _faces.begin(); it!=_faces.end(); it++)
+        (*it)->_id = id++;
+}
+
 void Mesh::buildEdges(){
 	_edges.clear();
 	enamurateVerts();
@@ -152,6 +164,45 @@ void Mesh::buildEdges(){
 			}
 		}
 	}
+}
+
+Mesh_p Mesh::deepCopy()
+{
+
+    Mesh_p pCopy = new Mesh();
+    Vertex_p * vcopy = new Vertex_p[_verts.size()];
+    int vid = 0;
+    for(std::list<Vertex*>::iterator it = _verts.begin(); it!=_verts.end(); it++)
+    {
+        (*it)->_id = vid;
+        vcopy[vid] = pCopy->addVertex((*it)->pData);
+        vid++;
+    }
+
+    Edge_p * ecopy = new Edge_p[_edges.size()];
+    for(int i = 0; i < _edges.size(); i++)
+        ecopy[i] = 0;
+    enamurateEdges();
+
+    for(std::list<Face*>::iterator it = _faces.begin(); it!=_faces.end(); it++){
+        Face_p f = (*it);
+        Face_p fcopy = pCopy->addFace(f->size());
+
+        for(int i=0; i<f->size(); i++){
+            fcopy->set(vcopy[f->C(i)->V()->id()],i);
+            Edge_p e = ecopy[f->C(i)->E()->id()];
+            if (e){
+                e->set(fcopy->C(i), fcopy->C(i)->isC0()?0:1);
+            }else{
+                e = ecopy[f->C(i)->E()->id()] = pCopy->addEdge(fcopy->C(i));
+                e->set(fcopy->C(i), fcopy->C(i)->isC0()?0:1);
+                e->pData = f->C(i)->E()->pData; //this may need a deep copy too!
+            }
+
+        }
+    }
+
+    return pCopy;
 }
 
 Corner::Corner(){

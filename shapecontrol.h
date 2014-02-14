@@ -57,7 +57,7 @@ protected:
 
 public:
 
-    TransformHandler():Draggable(Renderable::UI, &_t){
+    TransformHandler():Draggable(true, &_t){
         _pShape = 0;
         _handles[0] = new ControlPoint(&_bbox.P[0],this);
         _handles[1] = new ControlPoint(&_bbox.P[1],this);

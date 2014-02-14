@@ -1,4 +1,5 @@
 #include "shape.h"
+#include "commands.h"
 
 //ShapeVertex///////////////////////////////////////////////////////////////////////////
 int ShapeVertex::_COUNT = 0;
@@ -69,7 +70,7 @@ ShapeVertex::~ShapeVertex(){
         _pair->_pair =0;
 }
 
-void ShapeVertex::drag(const Vec2 &t, bool isNormal){
+void ShapeVertex::drag(const Vec2 &t, bool isNormal, bool isC2){
 
     _pShape->outdate(this);
     if (isNormal){
@@ -85,14 +86,21 @@ void ShapeVertex::drag(const Vec2 &t, bool isNormal){
             h = 0;
         N.set(Vec3(v.x, v.y, h).normalize());
         return;
-    }
+    }else
+        _pShape->drag(this, t);
 
     P = P + t;
 
     if (_pair){
 
-        Vec2 tan  = (_parent->P - P).normalize();
-       _pair->P.set(_parent->P + tan*(_pair->P - _parent->P).norm());
+        Vec2 tan  = (_parent->P - P);
+        if (isC2){
+            _pair->P.set(_parent->P + tan);
+            tan = tan.normalize();
+        }else{
+            tan = tan.normalize();
+            _pair->P.set(_parent->P + tan*(_pair->P - _parent->P).norm());
+        }
 
        //now rotate the normal
        Vec2 n2d(_parent->N);
@@ -112,7 +120,6 @@ void ShapeVertex::drag(const Vec2 &t, bool isNormal){
             (*it)->P = (*it)->P + t;
         }
     }
-    //_pShape->onDrag(this);
 }
 
 void   ShapeVertex::setTangent(const Vec2& tan, bool isnormal, bool ispair){
@@ -138,10 +145,10 @@ Vec2 ShapeVertex::getTangent(){
 
 //Shape////////////////////////////////////////////////////////////////////////////////////
 
-Shape::Shape():Draggable(Renderable::SHAPE, &_t0){
+Shape::Shape():Draggable(false, &_t0){
     _flags = 0;
     _tM.identity();
-    diffuse.setRed(255);
+    //diffuse.setRed(255);
 }
 
 Shape::~Shape(){
@@ -189,10 +196,10 @@ Point Shape::gT(){
     return _t0 + ((Shape_p)parent())->gT();
 }
 
-void Shape::sendClick(const Point& p, Click_e click){
-    Point p0(p);
-    p0 = p0 - _t0;
-    onClick(p0, click);
+void Shape::sendClick(const Click& click){
+    Click click2 = click;
+    click2.P = click2.P - _t0;
+    onClick(click2);
 }
 
 void Shape::translate(const Vec2& t){
@@ -212,6 +219,10 @@ void Shape::scale(const Vec2& s){
 void Shape::resetT(){
     _tM.identity();
     _t0.set();
+}
+
+void Shape::drag(ShapeVertex_p sv, const Vec2 & t){
+    onDrag(sv, t);
 }
 
 void Shape::applyT(const Matrix3x3& M){

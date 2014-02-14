@@ -5,7 +5,6 @@
 
 GLuint texture[30];
 
-
 void Canvas::insert(Shape_p sp){
     _shapes.push_front(sp);
     updateDepth();

@@ -4,10 +4,12 @@ typedef dlfl::Vertex*** OutlineMap;
 
 double SpineShape::RAD = 0.1;
 
-void SpineShape::onClick(const Point & p, Click_e eClick){
+void SpineShape::onClick(const Click& click){
 
-    if (eClick == DOWN || eClick == R_DOWN)
+    if (click.is(Click::DOWN) || click.is(Click::R_DOWN) )
         return;
+
+    Point p = click.P;
 
     //This could be improved
     SVertex_p pV = 0;
@@ -18,7 +20,7 @@ void SpineShape::onClick(const Point & p, Click_e eClick){
             break;
         }
 
-    if (pV && eClick == UP)
+    if (pV && click.is(Click::UP))
         _lastV = 0;
 
     if (!pV){

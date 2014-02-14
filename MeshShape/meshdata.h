@@ -24,7 +24,7 @@ struct EdgeData
    ShapeVertex_p getTangentSV(Corner_p pC)
    {
 
-       if (!pE->pData->pCurve)
+       if (!pE->pData || !pE->pData->pCurve)
            return 0;
 
        if ((pE->C0() == pC ) || ( pE->C1() && pE->C1()->next() == pC))
@@ -36,6 +36,25 @@ struct EdgeData
            return pSV[2];
        }
        return 0;
+   }
+
+   Corner_p getCornerByTangent(ShapeVertex_p sv, bool isnext=false){
+
+       if (!pE->pData->pCurve)
+           return 0;
+
+       if (pSV[1] == sv){
+           return pE->C0();
+       }else if (pSV[2] == sv){
+           return  (pE->C1() || !isnext)? pE->C1():pE->C0()->next();
+       }
+   }
+
+   static  Corner_p StaticGetCornerByTangent(ShapeVertex_p sv, bool isnext=false){
+       Edge_p e = dynamic_cast<Edge_p>((Edge_p)sv->pRef);
+       if (!e || !e->pData || !e->pData->pCurve)
+           return 0;
+       return e->pData->getCornerByTangent(sv, isnext);
    }
 };
 

@@ -70,9 +70,6 @@ MainWindow::MainWindow()
     glWidgetArea->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     glWidgetArea->setMinimumSize(50, 50);
 
-    //_options = new CustomDialog("Options", this);
-    //_options->setModal(false);
-
     createActions();
     createMenus();
 
@@ -122,56 +119,22 @@ void MainWindow::initTools()
 
     //init tool options dock
     optionsDockWidget = new QDockWidget(QString("Options"), this);
-    rendererDockWidget = new QDockWidget(QString("Render"), this);
     attrDockWidget = new QDockWidget(QString("Attributes"), this);
 
-    rendererDockWidget->setWidget(new RenderOptionsPenal(this, glWidget));
-
-
-//<<<<<<< HEAD
-
     optionsStackedWidget = new QStackedWidget();
-//    QVBoxLayout *layout = new QVBoxLayout;
-//    layout->addWidget(optionsStackedWidget);
-//    optionsStackedWidget->setVisible(true);
-
     attrStackedWidget = new QStackedWidget();
-//    layout->addWidget(attrStackedWidget);
-//    attrStackedWidget->setVisible(true);
-//=======
-//    optionsStackedWidget = new QStackedWidget(optionsDockWidget);
-//    QGridLayout *layout = new QGridLayout;
-//    layout->addWidget(optionsStackedWidget,0,0,1,1,Qt::AlignTop);
-//    layout->addWidget(0,1,0,1,1,Qt::AlignTop);
-//    layout->setRowStretch(1,1);
-//    optionsStackedWidget->setVisible(true);
-
-//    attrStackedWidget = new QStackedWidget(attrDockWidget);
-//    QVBoxLayout *layout2 = new QVBoxLayout;
-//    layout2->addWidget(attrStackedWidget);
-//    layout2->addStretch(0);
-//    attrStackedWidget->setVisible(true);
-//>>>>>>> cf2484ca3603326ba548c6882ec97d8c814f9ca7
-
-
 
     optionsDockWidget->setWidget(optionsStackedWidget);
-//    optionsDockWidget->setLayout(layout);
-//    optionsDockWidget->setVisible(true);
-
     attrDockWidget->setWidget(attrStackedWidget);
-//<<<<<<< HEAD
-//    attrDockWidget->setLayout(layout);
-//    attrDockWidget->setVisible(true);
+
+    rendererDockWidget = new QDockWidget(QString("Render"), this);
+    rendererDockWidget->setWidget(new RenderOptionsPenal(this, glWidget));
+
 
     this->addDockWidget(Qt::LeftDockWidgetArea, optionsDockWidget);
     this->addDockWidget(Qt::LeftDockWidgetArea, attrDockWidget);
     this->addDockWidget(Qt::LeftDockWidgetArea, rendererDockWidget);
     this->setDockOptions(!QMainWindow::AllowTabbedDocks);
-//=======
-//    attrDockWidget->setLayout(layout2);
-//    attrDockWidget->setVisible(true);
-//>>>>>>> cf2484ca3603326ba548c6882ec97d8c814f9ca7
 
     addAttrWidget(new QWidget, 0);//default widget
     createAllOptionsWidgets();
@@ -237,6 +200,26 @@ void MainWindow::createActions()
     fileNewAct->setShortcuts(QKeySequence::New);
     connect(fileNewAct, SIGNAL(triggered()), this, SLOT(newFile()));
 
+    fileSaveAct = new QAction(tr("Save"), this);
+    fileSaveAct->setShortcuts(QKeySequence::Save);
+    connect(fileSaveAct, SIGNAL(triggered()), this, SLOT(saveFile()));
+
+    fileSaveAsAct = new QAction(tr("Save As"), this);
+    fileSaveAsAct->setShortcuts(QKeySequence::SaveAs);
+    connect(fileSaveAsAct, SIGNAL(triggered()), this, SLOT(saveFileAs()));
+
+    fileOpenAct = new QAction(tr("Open"), this);
+    fileOpenAct->setShortcuts(QKeySequence::Open);
+    connect(fileOpenAct, SIGNAL(triggered()), this, SLOT(openFile()));
+
+    editUndoAct = new QAction(tr("Undo"), this);
+    editUndoAct->setShortcuts(QKeySequence::Undo);
+    connect(editUndoAct, SIGNAL(triggered()), this, SLOT(undo()));
+
+    editRedoAct = new QAction(tr("Redo"), this);
+    editRedoAct->setShortcuts(QKeySequence::Redo);
+    connect(editRedoAct, SIGNAL(triggered()), this, SLOT(redo()));
+
     exitAct = new QAction(tr("E&xit"), this);
     exitAct->setShortcuts(QKeySequence::Quit);
     connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
@@ -250,8 +233,6 @@ void MainWindow::createActions()
 
     viewAttrAct =  new QAction(tr("Show Attributes"), this);
     connect(viewAttrAct, SIGNAL(triggered()), this, SLOT(viewAttr()));
-
-
 
     dragAct = new QAction(tr("Drag"), this);
     dragAct->setShortcut(Qt::Key_Space);
@@ -348,7 +329,6 @@ void MainWindow::createActions()
     shapeInsertImageShapeAct = new QAction(tr("Image Shape"), this);
     connect(shapeInsertImageShapeAct, SIGNAL(triggered()), this, SLOT(newImageShape()));
 
-
     shapeLockAct = new QAction(tr("&Lock"), this);
     shapeLockAct->setShortcut(tr("Ctrl+L"));
     connect(shapeLockAct, SIGNAL(triggered()), this, SLOT(toggleLockShape()));
@@ -383,15 +363,19 @@ void MainWindow::createMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&File"));   
     fileMenu->addAction(fileNewAct);
-    fileMenu->addAction("Open");
-    fileMenu->addAction("Save");
-    fileMenu->addAction("Save as");
+    fileMenu->addAction(fileOpenAct);
+    fileMenu->addAction(fileSaveAct);
+    fileMenu->addAction(fileSaveAsAct);
 
     fileMenu->addAction("Import");
     fileMenu->addAction("Export");
 
     fileMenu->addSeparator();
     fileMenu->addAction(exitAct);
+
+    editMenu = menuBar()->addMenu(tr("&Edit"));
+    editMenu->addAction(editUndoAct);
+    editMenu->addAction(editRedoAct);
 
     viewMenu  = menuBar()->addMenu(tr("View"));
     viewMenu->addAction(viewOptionsAct);
@@ -515,6 +499,27 @@ void MainWindow::newFile(){
     Session::get()->reset();
 }
 
+void MainWindow::openFile(){
+
+}
+
+void MainWindow::saveFile(){
+
+}
+
+void MainWindow::saveFileAs(){
+    QString fname = QFileDialog::getSaveFileName(this,"Save As");
+    Session::get()->saveAs(fname.toUtf8().constData());
+}
+
+void MainWindow::undo(){
+    Session::get()->undo();
+}
+
+void MainWindow::redo(){
+    Session::get()->redo();
+}
+
 void MainWindow::viewAttr(){
     bool ison = true; //= viewAttrAct->isChecked();
     attrDockWidget->setVisible(ison);
@@ -537,6 +542,8 @@ void MainWindow::about()
 void MainWindow::flipDrag()
 {
      glWidget->setRender(DRAG_ON, dragAct->isChecked());
+     if (dragAct->isChecked())
+         setOptionsWidget(Options::DRAG);
 }
 
 

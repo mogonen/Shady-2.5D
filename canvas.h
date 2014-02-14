@@ -26,7 +26,7 @@ protected:
 
 public:
 
-    Light(float x, float y, float z):Draggable(UI, &_p0){
+    Light(float x, float y, float z):Draggable(true, &_p0){
         _p0.set(x,y);
         _z = z;
     }

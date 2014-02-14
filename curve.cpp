@@ -1,7 +1,7 @@
 #include "curve.h"
 #define EPS 0.01
 
-Curve::Curve(int sz):Selectable(Renderable::SHAPE){
+Curve::Curve(int sz):Selectable(false){
     _isFlipped = _isClosed = false;
     _size = sz;
     _pts = new Point[sz];

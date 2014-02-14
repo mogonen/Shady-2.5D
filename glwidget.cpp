@@ -44,7 +44,7 @@
 #include <QTimer>
 
 #include "canvas.h"
-//#include "Renderer/shaderprogram.h"
+
 
 unsigned int    GLWidget::_renderFlags;
 
@@ -128,11 +128,13 @@ void GLWidget::initializeGL()
      glLoadIdentity();
      glTranslatef(0, 0, -2.0);
 
+#ifndef MODELING_MODE
      _pGLSLShader_R = new ShaderProgram();
      _pGLSLShader_R->Initialize();
      _pGLSLShader_M = new ShaderProgram(ShaderProgram::TYPE_MODEL);
      _pGLSLShader_M->Initialize();
      m_CameraChanged = true;
+#endif
 
 }
 
@@ -181,11 +183,11 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     int hit = selectGL(_lastP.x(), _lastP.y());
 
     //render mode only allows selection of light
-    if(isInRenderMode() && (is(PREVIEW_ON)||is(AMBIENT_ON)||is(SHADOWS_ON)))
+    if(isInRenderMode() && is(PREVIEW_ON))
     {
         if (hit){
             Selectable_p pSel = select(hit, SelectBuff);
-            if (is(DRAG_ON) && pSel->type() == Renderable::UI)
+            if (is(DRAG_ON) && pSel->isUI())
             {
                 Session::get()->selectionMan()->startSelect(pSel, event->button() == Qt::LeftButton, event->modifiers() & Qt::ControlModifier);
             }
@@ -195,42 +197,45 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     {
         if (hit){
             Selectable_p pSel = select(hit, SelectBuff);
-            if (is(DRAG_ON) && pSel->type() == Renderable::SHAPE){
+            if (is(DRAG_ON) && !pSel->isUI()){
                 Session::get()->activate((Shape_p)pSel);
             }
             Session::get()->selectionMan()->startSelect(pSel, event->button() == Qt::LeftButton, event->modifiers() & Qt::ControlModifier);
         }
 
-        if (_pActiveShape && !is(DRAG_ON)){
+        Command_p pCommand = Session::get()->theCommand();
+        if (!is(DRAG_ON) && pCommand){
+            Click::Type type = event->buttons()&Qt::LeftButton ? (Click::DOWN): ((event->buttons()& Qt::RightButton)?(Click::R_DOWN):Click::NONE);
+            if (type)
+                pCommand->sendClick(Click(type, _lastWorldP));
+        }
+        /*if (_pActiveShape && !is(DRAG_ON)){
             if (event->buttons()&Qt::LeftButton)
                 _pActiveShape->sendClick(_lastWorldP, Selectable::DOWN);
             else if (event->buttons()& Qt::RightButton)
                 _pActiveShape->sendClick(_lastWorldP, Selectable::R_DOWN);
-        }
+        }*/
         updateGL();
     }
 }
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    //render mode does not need release
-    if(!(isInRenderMode() && (is(PREVIEW_ON)||is(AMBIENT_ON)||is(SHADOWS_ON))))
-    {
+    if (is(PREVIEW_ON))
+        return;
 
-        Session::get()->selectionMan()->stopSelect();
-        _lastP = event->pos();
-        _lastWorldP = toWorld(_lastP.x(), _lastP.y());
+    Session::get()->selectionMan()->stopSelect();
+    _lastP = event->pos();
+    _lastWorldP = toWorld(_lastP.x(), _lastP.y());
 
-        //send the click to the active shape
-        if (_pActiveShape && !is(DRAG_ON)){
-            if (event->button() == Qt::LeftButton )
-               _pActiveShape->sendClick(_lastWorldP, Selectable::UP);
-            else if (event->button() == Qt::RightButton)
-               _pActiveShape->sendClick(_lastWorldP, Selectable::R_UP);
-        }
-
-        updateGL();
+    //send the click to the active shape
+    Command_p pCommand = Session::get()->theCommand();
+    if (!is(DRAG_ON) && pCommand){
+        Click::Type type = (event->button()==Qt::LeftButton) ? (Click::UP): ((event->button()== Qt::RightButton)?(Click::R_UP):Click::NONE);
+        if (type)
+            pCommand->sendClick(Click(type, _lastWorldP));
     }
+    updateGL();
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
@@ -368,9 +373,16 @@ void GLWidget::loadCameraParameters()
     gluProject(0,0,0, MvMatrix,ProjMatrix,ViewPort,&m_ZeroX,&m_ZeroY,&m_ZeroZ);
 }
 
+void GLWidget::updateActive(){
+    _pActiveShape->update();
+    updateGL();
+}
+
+#ifndef MODELING_MODE
 void GLWidget::updateGLSLLight(float x, float y, float z)
 {
     _pGLSLShader_R->bind();
     _pGLSLShader_R->SetLightPos(QVector3D(x,y,z));
     _pGLSLShader_R->release();
 }
+#endif

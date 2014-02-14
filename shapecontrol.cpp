@@ -2,7 +2,7 @@
 
 //ShapeControl///////////////////////////////////////////////////////////////////////////////////
 
-ShapeControl::ShapeControl():Draggable(Renderable::UI, &_t0){
+ShapeControl::ShapeControl():Draggable(true, &_t0){
     isNormalControl = false;
     _theSelected = 0;
     _theHandler = new TransformHandler();

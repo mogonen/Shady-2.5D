@@ -54,6 +54,8 @@ public:
         Renderable::update();
     }
 
+    ShapeType type() const {return ELLIPSE_SHAPE;}
+
     ~EllipseShape(){
         delete _ps;
         delete _ns;
