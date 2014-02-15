@@ -48,7 +48,7 @@
 #include "shapecontrol.h"
 #include "Renderer/renderoptionspenal.h"
 
-double                  EllipseShape::Radius = 0.1;
+double                  EllipseShape::Radius = 0.2;
 ControlPoint_p          ControlPoint::_pTheActive = 0;
 
 

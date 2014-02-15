@@ -91,7 +91,8 @@ void GLWidget::initializeGL()
      glShadeModel(GL_SMOOTH);
      //glDepthRange(0.0, 1.0);
 
-     glClearColor(0.0,0.0,0.0,0.0);
+     //glClearColor(0.0,0.0,0.0,0.0);
+     glClearColor(0.96,0.96,0.96,0.0);
 
      glEnable(GL_DEPTH_TEST);
      glEnable(GL_NORMALIZE);

@@ -90,7 +90,7 @@ void GLWidget::renderCanvas()
         {
             glEnable(GL_LIGHTING);
             Point light0_p      = Session::get()->canvas()->lightPos(0);
-            GLfloat light0_pf[] = {light0_p.x, light0_p.y, 1.0, 1.0 };
+            GLfloat light0_pf[] = {light0_p.x, light0_p.y, 2, 1.0 };
             glLightfv(GL_LIGHT0, GL_POSITION, light0_pf);
         }
 

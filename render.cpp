@@ -100,7 +100,8 @@ void ControlPoint::render(int mode) {
     if (isChild() && !isActive())
         return;
 
-    glColor3f(1.0, 1.0, 1.0);
+    //glColor3f(1.0, 1.0, 1.0);
+    glColor3f(0.0, 0.0, 0.0);
     selectionColor((Selectable_p)this);
 
     glPointSize(5.0);
@@ -151,7 +152,8 @@ void ShapeControl::renderControls(Shape_p shape)
             glEnd();
 
             if (isInRenderMode()){
-                glColor3f(1.0, 1.0, 1.0);
+                //glColor3f(1.0, 1.0, 1.0);
+                glColor3f(0.0, 0.0, 0.0);
                 glBegin(GL_LINES);
                 glVertex3f(sv->P.x, sv->P.y, 0);
                 glVertex3f(p1.x, p1.y, 0);
@@ -162,7 +164,8 @@ void ShapeControl::renderControls(Shape_p shape)
 
         glLoadName(svname);
         glBegin(GL_POINTS);
-        glColor3f(1.0, 1.0, 1.0);
+        //glColor3f(1.0, 1.0, 1.0);
+        glColor3f(0.0, 0.0, 0.0);
         if(sv->flag ==1)
             glColor3f(1.0, 1.0, 0);
         glVertex3f(sv->P.x, sv->P.y, 0);
@@ -222,12 +225,12 @@ void MeshShape::render(int mode) {
     //too messy, fix it!
     if (isInRenderMode() || isSelectMode(MeshOperation::FACE) || Session::isRender(DRAG_ON) )
     {
-        qreal r, g, b;
+       /* qreal r, g, b;
         diffuse.getRgbF(&r,&g,&b);
 
         GLfloat mat_diff[]   = { (float)1.0, (float)g, (float)b, 1.0 };
         glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diff);
-
+*/
         FaceList faces = _control->faces();
         FOR_ALL_CONST_ITEMS(FaceList, faces){
             render(*it, mode);
@@ -257,13 +260,13 @@ void MeshShape::render(Face_p pFace, int mode) const{
     if (!pFace->pData->pSurface)
         return;
 
-    if(mode&BRIGHT_MODE)
+   /* if(mode&BRIGHT_MODE)
         glColor3f(diffuse.redF()*2.0,diffuse.greenF()*2.0,diffuse.blueF()*2.0);
     else if (mode&DARK_MODE)
         glColor3f(1-diffuse.redF(),1-diffuse.greenF(),1-diffuse.blueF());
     else
         glColor3f(diffuse.redF(),diffuse.greenF(),diffuse.blueF());
-
+*/
     pFace->pData->pSurface->render(mode);
 }
 
@@ -306,7 +309,8 @@ void FacialShape::render() const{
 void Curve::render(int mode) {
 
     Selectable::render();
-    glColor3f(1.0, 1.0, 1.0);
+    //glColor3f(1.0, 1.0, 1.0);
+    glColor3f(0, 0, 0);
     selectionColor((Selectable_p)this);
     if (isTheSelected())
         glColor3f(1.0, 0, 0);
@@ -381,27 +385,16 @@ void Patch4::render(int mode){
             }
 
             glBegin(GL_POLYGON);
+            for(int k = 0; k < 4; k++){
+               if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON))
+                    glNormal3f(n[k].x, n[k].y, n[k].z );
+                else
+                   glColor3f((n[k].x+1)/2, (n[k].y+1)/2, 1.0);
 
-            if(mode&DARK_MODE||mode&BRIGHT_MODE)
-            {
-                for(int k=0; k<4; k++){
-                   glVertex3f(p[k].x, p[k].y, 0);
-                }
-            }
-            else{
-                for(int k=0; k<4; k++){
-                    if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON))
-                        glNormal3f(n[k].x, n[k].y, n[k].z );
-                    else
-                        //glColor3f((n[k].x+1)/2, (n[k].y+1)/2, n[k].z );
-                        glColor3f((n[k].x+1)/2, (n[k].y+1)/2, 1.0);
-
-                   glVertex3f(p[k].x, p[k].y, 0);
-                   glTexCoord2d((p[k].x+1)/2, (p[k].y+1)/2);
-                }
+                glVertex2f(p[k].x, p[k].y);
+                glTexCoord2d((p[k].x+1)/2, (p[k].y+1)/2);
             }
             glEnd();
-
         }
     }
 
@@ -466,7 +459,6 @@ void EllipseShape::render(int mode) {
                if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON))
                     glNormal3f(n[k].x, n[k].y, n[k].z );
                 else
-//                    glColor3f((n[k].x+1)/2, (n[k].y+1)/2, n[k].z );
                    glColor3f((n[k].x+1)/2, (n[k].y+1)/2, 1.0);
 
                 glVertex2f(p[k].x, p[k].y);

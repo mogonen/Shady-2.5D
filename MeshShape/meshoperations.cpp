@@ -234,7 +234,7 @@ Edge_p MeshShape::extrude(Edge_p e0, double t, VertexMap *pVMap){
 
     if (isSMOOTH && !pVMap){
         for(int i=0; i<4; i++)
-            makeSmoothCorners(f->C(i),true, 2);
+            makeSmoothCorners(f->C(i),true, 1);
     }
 
     return e2;
