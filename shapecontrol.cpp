@@ -1,4 +1,5 @@
 #include "shapecontrol.h"
+#include "commands.h"
 
 //ShapeControl///////////////////////////////////////////////////////////////////////////////////
 
@@ -16,7 +17,10 @@ void ShapeControl::startSelect(unsigned int svname){
 
 void ShapeControl::onDrag(const Vec2& t, int){
     if (_theSelected){
-        _theSelected->drag(t, isNormalControl);
+        if (Drag::TOOL == Drag::BREAK){
+            _theSelected->unpair();
+        }
+        _theSelected->drag(t, isNormalControl, Drag::CONT == Drag::C2);
     }
 }
 
