@@ -128,9 +128,9 @@ void   ShapeVertex::setTangent(const Vec2& tan, bool isnormal, bool ispair){
 
     P.set(_parent->P + tan);
 
-    if (isnormal)
-        _parent->N = Vec3(0,0,1)%Vec3(tan).normalize();
-
+    if (isnormal){
+        _parent->N = (Vec3(0,0,1)%Vec3(tan)).normalize();
+    }
     if (ispair&&_pair)
         _pair->P.set(_parent->P - tan);
 }

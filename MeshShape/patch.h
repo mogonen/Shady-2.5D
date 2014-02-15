@@ -5,6 +5,8 @@
 #include "CMesh.h"
 #include "MeshData.h"
 
+#define N_MIN_Z 0.35
+
 using namespace dlfl;
 
 class Patch:public Selectable {
