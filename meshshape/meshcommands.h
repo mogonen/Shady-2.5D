@@ -17,12 +17,6 @@ protected:
 
     void onClick(const Click &);
 
-    void                    insertSegment(Edge_p, const Point&);
-    void                    diagonalDivide(Corner_p);
-    Face_p                  extrude(Face_p, double);
-    Edge_p                  extrude(Edge_p, double, VertexMap* vmap=0);
-    void                    deleteFace(Face_p);
-
 public:
 
     enum OperationMode  {NONE, EXTRUDE_EDGE, EXTRUDE_FACE, DELETE_FACE, SPLIT_FACE, INSERT_SEGMENT,  ASSIGN_PATTERN, SET_FOLDS, ENDOP};
@@ -56,6 +50,14 @@ public:
     static bool             isKEEP_TOGETHER;
 
     static string           PATTERN;
+
+
+    static void             insertSegment(Edge_p, const Point&);
+    static void             diagonalDivide(Corner_p);
+    static Face_p           extrude(Face_p, double);
+    static Edge_p           extrude(Edge_p, double, bool isSmooth, VertexMap* vmap=0);
+    static void             deleteFace(Face_p);
+
 
 private:
 

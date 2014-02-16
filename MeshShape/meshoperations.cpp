@@ -85,6 +85,7 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p){
         return;
 
     Mesh_p pMesh = e->mesh();
+    MeshShape* pMS = (MeshShape*)pMesh->caller();
 
     list<Corner_p> clist;
 
@@ -92,7 +93,7 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p){
     e->pData->pCurve->computeDistance(p, t);
 
     Point tan0 = computeVerticalTangent(t, e);
-    Corner* c0 = pMesh->splitEdge(e, _pMS->addMeshVertex());
+    Corner* c0 = pMesh->splitEdge(e, pMS->addMeshVertex());
     onSplitEdge(c0, t);
 
     Corner* c1 = c0->vNext();
@@ -106,7 +107,7 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p){
         Face_p f1 = c0nnvn ? c0nnvn->F():0;
         Point tan00 = computeVerticalTangent(t, c0->next()->next()->E(),f1);
 
-        Corner* c01 = pMesh->splitEdge(c0->next()->next()->E(), _pMS->addMeshVertex(), c0->F());
+        Corner* c01 = pMesh->splitEdge(c0->next()->next()->E(), pMS->addMeshVertex(), c0->F());
         onSplitEdge(c01, 1-t);
 
         Corner* c0n = c01->vNext();
@@ -122,7 +123,7 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p){
     if (c0 && c0->F() == endf){
         (pMesh->insertEdge(c0, c0->next()->next()->next()));
     }else while(c1){
-        Corner* c11 = pMesh->splitEdge(c1->next()->next()->E(), _pMS->addMeshVertex(), c1->F());
+        Corner* c11 = pMesh->splitEdge(c1->next()->next()->E(), pMS->addMeshVertex(), c1->F());
         onSplitEdge(c11, t);
         Corner* c1n = c11->vNext();
         pMesh->insertEdge(c1, c11);
@@ -142,6 +143,8 @@ void MeshOperation::diagonalDivide(Corner_p c){
 Face_p MeshOperation::extrude(Face_p f0, double t){
 
     Mesh_p pMesh = f0->mesh();
+    MeshShape* pMS = (MeshShape*)pMesh->caller();
+
     f0->update();
     Face_p f1 = pMesh->addFace(f0->size());
 
@@ -155,7 +158,7 @@ Face_p MeshOperation::extrude(Face_p f0, double t){
     for(int i=0; i<f0->size(); i++)
     {
         Point p = P0(f0->C(i)) * (1-t) + pmid * t;
-        f1->set(_pMS->addMeshVertex(p), i);
+        f1->set(pMS->addMeshVertex(p), i);
     }
 
     Edge_p e3 = 0;
@@ -191,7 +194,7 @@ Face_p MeshOperation::extrude(Face_p f0, double t){
     return f1;
 }
 
-Edge_p MeshOperation::extrude(Edge_p e0, double t, VertexMap *pVMap){
+Edge_p MeshOperation::extrude(Edge_p e0, double t, bool isSmooth, VertexMap *pVMap){
 
     if (!e0 || !e0->isBorder())
         return 0;
@@ -259,7 +262,7 @@ Edge_p MeshOperation::extrude(Edge_p e0, double t, VertexMap *pVMap){
 
     f->Face::update(false, e0->C0()->I()+2);
 
-    if (MeshShape::isSMOOTH && !pVMap){
+    if (isSmooth && !pVMap){
         for(int i=0; i<4; i++)
             MeshShape::makeSmoothCorners(f->C(i),true, 1);
     }
@@ -272,18 +275,20 @@ void MeshOperation::deleteFace(Face_p f){
     if (!f)
         return;
 
+    MeshShape* pMS = (MeshShape*)(f->mesh()->caller());
+
     for(int i=0; i<f->size(); i++){
         if (f->C(i)->E()->isBorder() && f->C(i-1)->E()->isBorder()){
-            _pMS->removeVertex(f->C(i)->V()->pData);
+            pMS->removeVertex(f->C(i)->V()->pData);
         }
         if (f->C(i)->E()->isBorder()){
-            _pMS->removeVertex(f->C(i)->E()->pData->pSV[1]);
-            _pMS->removeVertex(f->C(i)->E()->pData->pSV[2]);
+            pMS->removeVertex(f->C(i)->E()->pData->pSV[1]);
+            pMS->removeVertex(f->C(i)->E()->pData->pSV[2]);
             delete f->C(i)->E()->pData->pCurve;
         }
     }
 
-    _pMS->mesh()->remove(f);
+    pMS->mesh()->remove(f);
     /*if (mesh->sizeF()==0)
     {
         //Session::get()->removeShape((Shape_p)mesh->caller());
