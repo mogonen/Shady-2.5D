@@ -117,7 +117,7 @@ void GLWidget::render(Shape_p pShape, int mode)
     Point p = pShape->P();
     glTranslatef(p.x, p.y, 0);
 
-    if (pShape == _pActiveShape && mode==DEFAULT_MODE)
+    if (pShape == Session::get()->theShape() && mode==DEFAULT_MODE)
         Session::get()->controller()->renderHandler();
 
     apply(pShape->getTransform());

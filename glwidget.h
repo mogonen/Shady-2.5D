@@ -78,16 +78,6 @@ public:
     void                setRender(RenderSetting rs, bool);
     void                flipDragMode();
 
-    void                activate(Shape*);
-    Shape*              deactivate(bool isdeleted=false);
-    Shape*              activeShape()const{return _pActiveShape;}
-
-    void                insertShape(Shape*);
-    void                moveActiveDown();
-    void                moveActiveUp();
-    void                sendActiveBack();
-    void                sendActiveFront();
-
     void                clear();
     void                keyPressEvent(QKeyEvent *);
 
@@ -118,7 +108,7 @@ private:
     Point               _lastWorldP;
     Vec2                _cam;
 
-    Shape               *_pActiveShape;
+    //Shape               *_pActiveShape;
     Canvas              *_pCanvas;
 
     static unsigned int  _renderFlags;

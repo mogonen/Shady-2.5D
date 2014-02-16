@@ -2,7 +2,7 @@
 #define MESHCOMMANDS_H
 
 #include "../base.h"
-#include "cmesh.h"
+#include "meshshape.h"
 
 using namespace dlfl;
 
@@ -16,6 +16,12 @@ class MeshOperation: public Command
 protected:
 
     void onClick(const Click &);
+
+    void                    insertSegment(Edge_p, const Point&);
+    void                    diagonalDivide(Corner_p);
+    Face_p                  extrude(Face_p, double);
+    Edge_p                  extrude(Edge_p, double, VertexMap* vmap=0);
+    void                    deleteFace(Face_p);
 
 public:
 
@@ -63,6 +69,10 @@ private:
 class MeshPrimitive: public Command
 {
 
+protected:
+
+    void onClick(const Click &);
+
 public:
 
     enum Primitive {GRID, TWO_NGON, TORUS, SPINE};
@@ -75,6 +85,11 @@ public:
 
     Command_p exec();
     Command_p unexec();
+
+
+    static MeshShape*       insertGrid(const Point& p, double nlen, double mlen, int n, int m, MeshShape* pMS = 0);
+    static MeshShape*       insertNGon(const Point& p, int n, int segv, double rad, MeshShape* pMS = 0);
+    static MeshShape*       insertTorus(const Point& p, int n, int v, double rad, double w, double arc, MeshShape* pMS = 0);
 
     static double           GRID_N_LEN;
     static double           GRID_M_LEN;

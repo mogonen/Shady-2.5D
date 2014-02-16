@@ -482,13 +482,14 @@ void MainWindow::keyPressEvent(QKeyEvent *event){
 
     if (key == Qt::Key_Escape){
         Session::get()->controller()->cancel();
-        glWidget->deactivate();
+        Session::get()->deactivate();
     }
 
 
     if (key == Qt::Key_Return){
         Session::get()->controller()->apply();
     }
+
     glWidget->keyPressEvent(event);
     glWidget->updateGL();
 }
@@ -617,19 +618,19 @@ void MainWindow::groupShape(){
 }
 
 void MainWindow::moveShapeToFront(){
-    glWidget->moveActiveUp();
+    Session::get()->moveActiveUp();
 }
 
 void MainWindow::moveShapeToBack(){
-    glWidget->moveActiveDown();
+    Session::get()->moveActiveDown();
 }
 
 void MainWindow::sendShapeBack(){
-    glWidget->sendActiveBack();
+    Session::get()->sendActiveBack();
 }
 
 void MainWindow::sendShapeFront(){
-    glWidget->sendActiveFront();
+    Session::get()->sendActiveFront();
 }
 
 void MainWindow::transformShape(){
@@ -641,12 +642,11 @@ void MainWindow::transformShape(){
 }
 
 void MainWindow::deleteShape(){
-   glWidget->removeActive();
+   Session::get()->removeShape(Session::get()->theShape());
 }
 
 void MainWindow::insertEllipse(){
-    glWidget->insertShape(new EllipseShape());
-    glWidget->updateGL();
+    Session::get()->insertShape(new EllipseShape());
 }
 
 void updateGLSLLight(double x, double y, double z){

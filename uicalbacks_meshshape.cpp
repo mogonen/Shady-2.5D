@@ -48,13 +48,13 @@ void createTorus(){
 
 void createSpine()
 {
-    /*Shape_p shape = Session::get()->theShape();
+    Shape_p shape = Session::get()->theShape();
     SpineShape* spine = dynamic_cast<SpineShape*>(shape);
     if (spine==0)
         return;
     Shape_p pMS = spine->buildMeshShape();
     Session::get()->mainWindow()->addAttrWidget(createAttrWidget(pMS), (void*)pMS);
-    Session::get()->insertShape(pMS);*/
+    Session::get()->insertShape(pMS);
 }
 
 
@@ -112,7 +112,8 @@ void MainWindow::newGrid()
 void MainWindow::newSpine()
 {
     setOptionsWidget(Options::SPINE);
-    Session::get()->glWidget()->insertShape(new SpineShape());
+    //Session::get()->glWidget()->insertShape(new SpineShape());
+    Session::get()->setCommand(new MeshPrimitive(MeshPrimitive::SPINE));
     unselectDrag();
 }
 

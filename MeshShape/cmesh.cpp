@@ -363,6 +363,7 @@ void Edge::remove(){
 	if (!_c1)
 		return;
 
+    //reunion the faces
     Face_p f1 = _c1->F();
     for(Corner_p c = _c1->next(); c!=_c1; c = c->next())
 		_c0->F()->set(c, -1);

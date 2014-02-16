@@ -204,20 +204,15 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
             Session::get()->selectionMan()->startSelect(pSel, event->button() == Qt::LeftButton, event->modifiers() & Qt::ControlModifier);
         }
 
-        Command_p pCommand = Session::get()->theCommand();
-        if (!is(DRAG_ON) && pCommand){
+        if (!is(DRAG_ON))
+        {
             Click::Type type = event->buttons()&Qt::LeftButton ? (Click::DOWN): ((event->buttons()& Qt::RightButton)?(Click::R_DOWN):Click::NONE);
             if (type)
-                pCommand->sendClick(Click(type, _lastWorldP));
+                Session::get()->sendClick(Click(type, _lastWorldP));
         }
-        /*if (_pActiveShape && !is(DRAG_ON)){
-            if (event->buttons()&Qt::LeftButton)
-                _pActiveShape->sendClick(_lastWorldP, Selectable::DOWN);
-            else if (event->buttons()& Qt::RightButton)
-                _pActiveShape->sendClick(_lastWorldP, Selectable::R_DOWN);
-        }*/
-        updateGL();
     }
+    updateGL();
+
 }
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
@@ -229,12 +224,10 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     _lastP = event->pos();
     _lastWorldP = toWorld(_lastP.x(), _lastP.y());
 
-    //send the click to the active shape
-    Command_p pCommand = Session::get()->theCommand();
-    if (!is(DRAG_ON) && pCommand){
+    if (!is(DRAG_ON)){
         Click::Type type = (event->button()==Qt::LeftButton) ? (Click::UP): ((event->button()== Qt::RightButton)?(Click::R_UP):Click::NONE);
         if (type)
-            pCommand->sendClick(Click(type, _lastWorldP));
+            Session::get()->sendClick(Click(type, _lastWorldP));
     }
     updateGL();
 }
@@ -375,7 +368,8 @@ void GLWidget::loadCameraParameters()
 }
 
 void GLWidget::updateActive(){
-    _pActiveShape->update();
+    if (Session::get()->theShape())
+        Session::get()->theShape()->update();
     updateGL();
 }
 

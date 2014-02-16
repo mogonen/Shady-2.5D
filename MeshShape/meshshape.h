@@ -33,6 +33,8 @@ protected:
 
 
     friend class SpineShape;
+    friend class MeshOperation;
+    friend class MeshPrimitive;
 
 public:
 
@@ -41,29 +43,18 @@ public:
     ShapeType               type() const {return MESH_SHAPE;}
     void                    outdate(ShapeVertex_p sv);
 
-    //primitives
-    static MeshShape*       insertGrid(const Point& p, double nlen, double mlen, int n, int m, MeshShape* pMS = 0);
-    static MeshShape*       insertNGon(const Point& p, int n, int segv, double rad, MeshShape* pMS = 0);
-    static MeshShape*       insertTorus(const Point& p, int n, int v, double rad, double w, double arc, MeshShape* pMS = 0);
+    void                    set(Mesh_p);
 
-    void                    makeSmoothTangents(bool isskip = false, int ttype = 2, double tank =1.0);
-    void                    makeSmoothTangents(Corner_p);
-    void                    makeSmoothCorners(Corner_p, bool isskipsharp = true, int tangenttype=1, double tan_k=1.0);
+    void                           makeSmoothTangents(bool isskip = false, int ttype = 2, double tank =1.0);
+    static void                    makeSmoothTangents(Corner_p);
+    static void                    makeSmoothCorners(Corner_p, bool isskipsharp = true, int tangenttype=1, double tan_k=1.0);
 
     //mesh operations
-    void                    insertSegment(Edge_p, const Point&);
-    void                    diagonalDivide(Corner_p);
-    Face_p                  extrude(Face_p, double);
-    Edge_p                  extrude(Edge_p, double, VertexMap* vmap=0);
-    void                    extrudeEdges(SelectionSet, double);
-    void                    deleteFace(Face_p);
+
 
     void                    assignPattern(Edge_p, string pattern);
     void                    setFolds(Edge_p, int, double min = 0);
 
-    //helper functions
-    void                    onSplitEdge(Corner_p, double t);
-    void                    adjustInsertedSegmentTangents(Corner_p);
 
     static bool             isSMOOTH;
 
@@ -73,6 +64,10 @@ public:
 void                        onInsertEdge(Edge_p);
 void                        onAddFace(Face_p);
 Bezier*                     initCurve(Edge_p);
+
+
+//helper functions
+
 //void                        executeMeshShapeOperation();
 
 

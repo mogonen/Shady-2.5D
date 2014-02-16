@@ -1,5 +1,6 @@
 #include "meshshape.h"
 #include "meshcommands.h"
+#include "spineshape.h"
 
 //Defaults
 bool        MeshShape::isSMOOTH             = true;
@@ -52,8 +53,7 @@ void MeshOperation::execOP(Selectable_p obj){
          pMS = ((MeshShape*)pF->mesh()->caller());
     }
 
-    if (!pMS) return; //this is kinda redundant
-
+    if (!pMS) return; //assert
     _pMS = pMS;
 
     switch(_operation){
@@ -62,21 +62,21 @@ void MeshOperation::execOP(Selectable_p obj){
         break;
 
     case EXTRUDE_EDGE:{
-        pMS->extrude(pE, EXTRUDE_T, isKEEP_TOGETHER?&vertexToCornerMap:0);
+        extrude(pE, EXTRUDE_T, isKEEP_TOGETHER?&vertexToCornerMap:0);
         _pF = pE->C1()->F();
     }
         break;
 
     case INSERT_SEGMENT:
-        pMS->insertSegment(pE, _click.P);
+        insertSegment(pE, _click.P);
         break;
 
     case EXTRUDE_FACE:
-        pMS->extrude(pF, EXTRUDE_T);
+        extrude(pF, EXTRUDE_T);
         break;
 
     case DELETE_FACE:
-        pMS->deleteFace(pF);
+        deleteFace(pF);
         break;
 
     case ASSIGN_PATTERN:
@@ -116,7 +116,7 @@ Command_p MeshOperation::unexec(){
         break;
 
     case EXTRUDE_EDGE:{
-        _pMS->deleteFace(_pF);
+        deleteFace(_pF);
     }
         break;
 
@@ -161,30 +161,36 @@ void MeshOperation::onClick(const Click & click)
 }
 
 
+void MeshPrimitive::onClick(const Click & click){
+    if (!click.is(Click::DOWN))
+        return;
+    Session::get()->exec();
+}
+
 Command_p MeshPrimitive::exec(){
 
-    MeshShape* pMS = 0;
+    Shape* pShape = 0;
 
     switch(_primitive){
     case GRID:
-        pMS = MeshShape::insertGrid(Point(),GRID_M_LEN, GRID_N_LEN, GRID_M, GRID_N);
+        pShape = insertGrid(Point(),GRID_M_LEN, GRID_N_LEN, GRID_M, GRID_N);
     break;
 
     case TWO_NGON:
-        pMS = MeshShape::insertNGon(Point(), NGON_N, NGON_SEG_V, NGON_RAD);
+        pShape = insertNGon(Point(), NGON_N, NGON_SEG_V, NGON_RAD);
     break;
 
     case TORUS:
-        pMS = MeshShape::insertTorus(Point(), TORUS_N, TORUS_V, TORUS_RAD, TORUS_W, TORUS_ARC);
+        pShape = insertTorus(Point(), TORUS_N, TORUS_V, TORUS_RAD, TORUS_W, TORUS_ARC);
     break;
 
     case SPINE:
-
+        pShape = new SpineShape();
     break;
 
     }
 
-    Session::get()->insertShape(pMS);
+    Session::get()->insertShape(pShape);
     return 0;
 }
 

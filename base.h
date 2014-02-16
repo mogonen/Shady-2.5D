@@ -293,7 +293,9 @@ class Session{
     const char*         _filename;
 
     CommandList         _commands;
-    Command_p           _pCommand;
+    Command_p           _pTheCommand;
+    Shape*              _pTheShape;
+
 
     static Session*     _pSession;
 
@@ -305,13 +307,18 @@ public:
     ShapeControl*       controller()    const {return _pController;}
     MainWindow*         mainWindow()    const {return _pMainWindow;}
     FileIO*             fileIO()        const {return _pFileIO;}
-    Command_p           theCommand()    const {return _pCommand;}
+    Command_p           theCommand()    const {return _pTheCommand;}
+    Shape*              theShape()      const {return _pTheShape;}
 
-    Shape*              theShape() const;
     void                activate(Shape*);
     Shape*              deactivate();
     void                insertShape(Shape*, bool isactivate=true);
     void                removeShape(Shape*);
+    void                removeActiveShape();
+    void                moveActiveDown();
+    void                moveActiveUp();
+    void                sendActiveBack();
+    void                sendActiveFront();
 
     static void         init(MainWindow*);
 
@@ -329,6 +336,8 @@ public:
     int                 undo();
     int                 redo();
     void                cancel();
+
+    void                sendClick(const Click&);
 
 };
 

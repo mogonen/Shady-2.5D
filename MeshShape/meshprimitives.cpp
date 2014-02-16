@@ -1,6 +1,6 @@
-#include "meshshape.h"
+#include "meshcommands.h"
 
-MeshShape* MeshShape::insertGrid(const Point& p, double nlen, double mlen, int n, int m, MeshShape *pMS){
+MeshShape* MeshPrimitive::insertGrid(const Point& p, double nlen, double mlen, int n, int m, MeshShape *pMS){
 
     if (!pMS)
         pMS = new MeshShape();
@@ -14,7 +14,7 @@ MeshShape* MeshShape::insertGrid(const Point& p, double nlen, double mlen, int n
             Point pp = Point(nlen*i,0)+ Point(0,-mlen*j)+p0;
             if (pp.norm()>0)
             {
-                pp = p + ((isSMOOTH)? (pp.normalize()*Max(fabs(pp.x),fabs(pp.y)) ):pp);
+                pp = p + ((MeshShape::isSMOOTH)? (pp.normalize()*Max(fabs(pp.x),fabs(pp.y)) ):pp);
             }
             vs[i+j*(n+1)] = pMS->addMeshVertex(pp);
         }
@@ -25,13 +25,13 @@ MeshShape* MeshShape::insertGrid(const Point& p, double nlen, double mlen, int n
 
     delete vs;
     pMS->_control->buildEdges();
-    if (isSMOOTH)
+    if (MeshShape::isSMOOTH)
         pMS->makeSmoothTangents();
     pMS->Renderable::update();
     return pMS;
 }
 
-MeshShape* MeshShape::insertNGon(const Point& p, int n, int segv, double rad, MeshShape *pMS){
+MeshShape* MeshPrimitive::insertNGon(const Point& p, int n, int segv, double rad, MeshShape *pMS){
 
     if (!pMS)
         pMS = new MeshShape();
@@ -68,14 +68,14 @@ MeshShape* MeshShape::insertNGon(const Point& p, int n, int segv, double rad, Me
     delete vs;
 
     pMS->_control->buildEdges();
-    if (isSMOOTH)
+    if (MeshShape::isSMOOTH)
         pMS->makeSmoothTangents();
     pMS->Renderable::update();
     return pMS;
 
 }
 
-MeshShape* MeshShape::insertTorus(const Point& p, int n, int v, double rad, double w, double arc, MeshShape* pMS)
+MeshShape* MeshPrimitive::insertTorus(const Point& p, int n, int v, double rad, double w, double arc, MeshShape* pMS)
 {
 
     if (!pMS)
@@ -107,7 +107,7 @@ MeshShape* MeshShape::insertTorus(const Point& p, int n, int v, double rad, doub
     delete vs;
     pMS->_control->buildEdges();
 
-    if (isSMOOTH){
+    if (MeshShape::isSMOOTH){
         double k =  8.0/segU;
         pMS->makeSmoothTangents(false, 1, pow(k,k/3.0));
     }
