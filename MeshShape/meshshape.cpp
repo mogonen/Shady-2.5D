@@ -33,18 +33,45 @@ void MeshShape::onDrag(ShapeVertex_p pSV, const Vec2& t){
     makeSmoothCorners(pC, false, 0);
 }
 
-void MeshShape::set(Mesh_p pMesh){
+/*
+MeshShape* MeshShape::newMeshShape(const Point&p, PRIMITIVE_e ePrim)
+{
 
-    if (_control)
-        delete _control;
+    MeshShape* pMS = new MeshShape();
 
-    _control = pMesh;
+    switch(ePrim)
+    {
+        case SQUARE:
+        {
+            Vertex_p verts[4];
+            Point ps[4];
+            ps[0].set(-0.1, 0.1);
+            ps[1].set(0.1, 0.1);
+            ps[2].set(0.1, -0.1);
+            ps[3].set(-0.1, -0.1);
 
-    //relink shapeverts
-    EdgeList edges = _control->edges();
-    FOR_ALL_ITEMS(EdgeList,edges){
-        Edge_p e = (*it);
-        e->pData->relink(e);
+            for(int i=0; i<4; i++) {
+                verts[i] = pMS->addMeshVertex(ps[i]);
+            }
+
+            pMS->_control->addQuad(verts[0], verts[1], verts[2], verts[3]);
+            pMS->_control->buildEdges();
+        }
+        break;
+
+        case GRID:
+        {
+            insertGrid(p, 0.1, 2, 2, pMS);
+        }
+        break;
+
+        case NGON:
+        {
+            insertNGon(p, 2, 0.1,pMS);
+        }
+        break;
     }
 
-}
+    pMS->Renderable::update();
+    return pMS;
+}*/

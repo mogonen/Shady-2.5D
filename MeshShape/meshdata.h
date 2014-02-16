@@ -21,18 +21,6 @@ struct EdgeData
        pCurve = 0;
    }
 
-   void relink(Edge_p e){
-
-       e->pData = this;
-
-       pSV[0]->pRef = (void*) e->C0()->V();
-       pSV[3]->pRef = (void*) e->C0()->next()->V();
-       pSV[1]->pRef = (void*) e;
-       pSV[2]->pRef = (void*) e;
-
-       pE = e;
-   }
-
    ShapeVertex_p getTangentSV(Corner_p pC)
    {
 
