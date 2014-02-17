@@ -14,7 +14,7 @@ class ControlPoint: public Draggable{
 
 protected:
 
-    Selectable_p _pControlled;
+    Renderable_p _pControlled;
 
     void onDown(){
         if (isChild())
@@ -24,19 +24,14 @@ protected:
     }
 
     virtual void onDrag(const Point& t, int button){ // move the children
-        if (isParent()){
-            DraggableList childs = getChilds();
-            for(DraggableList::iterator it = childs.begin(); it!= childs.end(); it++)
-                (*it)->pP()->set((*it)->P() + t);
-        }
-
+        Draggable::onDrag(t, button);
         if (_pControlled)
             _pControlled->update();
     }
 
 public:
 
-    ControlPoint(Point_p pP, Selectable_p pControlled):Draggable(true, pP), _pControlled(pControlled){}
+    ControlPoint(Point_p pP, Renderable_p pControlled=0):Draggable(true, pP), _pControlled(pControlled){}
 
     void render(int mode = 0);
     bool isActive() const {return (_pTheActive == this) || (_pTheActive == this->parent());}

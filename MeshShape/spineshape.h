@@ -13,7 +13,7 @@ class SpineShape : public Shape
         ShapeVertex_p pSV;
         int id;
         SVertexList links;
-        inline Point P() const {return pSV->P;}
+        inline Point P() const {return pSV->P();}
         inline int val(){return links.size();}
 
         SVertex(){

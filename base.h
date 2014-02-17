@@ -186,7 +186,14 @@ class Draggable:public Selectable{
 
 protected:
 
-    virtual void onDrag(const Point&, int button = 0){}
+    virtual void onDrag(const Point& t, int button = 0){
+        if (isParent())
+        {
+            FOR_ALL_CONST_ITEMS(DraggableList, _childs){
+                (*it)->pP()->set((*it)->P() + t);
+            }
+        }
+    }
 
 public:
 

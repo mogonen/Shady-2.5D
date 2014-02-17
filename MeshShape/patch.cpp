@@ -168,8 +168,8 @@ Normal Patch::computeN(Corner_p c){
     Point p1 = c->E()->curve->CV(c->isC0()?1:2);					//next
     Point p0 = c->prev()->E()->curve->CV(c->prev()->isC0()?2:1);   //prev
     Point p2 = p0 + (p1-p);*/
-    Vec3 n = c->V()->pData->N;
-    return n.z>0 ? c->V()->pData->N : Vec3(n.x, n.y, N_MIN_Z);
+    Vec3 n = c->V()->pData->N();
+    return n.z>0 ? c->V()->pData->N() : Vec3(n.x, n.y, N_MIN_Z);
 }
 
 Normal Patch::computeN(Corner_p c0, double t)

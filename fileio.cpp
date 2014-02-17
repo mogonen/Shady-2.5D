@@ -39,7 +39,7 @@ bool DefaultIO::write(Shape * pShape, ofstream &outfile){
     SVList verts = pShape->getVertices();
     FOR_ALL_ITEMS(SVList, verts){
         ShapeVertex_p sv = (*it);
-        outfile<<"sv "<<sv->P.x<<" "<<sv->P.y<<" "<<sv->N.x<<" "<<sv->N.y<<" "<<sv->N.z<<" "<<sv->id()<<"/"<<(sv->parent()?sv->parent()->id():0)<<endl;
+        //outfile<<"sv "<<sv->P.x<<" "<<sv->P.y<<" "<<sv->N.x<<" "<<sv->N.y<<" "<<sv->N.z<<" "<<sv->id()<<"/"<<(sv->parent()?sv->parent()->id():0)<<endl;
     }
     switch(pShape->type())
     {

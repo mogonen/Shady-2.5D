@@ -81,8 +81,8 @@ struct FaceData
    Patch* pSurface;
 };
 
-inline Point P0(Corner_p pC) {return pC->V()->pData->P;}
-inline Point P0(Edge_p pE)   {return pE->C0()->V()->pData->P;}
-inline Point P1(Edge_p pE)   {return pE->C0()->next()->V()->pData->P;}
+inline Point P0(Corner_p pC) {return pC->V()->pData->P();}
+inline Point P0(Edge_p pE)   {return pE->C0()->V()->pData->P();}
+inline Point P1(Edge_p pE)   {return pE->C0()->next()->V()->pData->P();}
 
 #endif // MESHDATA_H

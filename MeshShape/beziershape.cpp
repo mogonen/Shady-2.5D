@@ -214,8 +214,8 @@ Bezier* initCurve(Edge_p e){
 
     Vertex_p v0 = e->C0()->V();
     Vertex_p v1 = e->C0()->next()->V();
-    Point p0 = v0->pData->P;
-    Point p1 = v1->pData->P;
+    Point p0 = v0->pData->P();
+    Point p1 = v1->pData->P();
 
     Vec2 tan0 = p1 - p0;
     Vec2 tan1 = p0 - p1;

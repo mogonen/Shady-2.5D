@@ -20,7 +20,7 @@ Vertex_p MeshShape::addMeshVertex(){
 
 Vertex_p MeshShape::addMeshVertex(const Point& p){
     Vertex_p v = addMeshVertex();
-    v->pData->P.set(p);
+    v->pData->pP()->set(p);
     return v;
 }
 

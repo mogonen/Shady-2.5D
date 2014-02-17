@@ -2,31 +2,19 @@
 #include "commands.h"
 
 //ShapeVertex///////////////////////////////////////////////////////////////////////////
-int ShapeVertex::_COUNT = 0;
-SVMap ShapeVertex::_svmap;
 
-ShapeVertex::ShapeVertex(Shape_p pS){
+ShapeVertex::ShapeVertex(Shape_p pS):ControlPoint(&_P){
     _pShape = pS;
-    N.set(0,0,1);
+    _N.set(0,0,1);
     flag = 0x00;
-    _id = _COUNT;
-    _COUNT++;
-    _parent = _pair = 0;
+     _pair = 0;
     pRef = 0;
-    _svmap[_id] = this;
     isPositionControl = isNormalControl = true;
     _isDeleted = false;
 }
 
-void ShapeVertex::adopt(ShapeVertex_p sv){
-    if (sv->_parent)
-        sv->_parent->_childs.remove(sv);
-    sv->_parent = this;
-    _childs.push_back(sv);
-}
-
 void ShapeVertex::setPair(ShapeVertex_p sv,bool isSetTangent,  bool isSetNormal){
-    if (!sv || sv->_parent != _parent)
+    if (!sv || sv->parent() != parent())
         return;
 
     if (sv->_pair)
@@ -36,45 +24,34 @@ void ShapeVertex::setPair(ShapeVertex_p sv,bool isSetTangent,  bool isSetNormal)
         _pair->_pair = 0;//unpair
     _pair = sv;
 
-    Vec2 tan = (P - _pair->P);
+    Vec2 tan = (_P - _pair->_P);
     if (isSetNormal){
-        _parent->N = Vec3(0,0,1)%Vec3(tan).normalize();
+        ((ShapeVertex*)parent())->pN()->set(Vec3(0,0,1)%Vec3(tan).normalize());
     }
     if (isSetTangent){
-        P.set(_parent->P + tan*0.5);
-        _pair->P.set(_parent->P - tan*0.5);
+        _P.set(parent()->P() + tan*0.5);
+        _pair->_P.set(parent()->P() - tan*0.5);
     }
 }
 
 void ShapeVertex::unpair(){
     if (_pair)
         _pair->_pair =0;
-    _pair =0;
-}
-
-ShapeVertex_p ShapeVertex::get(int id){
-    SVMap::const_iterator it = _svmap.find(id);
-    if (it == _svmap.end())
-        return 0;
-    return it->second;
+    _pair = 0;
 }
 
 ShapeVertex::~ShapeVertex(){
-    _svmap.erase(_id);
-    if (_childs.size()){
-        FOR_ALL_ITEMS(SVList, _childs)
-           (*it)->_parent = 0;
-    }
-    if (_parent)
-        _parent->_childs.remove(this);
+
     if (_pair)
         _pair->_pair =0;
 }
 
-void ShapeVertex::drag(const Vec2 &t, bool isNormal, bool isC2){
+void ShapeVertex::onDrag(const Vec2 &t, int button){
+
+    //if (button==)
 
     _pShape->outdate(this);
-    if (isNormal){
+    /*if (isNormal){
 
         Vec2 v = (Vec2(N.x*NORMAL_RAD, N.y*NORMAL_RAD) + t);
         double l = v.norm();
@@ -87,58 +64,53 @@ void ShapeVertex::drag(const Vec2 &t, bool isNormal, bool isC2){
             h = 0;
         N.set(Vec3(v.x, v.y, h).normalize());
         return;
-    }else
-        _pShape->drag(this, t);
+    }else*/
+    _pShape->drag(this, t);
 
-    P = P + t;
+    //_P = _P + t;
 
     if (_pair && !_pair->_isDeleted){
 
-        Vec2 tan  = (_parent->P - P);
-        if (isC2){
-            _pair->P.set(_parent->P + tan);
+        Vec2 tan  = (parent()->P() - _P);
+        /*if (isC2){
+            _pair->_P.set(parent()->P() + tan);
             tan = tan.normalize();
-        }else{
+        }else{*/
             tan = tan.normalize();
-            _pair->P.set(_parent->P + tan*(_pair->P - _parent->P).norm());
-        }
+            _pair->_P.set(parent()->P() + tan*(_pair->_P - parent()->P()).norm());
+        //}
 
        //now rotate the normal
-       Vec2 n2d(_parent->N);
-       Vec2 tan0 = (_parent->P - P + t).normalize();
+       Vec3 parentN = ((ShapeVertex_p)parent())->N();
+       Vec2 n2d(parentN);
+       Vec2 tan0 = (parent()->P() - _P + t).normalize();
        Vec2 y_ax0 = Vec3(0,0,1)%Vec3(tan0.x, tan0.y, 0);
        Vec2 y_ax1 = Vec3(0,0,1)%Vec3(tan.x, tan.y, 0);
 
        Vec2 n2d_1 = tan*(tan0*n2d) + y_ax1*(y_ax0*n2d);
-       Vec3 n3d(n2d_1.x, n2d_1.y, _parent->N.z);
-       _parent->N = n3d.normalize();
+       Vec3 n3d(n2d_1.x, n2d_1.y, parentN.z);
+       ((ShapeVertex_p)parent())->pN()->set(n3d.normalize());
        _pShape->outdate(_pair);
     }
-
-    if (hasChilds())
-    {
-        FOR_ALL_CONST_ITEMS(SVList, _childs){
-            (*it)->P = (*it)->P + t;
-        }
-    }
+    Draggable::onDrag(t, button);
 }
 
 void   ShapeVertex::setTangent(const Vec2& tan, bool isnormal, bool ispair){
-    if (!_parent)
+    if (!parent())
         return;
 
-    P.set(_parent->P + tan);
+    _P.set(parent()->P() + tan);
 
     if (isnormal){
-        _parent->N = (Vec3(0,0,1)%Vec3(tan)).normalize();
+        ((ShapeVertex*)parent())->pN()->set((Vec3(0,0,1)%Vec3(tan)).normalize());
     }
     if (ispair&&_pair)
-        _pair->P.set(_parent->P - tan);
+        _pair->_P.set(parent()->P() - tan);
 }
 
 Vec2 ShapeVertex::getTangent(){
-    if (_parent)
-        return (P - _parent->P);
+    if (parent())
+        return (_P - parent()->P());
 
     return Vec2(0,0);
 }
@@ -166,8 +138,7 @@ ShapeVertex_p Shape::addVertex()
 
 ShapeVertex_p Shape::addVertex(const Point& p, ShapeVertex_p parent, bool isPositionControl, bool isNormalControl){
     ShapeVertex_p sv = addVertex();
-    sv->P = p;
-    sv->_parent = parent;
+    sv->_P = p;
     if (parent){
         parent->adopt(sv);
     }
@@ -181,18 +152,6 @@ void Shape::removeVertex(ShapeVertex_p sv){
     //_vertices.remove(sv);
     //delete sv;
 }
-/*
-void Shape::removeVertex(Point_p pP){
-    SVList::iterator it = _vertices.begin();
-    for(;it!=_vertices.end() && (*it)->pP() != pP; it++);
-    if (it!=_vertices.end()){
-        ShapeVertex_p sv =*it;
-        sv->_isDeleted = true;
-        //_vertices.erase(it);
-        //delete sv;
-    }
-}
-*/
 
 Point Shape::gT(){
     if (!parent())
@@ -232,10 +191,10 @@ void Shape::drag(ShapeVertex_p sv, const Vec2 & t){
 void Shape::applyT(const Matrix3x3& M){
     FOR_ALL_ITEMS(SVList, _vertices){
         ShapeVertex_p sv = (*it);
-        Vec3 p = M*Vec3(sv->P.x, sv->P.y, 1);
-        Vec3 n = M*Vec3(sv->N.x, sv->N.y, 0);
-        sv->P.set(p.x/p.z, p.y/p.z);
-        sv->N.set(Vec3(n.x, n.y,sv->N.z).normalize());
+        Vec3 p = M*Vec3(sv->_P.x, sv->_P.y, 1);
+        Vec3 n = M*Vec3(sv->_N.x, sv->_N.y, 0);
+        sv->_P.set(p.x/p.z, p.y/p.z);
+        sv->_N.set(Vec3(n.x, n.y,sv->_N.z).normalize());
     }
     onApplyT(M);
     Renderable::update();
@@ -253,16 +212,16 @@ void Shape::getBBox(BBox &bbox) const{
 
     FOR_ALL_CONST_ITEMS(SVList, _vertices){
         ShapeVertex_p sv = (*it);
-        //if (sv->parent()) continue;
-        if (sv->P.x < bbox.P[0].x)
-            bbox.P[0].x = sv->P.x;
-        if (sv->P.y < bbox.P[0].y)
-            bbox.P[0].y = sv->P.y;
+        //if (sv->_Parent()) continue;
+        if (sv->_P.x < bbox.P[0].x)
+            bbox.P[0].x = sv->_P.x;
+        if (sv->_P.y < bbox.P[0].y)
+            bbox.P[0].y = sv->_P.y;
 
-        if (sv->P.x > bbox.P[1].x)
-            bbox.P[1].x = sv->P.x;
-        if (sv->P.y > bbox.P[1].y)
-            bbox.P[1].y = sv->P.y;
+        if (sv->_P.x > bbox.P[1].x)
+            bbox.P[1].x = sv->_P.x;
+        if (sv->_P.y > bbox.P[1].y)
+            bbox.P[1].y = sv->_P.y;
     }
 }
 
@@ -276,7 +235,7 @@ void Shape::centerPivot(){
     Point piv = bbox.pivot();
     FOR_ALL_ITEMS(SVList, _vertices){
         ShapeVertex_p sv = (*it);
-        sv->P = sv->P - piv;
+        sv->_P = sv->_P - piv;
     }
     _t0 = _t0 + piv;
     Renderable::update();

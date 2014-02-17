@@ -58,12 +58,12 @@ Point computeVerticalTangent(double t, Edge_p pE, Face_p pF =0)
 
     if (isforward){
 
-        p[4] = pE->C0()->prev()->E()->pData->getTangentSV(pE->C0())->P;
-        p[7] = pE->C0()->next()->E()->pData->getTangentSV(pE->C0()->next())->P;
+        p[4] = pE->C0()->prev()->E()->pData->getTangentSV(pE->C0())->P();
+        p[7] = pE->C0()->next()->E()->pData->getTangentSV(pE->C0()->next())->P();
 
     }else{
-        p[4] = pE->C1()->next()->E()->pData->getTangentSV(pE->C1()->next())->P;
-        p[7] = pE->C1()->prev()->E()->pData->getTangentSV(pE->C1())->P;
+        p[4] = pE->C1()->next()->E()->pData->getTangentSV(pE->C1()->next())->P();
+        p[7] = pE->C1()->prev()->E()->pData->getTangentSV(pE->C1())->P();
         t=1-t;
     }
 
@@ -112,8 +112,8 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p){
 
         Corner* c0n = c01->vNext();
         Edge_p pEnew = pMesh->insertEdge(c0, c01);
-        pEnew->pData->pSV[1]->P.set(tan0);
-        pEnew->pData->pSV[2]->P.set(tan1);
+        pEnew->pData->pSV[1]->pP()->set(tan0);
+        pEnew->pData->pSV[2]->pP()->set(tan1);
         tan0 = tan00;
 
         clist.push_back(c0);
@@ -222,7 +222,7 @@ Edge_p MeshOperation::extrude(Edge_p e0, double t, bool isSmooth, VertexMap *pVM
             Corner_p ec = it_v->second;
             e1 = ec->E();
             v0 = (ec->V() == e0->C0()->V() || ec->V() == e0->C0()->next()->V())? ec->next()->V():ec->V();
-            v0->pData->P = P0(e0) + ((v0->pData->P + P0(e0)+n)*0.5).normalize()*t; 
+            v0->pData->pP()->set(P0(e0) + ((v0->pData->P() + P0(e0)+n)*0.5).normalize()*t);
         }
 
         it_v = pVMap->find(e0->C0()->next()->V());
@@ -233,7 +233,7 @@ Edge_p MeshOperation::extrude(Edge_p e0, double t, bool isSmooth, VertexMap *pVM
             Corner_p ec = it_v->second;
             e3 = ec->E();
             v1 = (ec->V() == e0->C0()->V() || ec->V() == e0->C0()->next()->V())? ec->next()->V():ec->V();
-            v1->pData->P = P1(e0) + ((v1->pData->P + P1(e0)+n)*0.5).normalize()*t;
+            v1->pData->pP()->set(P1(e0) + ((v1->pData->P() + P1(e0)+n)*0.5).normalize()*t);
         }
 
     }else{

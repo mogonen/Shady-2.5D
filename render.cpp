@@ -47,16 +47,13 @@ void Selectable::render(int mode)
 
 Selectable_p select(GLint hits, GLuint *buff){
    //only one selectable object in the stack for now
-   unsigned int name = buff[3];
-   Selectable_p pSel =0;
-   if ( name & ( 1 << UI_BIT ) )
+   Selectable_p pSel = Session::get()->selectionMan()->get(buff[3]);
+   /*if ( name & ( 1 << UI_BIT ) )
    {
       pSel =Session::get()->controller();
      Session::get()->controller()->startSelect(name);
    }
-   else
-      pSel = Session::get()->selectionMan()->get(buff[3]);
-
+   else*/
    return pSel;
 }
 
@@ -132,7 +129,14 @@ void Shape::render(int mode)
 void ShapeControl::renderControls(Shape_p shape)
 {
     if (_theHandler->isActive())
-        return;
+            return;
+
+    SVList verts = shape->getVertices();
+    FOR_ALL_CONST_ITEMS(SVList, verts){
+        SKIP_DELETED_ITEM
+                (*it)->render();
+    }
+  /*
     //could not get pushname popname working!
     glPointSize(4.0);
     SVList verts = shape->getVertices();
@@ -142,10 +146,12 @@ void ShapeControl::renderControls(Shape_p shape)
         if (sv->parent() && (!_theSelected || (_theSelected != sv->parent() && _theSelected->parent() != sv->parent())) )
             continue;
 
+        Point p0 = sv->P();
+
         unsigned int svname = sv->id() | (1 << UI_BIT);
         if (Session::isRender(NORMALS_ON) && sv->isNormalControl){
             unsigned int svn_name = svname | (1 << NORMAL_CONTROL_BIT);
-            Point p1 = sv->P + Point(sv->N*NORMAL_RAD);
+            Point p1 = p0 + Point(sv->N()*NORMAL_RAD);
             glLoadName(svn_name);
             glBegin(GL_POINTS);
             glColor3f(1.0, 0, 0);
@@ -156,7 +162,7 @@ void ShapeControl::renderControls(Shape_p shape)
                 //glColor3f(1.0, 1.0, 1.0);
                 glColor3f(0.0, 0.0, 0.0);
                 glBegin(GL_LINES);
-                glVertex3f(sv->P.x, sv->P.y, 0);
+                glVertex3f(p0.x, p0.y, 0);
                 glVertex3f(p1.x, p1.y, 0);
                 glEnd();
             }
@@ -169,16 +175,16 @@ void ShapeControl::renderControls(Shape_p shape)
         glColor3f(0.0, 0.0, 0.0);
         if(sv->flag ==1)
             glColor3f(1.0, 1.0, 0);
-        glVertex3f(sv->P.x, sv->P.y, 0);
+        glVertex3f(p0.x, p0.y, 0);
         glEnd();
 
         if (isInRenderMode() && sv->parent()){
             glBegin(GL_LINES);
-            glVertex3f(sv->P.x, sv->P.y, 0);
-            glVertex3f(sv->parent()->P.x, sv->parent()->P.y, 0);
+            glVertex3f(p0.x, p0.y, 0);
+            glVertex3f(sv->parent()->P().x, sv->parent()->P().y, 0);
             glEnd();
         }
-    }
+    }*/
 }
 
 void SpineShape::render(int mode){

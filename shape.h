@@ -6,7 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <QColor>
-#include "base.h"
+#include "controlpoint.h"
 #include "Renderer/shaderparameters.h"
 
 #define NORMAL_RAD 0.04
@@ -42,37 +42,34 @@ struct BBox{
     Point               pivot() const {return (P[0]+P[1])*0.5;}
 };
 
-struct ShapeVertex
+class ShapeVertex:public ControlPoint
 {
-    Point               P;
-    Normal              N;
+
+protected:
+
+    void onDrag(const Point &, int button);
+
+public:
+
     unsigned long       flag;
     void*               pRef;
     bool                isPositionControl, isNormalControl;
 
-    QColor              C0, C1; //dark & bright images -> later should be moved to somewhere else
-
-    void drag(const Vec2& t, bool isNormal = false, bool isC2 = false);
-
-    void adopt(ShapeVertex_p sv);
     void setPair(ShapeVertex_p sv, bool isSetTangent =false , bool isSetNormal = false);
     void unpair();
     void setTangent(const Vec2&, bool isnormal=false, bool ispair=false);
     Vec2 getTangent();
 
-    inline Point_p       pP()                 {return &P;}
-    inline Normal_p      pN()                 {return &N;}
+    inline Point_p       pP()                 {return &_P;}
+    inline Normal        N()            const {return _N;}
+    inline Normal_p      pN()                 {return &_N;}
     inline Shape_p       shape()        const {return _pShape;}
 
-    inline ShapeVertex_p parent()       const {return _parent;}
     inline ShapeVertex_p pair()         const {return _pair;}
     inline int           id()           const {return _id;}
-    inline bool          hasChilds()    const {return _childs.size()>0;}
-    inline SVList        getChilds()    const {return _childs;}
     inline bool          isDeleted()    const {return _isDeleted;}
 
     void                 outdate();
-    static ShapeVertex_p get(int id);
 
     bool                _isDeleted; //public for now
 
@@ -82,16 +79,14 @@ private:
 
     int                 _id;
     Shape_p             _pShape;
+    Point               _P;
+    Normal              _N;
 
 
     ShapeVertex(Shape_p pS);
     ~ShapeVertex();
 
-    ShapeVertex_p _parent, _pair;
-    SVList _childs;
-
-    static int _COUNT;
-    static SVMap _svmap;
+    ShapeVertex_p _pair;
 };
 
 class Shape:public Draggable{
