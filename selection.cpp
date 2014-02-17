@@ -1,4 +1,5 @@
 #include "base.h"
+#include "commands.h"
 #include <qDebug>
 Selectable::Selectable(bool isUI):Renderable(isUI){
     _isDraggable = false;
@@ -48,18 +49,19 @@ bool SelectionManager::isInSelection(Selectable_p pS){
 }
 
 
-void SelectionManager::startSelect(Selectable_p pObj, bool isselect, bool isMultiSelect)
+void SelectionManager::startSelect(Selectable_p pObj, const Click & click)
 {
-    isSelect = isselect;
+    isSelect = click.is(Click::DOWN);
     _theSelected = pObj;
-    qDebug()<<pObj->name();
+    _click0 = click;
+    //qDebug()<<pObj->name();
 
     if (pObj)
         pObj->onDown();
     else
         return;
 
-    if (isMultiSelect){
+    if (click.isCtrl){
         if (isSelect)
             _selection.insert(pObj);
         else
@@ -68,10 +70,18 @@ void SelectionManager::startSelect(Selectable_p pObj, bool isselect, bool isMult
         _selection.clear();
 }
 
-void SelectionManager::stopSelect(){
+void SelectionManager::stopSelect(const Click& click){
     _lastSelected = _theSelected;
+    _click1 = click;
     if (!_theSelected)
         return;
+
+    if (_theSelected->isDraggable()){
+        Vec2 t = _click1.P - _click0.P;
+        if ( t.normsqr() > 0.0001)
+            Session::get()->exec(new Drag((Draggable_p)_theSelected, t));
+    }
+
     _theSelected->onUp();
     _theSelected = 0;
 }
@@ -89,6 +99,7 @@ bool SelectionManager::dragTheSelected(const Point& t, int button){
     if (dragged->isLocked)
         return false;
     dragged->drag(t, button);
+
     return true;
 }
 

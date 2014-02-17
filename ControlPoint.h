@@ -15,6 +15,7 @@ class ControlPoint: public Draggable{
 protected:
 
     Renderable_p _pControlled;
+    float        _color[3];
 
     void onDown(){
         if (isChild())
@@ -31,7 +32,9 @@ protected:
 
 public:
 
-    ControlPoint(Point_p pP, Renderable_p pControlled=0):Draggable(true, pP), _pControlled(pControlled){}
+    ControlPoint(Point_p pP, Renderable_p pControlled=0):Draggable(true, pP), _pControlled(pControlled){
+        _color[0] = _color[1] = _color[2] = 0.0;
+    }
 
     void render(int mode = 0);
     bool isActive() const {return (_pTheActive == this) || (_pTheActive == this->parent());}

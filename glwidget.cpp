@@ -183,6 +183,11 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     //send the click to the active shape
     int hit = selectGL(_lastP.x(), _lastP.y());
 
+    Click::Type type = event->buttons()&Qt::LeftButton ? (Click::DOWN): ((event->buttons()& Qt::RightButton)?(Click::R_DOWN):Click::NONE);
+    Click click(type, _lastWorldP);
+    click.isCtrl =  event->modifiers() & Qt::ControlModifier;
+    click.isAlt  =  event->modifiers() & Qt::AltModifier;
+
     //render mode only allows selection of light
     if(isInRenderMode() && is(PREVIEW_ON))
     {
@@ -190,7 +195,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
             Selectable_p pSel = select(hit, SelectBuff);
             if (is(DRAG_ON) && pSel->isUI())
             {
-                Session::get()->selectionMan()->startSelect(pSel, event->button() == Qt::LeftButton, event->modifiers() & Qt::ControlModifier);
+                Session::get()->selectionMan()->startSelect(pSel, click);
             }
         }
     }
@@ -201,14 +206,12 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
             if (is(DRAG_ON) && !pSel->isUI()){
                 Session::get()->activate((Shape_p)pSel);
             }
-            Session::get()->selectionMan()->startSelect(pSel, event->button() == Qt::LeftButton, event->modifiers() & Qt::ControlModifier);
+            Session::get()->selectionMan()->startSelect(pSel, click);
         }
 
         if (!is(DRAG_ON))
         {
-            Click::Type type = event->buttons()&Qt::LeftButton ? (Click::DOWN): ((event->buttons()& Qt::RightButton)?(Click::R_DOWN):Click::NONE);
-            if (type)
-                Session::get()->sendClick(Click(type, _lastWorldP));
+                Session::get()->sendClick(click);
         }
     }
     updateGL();
@@ -220,14 +223,18 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     if (is(PREVIEW_ON))
         return;
 
-    Session::get()->selectionMan()->stopSelect();
     _lastP = event->pos();
     _lastWorldP = toWorld(_lastP.x(), _lastP.y());
 
-    if (!is(DRAG_ON)){
-        Click::Type type = (event->button()==Qt::LeftButton) ? (Click::UP): ((event->button()== Qt::RightButton)?(Click::R_UP):Click::NONE);
-        if (type)
-            Session::get()->sendClick(Click(type, _lastWorldP));
+    Click::Type type = (event->button()==Qt::LeftButton) ? (Click::UP): ((event->button()== Qt::RightButton)?(Click::R_UP):Click::NONE);
+    Click click(type, _lastWorldP);
+    click.isCtrl =  event->modifiers() & Qt::ControlModifier;
+    click.isAlt  =  event->modifiers() & Qt::AltModifier;
+
+    Session::get()->selectionMan()->stopSelect(click);
+
+    if (!is(DRAG_ON) && type){
+        Session::get()->sendClick(click);
     }
     updateGL();
 }

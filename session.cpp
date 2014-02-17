@@ -92,12 +92,18 @@ void  Session::setCommand(Command_p pCommand){
     _pTheCommand->select();
 }
 
-void  Session::exec(){
-    if (!_pTheCommand)
+void  Session::exec(Command_p pCommand){
+
+    if (!pCommand)
+        pCommand = _pTheCommand;
+
+    if (!pCommand)
         return;
-    Command_p newcommand = _pTheCommand->exec();
-    _commands.push_back(_pTheCommand);
-    _pTheCommand = newcommand;
+
+    Command_p newcommand = pCommand->exec();
+    _commands.push_back(pCommand);
+    if (_pTheCommand)
+        _pTheCommand = newcommand;
     _pGlWidget->updateGL();
 }
 

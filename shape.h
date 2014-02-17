@@ -10,8 +10,6 @@
 #include "Renderer/shaderparameters.h"
 
 #define NORMAL_RAD 0.04
-#define NORMAL_CONTROL_BIT 30
-#define SV_ID_BIT 16
 
 enum ShapeType {MESH_SHAPE, SPINE_SHAPE, ELLIPSE_SHAPE, IMAGE_SHAPE};
 
@@ -20,7 +18,8 @@ class Shader;
 typedef Shape*                          Shape_p;
 typedef std::list<Shape_p>              ShapeList;
 
-struct  ShapeVertex;
+class   ShapeVertex;
+class   ControlNormal;
 typedef ShapeVertex*                    ShapeVertex_p;
 typedef std::list<ShapeVertex_p>        SVList;
 typedef std::map<int, ShapeVertex_p>    SVMap;
@@ -58,12 +57,14 @@ public:
     void setPair(ShapeVertex_p sv, bool isSetTangent =false , bool isSetNormal = false);
     void unpair();
     void setTangent(const Vec2&, bool isnormal=false, bool ispair=false);
+    void dragNormal(const Vec2 &t);
     Vec2 getTangent();
 
     inline Point_p       pP()                 {return &_P;}
     inline Normal        N()            const {return _N;}
     inline Normal_p      pN()                 {return &_N;}
     inline Shape_p       shape()        const {return _pShape;}
+    ControlNormal* pControlN()          const {return _pControlN;}
 
     inline ShapeVertex_p pair()         const {return _pair;}
     inline int           id()           const {return _id;}
@@ -82,12 +83,36 @@ private:
     Point               _P;
     Normal              _N;
 
+    ControlNormal*      _pControlN;
 
-    ShapeVertex(Shape_p pS);
+    ShapeVertex(Shape_p pS, bool isP = true, bool isN = true);
     ~ShapeVertex();
 
     ShapeVertex_p _pair;
 };
+
+class ControlNormal:public ControlPoint
+{
+
+    ShapeVertex_p _pSV;
+
+protected:
+    void onDrag(const Point &t, int button){
+        _pSV->dragNormal(t);
+    }
+
+public:
+
+    ControlNormal(ShapeVertex_p pSV):ControlPoint(0), _pSV(pSV){
+        _color[0] = 1.0;
+        makeDraggable();
+    }
+
+    inline Point P()    const{return _pSV->P() + Point(_pSV->N()*NORMAL_RAD);}
+
+
+};
+
 
 class Shape:public Draggable{
 

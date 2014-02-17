@@ -98,14 +98,13 @@ void ControlPoint::render(int mode) {
         return;
 
     //glColor3f(1.0, 1.0, 1.0);
-    glColor3f(0.0, 0.0, 0.0);
+    glColor3f(_color[0], _color[1], _color[2]);
     selectionColor((Selectable_p)this);
 
     glPointSize(5.0);
     glBegin(GL_POINTS);
     glVertex3f(P().x, P().y, 0);
     glEnd();
-
 
     if (isChild() && isInRenderMode()){
         glBegin(GL_LINES);
@@ -115,6 +114,7 @@ void ControlPoint::render(int mode) {
         glVertex3f(p1.x, p1.y, 0);
         glEnd();
     }
+
 }
 
 void Shape::render(int mode)
@@ -134,7 +134,10 @@ void ShapeControl::renderControls(Shape_p shape)
     SVList verts = shape->getVertices();
     FOR_ALL_CONST_ITEMS(SVList, verts){
         SKIP_DELETED_ITEM
-                (*it)->render();
+        if (Session::isRender(NORMALS_ON) && (*it)->isNormalControl)
+                (*it)->pControlN()->render();
+
+        (*it)->render();
     }
   /*
     //could not get pushname popname working!

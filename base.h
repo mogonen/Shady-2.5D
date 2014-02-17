@@ -126,6 +126,8 @@ protected:
     virtual void onUp(){}
     virtual void onDown(){}
 
+    inline void makeDraggable(){_isDraggable = true;}
+
 public:
 
     Selectable(bool isUI);
@@ -133,13 +135,7 @@ public:
 
     virtual void render(int mode = 0);
 
-//    void renderNamed(bool ispush = false) const;
-//    void renderUnnamed() const{
-//        render();
-//    }
-
     inline bool isDraggable() const{return _isDraggable;}
-    inline void makeDraggable(){_isDraggable = true;}
 
     int name() const{return _name;}
     bool isTheSelected() const;
@@ -155,6 +151,8 @@ class SelectionManager{
     SelectableMap       _selectables;
     SelectionSet        _selection;
 
+    Click               _click0, _click1;
+
 public:
     SelectionManager();
 
@@ -168,8 +166,8 @@ public:
 
     bool                isInSelection(Selectable_p pS);
 
-    void                startSelect(Selectable_p pObj, bool isselect, bool isMultiSelect);
-    void                stopSelect();
+    void                startSelect(Selectable_p pObj, const Click&);
+    void                stopSelect(const Click&);
     bool                dragTheSelected(const Vec2& t, int button = 0);
     void                reset();
 
@@ -190,7 +188,8 @@ protected:
         if (isParent())
         {
             FOR_ALL_CONST_ITEMS(DraggableList, _childs){
-                (*it)->pP()->set((*it)->P() + t);
+                if ((*it)->pP())
+                    (*it)->pP()->set((*it)->P() + t);
             }
         }
     }
@@ -214,14 +213,15 @@ public:
             (*it)->_parent = 0;
     }
 
-    inline Point    P() const{return *_pP;}
-    inline Point_p  pP() const{return _pP;}
+    virtual inline Point P()    const{return *_pP;}
+    inline Point_p  pP()        const{return _pP;}
 
     void flipLock(){isLocked =!isLocked;}
 
     void drag(const Point& t, int button = 0){
-        if(button == 0)
+        if(button == 0 && _pP){
             _pP->set(*_pP + t);
+        }
         onDrag(t, button);
     }
 
@@ -342,7 +342,7 @@ public:
 
     //Manage Commands
     void                setCommand(Command_p);
-    void                exec();
+    void                exec(Command_p pCommand = 0);
     int                 undo();
     int                 redo();
     void                cancel();

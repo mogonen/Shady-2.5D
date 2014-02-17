@@ -3,13 +3,20 @@
 
 //ShapeVertex///////////////////////////////////////////////////////////////////////////
 
-ShapeVertex::ShapeVertex(Shape_p pS):ControlPoint(&_P){
+ShapeVertex::ShapeVertex(Shape_p pS, bool isP, bool isN):ControlPoint(&_P){
     _pShape = pS;
     _N.set(0,0,1);
     flag = 0x00;
      _pair = 0;
     pRef = 0;
-    isPositionControl = isNormalControl = true;
+    isPositionControl = isP;
+    isNormalControl = isN;
+    if (isN){
+        _pControlN = new ControlNormal(this);
+        adopt(_pControlN);
+    }else
+        _pControlN = 0;
+
     _isDeleted = false;
 }
 
@@ -51,23 +58,7 @@ void ShapeVertex::onDrag(const Vec2 &t, int button){
     //if (button==)
 
     _pShape->outdate(this);
-    /*if (isNormal){
-
-        Vec2 v = (Vec2(N.x*NORMAL_RAD, N.y*NORMAL_RAD) + t);
-        double l = v.norm();
-        if ( l > NORMAL_RAD ){
-            v = v.normalize()*NORMAL_RAD;
-            l = NORMAL_RAD;
-        }
-        double h = sqrt(NORMAL_RAD*NORMAL_RAD - l*l);
-        if (h < 0)
-            h = 0;
-        N.set(Vec3(v.x, v.y, h).normalize());
-        return;
-    }else*/
     _pShape->drag(this, t);
-
-    //_P = _P + t;
 
     if (_pair && !_pair->_isDeleted){
 
@@ -93,6 +84,21 @@ void ShapeVertex::onDrag(const Vec2 &t, int button){
        _pShape->outdate(_pair);
     }
     Draggable::onDrag(t, button);
+}
+
+void ShapeVertex::dragNormal(const Vec2 &t){
+    _pShape->outdate(this);
+
+    Vec2 v = (Vec2(_N.x*NORMAL_RAD, _N.y*NORMAL_RAD) + t);
+    double l = v.norm();
+    if ( l > NORMAL_RAD ){
+        v = v.normalize()*NORMAL_RAD;
+        l = NORMAL_RAD;
+    }
+    double h = sqrt(NORMAL_RAD*NORMAL_RAD - l*l);
+    if (h < 0)
+        h = 0;
+    _N.set(Vec3(v.x, v.y, h).normalize());
 }
 
 void   ShapeVertex::setTangent(const Vec2& tan, bool isnormal, bool ispair){
@@ -137,13 +143,12 @@ ShapeVertex_p Shape::addVertex()
 }
 
 ShapeVertex_p Shape::addVertex(const Point& p, ShapeVertex_p parent, bool isPositionControl, bool isNormalControl){
-    ShapeVertex_p sv = addVertex();
+    ShapeVertex_p sv = new ShapeVertex(this, isPositionControl, isNormalControl);
+    _vertices.push_back(sv);
     sv->_P = p;
     if (parent){
         parent->adopt(sv);
     }
-    sv->isPositionControl  = isPositionControl;
-    sv->isNormalControl    = isNormalControl;
     return sv;
 }
 
