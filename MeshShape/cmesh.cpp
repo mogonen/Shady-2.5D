@@ -61,9 +61,9 @@ Edge_p Mesh::addEdge(Corner_p c0, Corner_p c1){
 }
 
 void Mesh::remove(Face_p f, bool lazydel){
-	if (_removeFaceCB)
-		_removeFaceCB(f);
-	f->remove();
+    /*if (_removeFaceCB)
+        _removeFaceCB(f);*/
+    f->remove(lazydel);
 	if (lazydel){
 		f->markDeleted();
 	}else{
@@ -72,8 +72,8 @@ void Mesh::remove(Face_p f, bool lazydel){
 	}
 }
 void Mesh::remove(Edge_p e, bool lazydel){
-	if (_removeEdgeCB)
-		_removeEdgeCB(e);
+    /*if (_removeEdgeCB)
+        _removeEdgeCB(e);*/
 
 	e->remove();
 	if (lazydel){
@@ -205,6 +205,46 @@ Mesh_p Mesh::deepCopy()
     return pCopy;
 }
 
+void Mesh::restore(FaceCache & face){
+    face.restore();
+    face.F()->_isdeleted = false;
+}
+
+
+void Mesh::ForAllEdges(void (*handler)(Edge_p),   bool isskipdeleted, bool isenamurate){
+    int id = 0;
+    for(std::list<Edge*>::iterator it = _edges.begin(); it!=_edges.end(); it++){
+        if (isenamurate)
+            (*it)->_id = id++;
+        if (isskipdeleted && (*it)->_isdeleted)
+            continue;
+        handler(*it);
+    }
+}
+
+void Mesh::ForAllFaces(void (*handler)(Face_p),   bool isskipdeleted, bool isenamurate){
+    int id = 0;
+    for(std::list<Face_p>::iterator it = _faces.begin(); it!=_faces.end(); it++){
+        if (isenamurate)
+            (*it)->_id = id++;
+        if (isskipdeleted && (*it)->_isdeleted)
+            continue;
+        handler(*it);
+    }
+}
+
+void Mesh::ForAllVerts(void (*handler)(Vertex_p), bool isskipdeleted, bool isenamurate){
+    int id = 0;
+    for(std::list<Vertex_p>::iterator it = _verts.begin(); it!=_verts.end(); it++){
+        if (isenamurate)
+            (*it)->_id = id++;
+        if (isskipdeleted && (*it)->_isdeleted)
+            continue;
+        handler(*it);
+    }
+}
+
+
 Corner::Corner(){
         _v = 0; // Vertex::nullV;
 		_e = 0;
@@ -244,10 +284,19 @@ Corner_p Corner::other(){
 bool Corner::isC0(){return this == _e->C0();}
 bool Corner::isBorder(){return _e->isBorder() ||  _prev->_e->isBorder();}
 
+void Corner::discardV(){
+    if (V()->C() == this){
+        if (Corner_p vnext = vNext()){
+            V()->set(vnext);
+        } else
+            V()->set(vPrev());
+    }
+}
 
 void Vertex::set(Corner_p c){
     _c = c;
-    _c->_v = this;
+    if (_c)
+        _c->_v = this;
 }
 
 Face::Face(int s){
@@ -273,7 +322,7 @@ void Face::set(Corner_p c, int i){
 	}
 
 	int ii = (i+_size)%_size;
-	_corns[ii] = c; 
+    _corns[ii] = c;
 	c->_f = this; 
     c->_i = ii;
 }
@@ -315,25 +364,28 @@ void Face::reoffset(int off){
     set(c0, c0->I() + off);
 }
 
-void Face::remove(){
-	for(int i=0; i<size(); i++){
+void Face::remove(bool layzdel){
+
+    for(int i=0; i<size(); i++)
+        C(i)->discardV();
+
+    for(int i=0; i<size(); i++){
         Edge_p e = C(i)->E();
 		if (!e)
 			continue;
+
 		if (e->isBorder()){
-			mesh()->remove(e);
+            mesh()->remove(e, layzdel);
 			//also remove V
 		}else{
             Corner_p ctemp = C(i)->other();
 			e->set(0, 1);
 			e->set(ctemp, 0);
-			delete C(i);
 		}
 	}
 }
 
 int Face::size() const {return _size;}
-
 
 bool Edge::isBorder(){return !_c1 || !_c1->F();}
 
@@ -360,8 +412,12 @@ void Edge::set(Corner_p c, int i){
 
 void Edge::remove(){
 
-	if (!_c1)
-		return;
+   // _c0->discardV();
+    if (!_c1){
+        _c0 = 0;
+        return;
+    }
+   // _c1->discardV();
 
     //reunion the faces
     Face_p f1 = _c1->F();
@@ -441,3 +497,29 @@ Edge_p Mesh::insertEdge(Corner_p i_c0, Corner_p i_c1, bool updatefaces){
 	return e;
 }
 
+FaceCache::FaceCache(Face_p pF){
+
+    _size  = pF->size();
+    _corns = new Corner[_size];
+    _isC0 = 0;
+
+    for(int i=0; i < _size; i++){
+        _corns[i] = *pF->C(i);
+        if (pF->C(i)->isC0())
+            _isC0 = _isC0 | (1 << i);
+    }
+}
+
+void FaceCache::restore(Face_p pF){
+    if (!pF)
+        pF = _corns[0].F();
+
+    for(int i=0; i<_size; i++){
+        Corner_p pC = new Corner();
+        pF->set(pC , i);
+        _corns[i].E()->set(pC);//, 1-(_isC0 & (1<<i)));
+        _corns[i].E()->_isdeleted = false;
+        _corns[i].V()->set(pC);
+    }
+    pF->update();
+}

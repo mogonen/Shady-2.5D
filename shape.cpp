@@ -15,6 +15,7 @@ ShapeVertex::ShapeVertex(Shape_p pS){
     pRef = 0;
     _svmap[_id] = this;
     isPositionControl = isNormalControl = true;
+    _isDeleted = false;
 }
 
 void ShapeVertex::adopt(ShapeVertex_p sv){
@@ -91,7 +92,7 @@ void ShapeVertex::drag(const Vec2 &t, bool isNormal, bool isC2){
 
     P = P + t;
 
-    if (_pair){
+    if (_pair && !_pair->_isDeleted){
 
         Vec2 tan  = (_parent->P - P);
         if (isC2){
@@ -176,19 +177,22 @@ ShapeVertex_p Shape::addVertex(const Point& p, ShapeVertex_p parent, bool isPosi
 }
 
 void Shape::removeVertex(ShapeVertex_p sv){
-    _vertices.remove(sv);
-    delete sv;
+    sv->_isDeleted = true;
+    //_vertices.remove(sv);
+    //delete sv;
 }
-
+/*
 void Shape::removeVertex(Point_p pP){
     SVList::iterator it = _vertices.begin();
     for(;it!=_vertices.end() && (*it)->pP() != pP; it++);
     if (it!=_vertices.end()){
         ShapeVertex_p sv =*it;
-        _vertices.erase(it);
-        delete sv;
+        sv->_isDeleted = true;
+        //_vertices.erase(it);
+        //delete sv;
     }
 }
+*/
 
 Point Shape::gT(){
     if (!parent())

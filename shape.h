@@ -69,9 +69,12 @@ struct ShapeVertex
     inline int           id()           const {return _id;}
     inline bool          hasChilds()    const {return _childs.size()>0;}
     inline SVList        getChilds()    const {return _childs;}
+    inline bool          isDeleted()    const {return _isDeleted;}
 
     void                 outdate();
     static ShapeVertex_p get(int id);
+
+    bool                _isDeleted; //public for now
 
 private:
 
@@ -79,7 +82,7 @@ private:
 
     int                 _id;
     Shape_p             _pShape;
-    bool                _isPositionControl, _isNormalControl;
+
 
     ShapeVertex(Shape_p pS);
     ~ShapeVertex();
@@ -123,7 +126,7 @@ public:
     ShapeVertex_p       addVertex();
     ShapeVertex_p       addVertex(const Point& p, ShapeVertex_p parent = 0, bool isPositionControl = true, bool isNormalControl = true);
     void                removeVertex(ShapeVertex_p sv);
-    void                removeVertex(Point_p pP);
+    //void                removeVertex(Point_p pP);
     SVList              getVertices() const {return _vertices;}
 
     virtual void        outdate(ShapeVertex_p sv){ Renderable::outdate(); }

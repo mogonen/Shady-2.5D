@@ -137,6 +137,7 @@ void ShapeControl::renderControls(Shape_p shape)
     glPointSize(4.0);
     SVList verts = shape->getVertices();
     FOR_ALL_CONST_ITEMS(SVList, verts){
+        SKIP_DELETED_ITEM
         ShapeVertex_p sv = (*it);
         if (sv->parent() && (!_theSelected || (_theSelected != sv->parent() && _theSelected->parent() != sv->parent())) )
             continue;
@@ -212,35 +213,8 @@ void SpineShape::render(int mode){
     glEnd();
 }
 
-void MeshShape::render(int mode) {
+void renderEdge(Edge_p pEdge){
 
-    if ( isInRenderMode() || isSelectMode(MeshOperation::EDGE)  )
-    {
-        EdgeList edges = _control->edges();
-        FOR_ALL_CONST_ITEMS(EdgeList, edges){
-            render(*it);
-        }
-    }
-
-    //too messy, fix it!
-    if (isInRenderMode() || isSelectMode(MeshOperation::FACE) || Session::isRender(DRAG_ON) )
-    {
-       /* qreal r, g, b;
-        diffuse.getRgbF(&r,&g,&b);
-
-        GLfloat mat_diff[]   = { (float)1.0, (float)g, (float)b, 1.0 };
-        glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diff);
-*/
-        FaceList faces = _control->faces();
-        FOR_ALL_CONST_ITEMS(FaceList, faces){
-            render(*it, mode);
-        }
-    }
-}
-
-void MeshShape::render(Edge_p pEdge) const{
-    if (this != theSHAPE)
-        return;
     if (pEdge->pData->pCurve){
         pEdge->pData->pCurve->render();
         return;
@@ -256,7 +230,7 @@ void MeshShape::render(Edge_p pEdge) const{
     glEnd();
 }
 
-void MeshShape::render(Face_p pFace, int mode) const{
+void renderFace(Face_p pFace){
     if (!pFace->pData->pSurface)
         return;
 
@@ -266,8 +240,23 @@ void MeshShape::render(Face_p pFace, int mode) const{
         glColor3f(1-diffuse.redF(),1-diffuse.greenF(),1-diffuse.blueF());
     else
         glColor3f(diffuse.redF(),diffuse.greenF(),diffuse.blueF());
-*/
-    pFace->pData->pSurface->render(mode);
+   */
+
+    pFace->pData->pSurface->render();
+}
+
+void MeshShape::render(int mode) {
+
+    if ( this == theSHAPE &&( isInRenderMode() || isSelectMode(MeshOperation::EDGE))  )
+    {
+       _control->ForAllEdges(renderEdge);
+    }
+
+    //too messy, fix it!
+    if (isInRenderMode() || isSelectMode(MeshOperation::FACE) || Session::isRender(DRAG_ON) )
+    {
+         _control->ForAllFaces(renderFace);
+    }
 }
 
 #ifdef FACIAL_SHAPE

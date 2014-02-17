@@ -21,6 +21,24 @@ struct EdgeData
        pCurve = 0;
    }
 
+   void relink(Edge_p pe){
+       pE = pe;
+       pE->pData = this;
+       pSV[0] = pE->C0()->V()->pData;
+       pSV[0]->pRef = (void*)pE->C0()->V();
+       pSV[3] = pE->C0()->next()->V()->pData;
+       pSV[3]->pRef = (void*)pE->C0()->next()->V();
+
+       pSV[1]->pRef = (void*)pE;
+       pSV[2]->pRef = (void*)pE;
+
+       //reanimate vertices, these should be handled better way
+       pSV[0]->_isDeleted = false;
+       pSV[1]->_isDeleted = false;
+       pSV[2]->_isDeleted = false;
+       pSV[3]->_isDeleted = false;
+   }
+
    ShapeVertex_p getTangentSV(Corner_p pC)
    {
 

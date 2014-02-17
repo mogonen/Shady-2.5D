@@ -13,6 +13,9 @@ class MeshOperation: public Command
     Edge_p      _pE;
     MeshShape*  _pMS;
 
+    typedef list<FaceCache> Cache;
+    Cache _cache;
+
 protected:
 
     void onClick(const Click &);
@@ -56,7 +59,7 @@ public:
     static void             diagonalDivide(Corner_p);
     static Face_p           extrude(Face_p, double);
     static Edge_p           extrude(Edge_p, double, bool isSmooth, VertexMap* vmap=0);
-    static void             deleteFace(Face_p);
+    static void             deleteFace(Face_p, Cache*pCache=0);
 
 
 private:

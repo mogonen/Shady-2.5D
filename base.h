@@ -13,9 +13,12 @@
 #define FOR_ALL_ITEMS_2(ItemList, items) for(ItemList::iterator it2 = items.begin(); it2 != items.end(); it2++)
 #define FOR_ALL_CONST_ITEMS(ItemList, items) for(ItemList::const_iterator it = items.begin(); it != items.end(); it++)
 #define FOR_ALL_CONST_ITEMS_2(ItemList, items) for(ItemList::const_iterator it2 = items.begin(); it2 != items.end(); it2++)
+#define SKIP_DELETED(pItem) if (pItem->isDeleted()) continue;
+#define SKIP_DELETED_ITEM if ((*it)->isDeleted()) continue;
 #define FOR_ALL_I(size) for(int i =0; i < size; i++ )
 #define FOR_ALL_J(size) for(int j =0; j < size; j++ )
 #define CLAMP(n, min, max) ( (n) < (min) ? (min) : ( ( (n) > (max) ) ? (max) : (n) ) )
+
 
 class Renderable;
 class Selectable;

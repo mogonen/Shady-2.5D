@@ -62,7 +62,7 @@ void MeshOperation::execOP(Selectable_p obj){
         break;
 
     case EXTRUDE_EDGE:{
-        extrude(pE, EXTRUDE_T, isKEEP_TOGETHER?&vertexToCornerMap:0);
+        extrude(pE, EXTRUDE_T, MeshShape::isSMOOTH, isKEEP_TOGETHER?&vertexToCornerMap:0);
         _pF = pE->C1()->F();
     }
         break;
@@ -76,7 +76,7 @@ void MeshOperation::execOP(Selectable_p obj){
         break;
 
     case DELETE_FACE:
-        deleteFace(pF);
+        deleteFace(pF, &_cache);
         break;
 
     case ASSIGN_PATTERN:
@@ -110,6 +110,16 @@ Command_p MeshOperation::exec(){
 
 Command_p MeshOperation::unexec(){
 
+    //_pMS->mesh()->enamurateVerts();
+    //_pMS->mesh()->enamurateEdges();
+    FOR_ALL_ITEMS(Cache, _cache){
+        _pMS->mesh()->restore(*it);
+        Face_p pF = (*it).F();
+        for(int i=0 ;i<pF->size(); i++){
+            pF->C(i)->E()->pData->relink(pF->C(i)->E());
+        }
+    }
+
     switch(_operation){
 
     case NONE:
@@ -129,7 +139,6 @@ Command_p MeshOperation::unexec(){
         break;
 
     case DELETE_FACE:
-
         break;
 
     case ASSIGN_PATTERN:

@@ -50,36 +50,34 @@ void  MeshShape::outdate(ShapeVertex_p sv){
     }
 }
 
+void updateCurve(Edge_p pE){
+    if (pE->pData->pCurve)
+        pE->pData->pCurve->update();
+}
+
+void updateSurface(Face_p pF){
+    if (pF->pData->pSurface)
+        pF->pData->pSurface->update();
+}
+
+void ensureUpToDateCurve(Edge_p pE){
+    if (pE->pData->pCurve)
+        pE->pData->pCurve->ensureUpToDate();
+}
+
+void ensureUpToDateSurface(Face_p pF){
+    if (pF->pData->pSurface)
+        pF->pData->pSurface->ensureUpToDate();
+}
+
 void MeshShape::onUpdate(){
-
-    EdgeList edges = _control->edges();
-    FOR_ALL_ITEMS(EdgeList, edges){
-        Edge_p e = (*it);
-        if (e->pData->pCurve)
-            e->pData->pCurve->update();
-    }
-
-    FaceList faces = _control->faces();
-    FOR_ALL_ITEMS(FaceList, faces){
-        if ((*it)->pData->pSurface)
-            (*it)->pData->pSurface->update();
-    }
+    _control->ForAllEdges(updateCurve);
+    _control->ForAllFaces(updateSurface);
 }
 
 void MeshShape::onEnsureUpToDate(){
-
-    EdgeList edges = _control->edges();
-    FOR_ALL_ITEMS(EdgeList, edges){
-        Edge_p e = (*it);
-        if (e->pData->pCurve)
-            e->pData->pCurve->ensureUpToDate();
-    }
-
-    FaceList faces = _control->faces();
-    FOR_ALL_ITEMS(FaceList, faces){
-        if ((*it)->pData->pSurface)
-            (*it)->pData->pSurface->ensureUpToDate();
-    }
+    _control->ForAllEdges(ensureUpToDateCurve);
+    _control->ForAllFaces(ensureUpToDateSurface);
 }
 
 void MeshShape::makeSmoothTangents(bool isskip, int ttype, double tank){

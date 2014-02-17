@@ -24,9 +24,6 @@ protected:
 
     //void onOutdate();
 
-    void render(Edge_p pEdge) const;
-    void render(Face_p pFace, int mode = 0) const;
-
     Vertex_p                addMeshVertex();
     Vertex_p                addMeshVertex(const Point&);
 

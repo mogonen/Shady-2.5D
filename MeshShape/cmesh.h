@@ -31,6 +31,7 @@ class Edge;
 class Vertex;
 class Face;
 class Mesh;
+class FaceCache;
 
 typedef Corner*     Corner_p;
 typedef Edge*       Edge_p;
@@ -56,9 +57,6 @@ class Mesh{
     void (*_addFaceCB)(Face_p);
     void (*_removeFaceCB)(Face_p);
     void* _caller;
-
-    //friend Corner_p Edge::split(Corner_p f=0);
-
 
 public:
 
@@ -89,6 +87,7 @@ public:
     void enamurateEdges();
     void enamurateFaces();
 	void buildEdges();
+    void restore(FaceCache &face);
 
 	//set callback functions
     void resetCB();
@@ -103,27 +102,31 @@ public:
 
     Mesh_p deepCopy();
 
+    void ForAllEdges(void (*handler)(Edge_p),   bool isskipdeleted = true, bool isenamurate = false);
+    void ForAllFaces(void (*handler)(Face_p),   bool isskipdeleted = true, bool isenamurate = false);
+    void ForAllVerts(void (*handler)(Vertex_p), bool isskipdeleted = true, bool isenamurate = false);
 };
 
 class Element{
 
-	unsigned int _isdeleted;
+    bool _isdeleted;
 	unsigned int _id;
     friend class Mesh;
     Mesh_p _mesh;
 
-    void markDeleted(){_isdeleted = DELETED;}
+    void markDeleted(){_isdeleted = true;}//{_isdeleted = DELETED;}
+
+    friend class FaceCache;
 
 public:
 
-    Element(){ _mesh = 0; pStore =0; }
+    Element(){ _mesh = 0; pStore =0; _isdeleted = false;}
 
     inline int id() const {return _id;}
     Mesh* mesh()const {return _mesh;}
-    bool isDeleted()const {return _isdeleted == DELETED;}
+    bool isDeleted()const {return _isdeleted;}
 
-    const static unsigned int DELETED = 0x0AB10;
-
+    //const static unsigned int DELETED = 0x0AB10;
     void* pStore; //generic pointer for storage
 };
 
@@ -154,7 +157,7 @@ class Face: public Element{
     Corner_p* _corns; //strickly cockwise
 
     Face(int s=4);
-	void remove();
+    void remove(bool layzdel = false);
 
     friend class Mesh;
 
@@ -211,6 +214,8 @@ class Corner{
 public:
 
 	Corner();
+    //~Corner();
+
 
 	inline int I(){return _i;}
 
@@ -229,6 +234,22 @@ public:
 
 	bool isC0();
     bool isBorder();
+
+    void discardV();
+
+};
+
+class FaceCache{
+
+    Corner*         _corns;
+    unsigned int    _isC0;
+    int             _size;
+
+public:
+    FaceCache(Face_p);
+    void restore(Face_p pF = 0);
+
+    Face_p F() const {return _corns[0].F();}
 
 };
 
