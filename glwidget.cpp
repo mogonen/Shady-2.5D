@@ -265,12 +265,12 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         if(event->buttons() & Qt::LeftButton)
         {
             if (is(DRAG_ON))
-                Session::get()->selectionMan()->dragTheSelected(p - _lastWorldP);
+                Session::get()->selectionMan()->dragSelected(p - _lastWorldP);
         }
         else
         {
             if (is(DRAG_ON))
-                Session::get()->selectionMan()->dragTheSelected(p - _lastWorldP, 1);
+                Session::get()->selectionMan()->dragSelected(p - _lastWorldP, 1);
         }
     }
     _lastWorldP = p;

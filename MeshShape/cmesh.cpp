@@ -60,10 +60,11 @@ Edge_p Mesh::addEdge(Corner_p c0, Corner_p c1){
 	return e;
 }
 
-void Mesh::remove(Face_p f, bool lazydel){
+void Mesh::remove(Face_p f, bool lazydel, bool isremove){
     /*if (_removeFaceCB)
         _removeFaceCB(f);*/
-    f->remove(lazydel);
+    if (isremove)
+        f->remove(lazydel);
 	if (lazydel){
 		f->markDeleted();
 	}else{
@@ -71,11 +72,11 @@ void Mesh::remove(Face_p f, bool lazydel){
 		delete f;
 	}
 }
-void Mesh::remove(Edge_p e, bool lazydel){
+void Mesh::remove(Edge_p e, bool lazydel, bool isremove){
     /*if (_removeEdgeCB)
         _removeEdgeCB(e);*/
-
-	e->remove();
+    if (isremove)
+        e->remove();
 	if (lazydel){
 		e->markDeleted();
 	}else{
@@ -497,28 +498,39 @@ Edge_p Mesh::insertEdge(Corner_p i_c0, Corner_p i_c1, bool updatefaces){
 	return e;
 }
 
-FaceCache::FaceCache(Face_p pF){
+FaceCache::FaceCache(Face_p pF, bool isRemove){
 
+    _isRemove = isRemove;
     _size  = pF->size();
     _corns = new Corner[_size];
+    _pF = pF;
     _isC0 = 0;
 
     for(int i=0; i < _size; i++){
         _corns[i] = *pF->C(i);
-        if (pF->C(i)->isC0())
-            _isC0 = _isC0 | (1 << i);
+        if (pF->C(i)->E()->isBorder()) _isC0 = _isC0 | (1 << i);
     }
 }
 
 void FaceCache::restore(Face_p pF){
     if (!pF)
-        pF = _corns[0].F();
+        pF = _pF;
+
+   /* if (_isRemove){
+        _pF->mesh()->remove(_pF, true);
+        return;
+    }*/
 
     for(int i=0; i<_size; i++){
         Corner_p pC = new Corner();
         pF->set(pC , i);
-        _corns[i].E()->set(pC);//, 1-(_isC0 & (1<<i)));
-        _corns[i].E()->_isdeleted = false;
+        bool isc0 = (_isC0 & (1<<i));
+        Edge_p e = _corns[i].E();
+        if (isc0)
+            e->set(pC,0);
+        else
+            e->set(pC);
+        e->_isdeleted = false;
         _corns[i].V()->set(pC);
     }
     pF->update();

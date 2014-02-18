@@ -1,6 +1,7 @@
 #include "meshshape.h"
 #include "meshcommands.h"
 #include "spineshape.h"
+#include "patch.h"
 
 //Defaults
 bool        MeshShape::isSMOOTH             = true;
@@ -55,24 +56,24 @@ void MeshOperation::execOP(Selectable_p obj){
 
     if (!pMS) return; //assert
     _pMS = pMS;
+    _pF = pF;
+    _pE = pE;
 
     switch(_operation){
 
     case NONE:
         break;
 
-    case EXTRUDE_EDGE:{
-        extrude(pE, EXTRUDE_T, MeshShape::isSMOOTH, isKEEP_TOGETHER?&vertexToCornerMap:0);
-        _pF = pE->C1()->F();
-    }
+    case EXTRUDE_EDGE:
+        extrude(pE, EXTRUDE_T, MeshShape::isSMOOTH, isKEEP_TOGETHER?&vertexToCornerMap:0, &_cache);
         break;
 
     case INSERT_SEGMENT:
-        insertSegment(pE, _click.P);
+        insertSegment(pE, (_click.P - _pMS->P()),  &_cache);
         break;
 
     case EXTRUDE_FACE:
-        extrude(pF, EXTRUDE_T);
+        extrude(pF, EXTRUDE_T,  &_cache);
         break;
 
     case DELETE_FACE:
@@ -93,8 +94,7 @@ void MeshOperation::execOP(Selectable_p obj){
 
     }
 
-    if (_operation != DELETE_FACE)
-        pMS->Renderable::update();
+    pMS->Renderable::update();
 
 }
 
@@ -109,56 +109,8 @@ Command_p MeshOperation::exec(){
 }
 
 Command_p MeshOperation::unexec(){
-
-    //_pMS->mesh()->enamurateVerts();
-    //_pMS->mesh()->enamurateEdges();
-    FOR_ALL_ITEMS(Cache, _cache){
-        _pMS->mesh()->restore(*it);
-        Face_p pF = (*it).F();
-        for(int i=0 ;i<pF->size(); i++){
-            pF->C(i)->E()->pData->relink(pF->C(i)->E());
-        }
-    }
-
-    switch(_operation){
-
-    case NONE:
-        break;
-
-    case EXTRUDE_EDGE:{
-        deleteFace(_pF);
-    }
-        break;
-
-    case INSERT_SEGMENT:
-
-        break;
-
-    case EXTRUDE_FACE:
-
-        break;
-
-    case DELETE_FACE:
-        break;
-
-    case ASSIGN_PATTERN:
-    {
-
-    }
-        break;
-
-    case SET_FOLDS:
-    {
-
-    }
-        break;
-
-    }
-
-    if (_operation != DELETE_FACE && _pMS)
-        _pMS->Renderable::update();
-
-    return new MeshOperation(_operation);
+    _cache.restore();
+    return 0;
 }
 
 void MeshOperation::onClick(const Click & click)
@@ -169,6 +121,65 @@ void MeshOperation::onClick(const Click & click)
     Session::get()->exec(); //this could be improved later
 }
 
+void MeshOperationCache::restore(){
+
+    for(list<Edge_p>::reverse_iterator it = _edgesToDel.rbegin(); it!=_edgesToDel.rend(); it++)
+    {
+        Edge_p e = (*it);
+        for(int i=0; i<4; i++){
+            e->pData->pSV[i]->_isDeleted = true;
+        }
+        e->mesh()->remove(e, true, false);
+    }
+
+    for(list<Face_p>::reverse_iterator it = _facesToDel.rbegin(); it!=_facesToDel.rend(); it++)
+    {
+        MeshOperation::deleteFace(*it);
+    }
+
+    for(list<FaceCache>::reverse_iterator it = _cachedFaces.rbegin(); it!=_cachedFaces.rend(); it++)
+    {
+        Face_p pF = (*it).F();
+        pF->mesh()->restore(*it);
+        for(int i=0 ;i<pF->size(); i++)
+        {
+            pF->C(i)->E()->pData->relink(pF->C(i)->E());
+        }
+        pF->pData->pSurface->outdate();
+    }
+
+    for(list<SVCache>::reverse_iterator it = _cachedSV.rbegin(); it!=_cachedSV.rend(); it++)
+    {
+        (*it).restore();
+    }
+}
+
+void MeshOperationCache::add(Face_p pF, bool isdel){
+    if (isdel)
+        _facesToDel.push_back(pF);
+    else{
+        _cachedFaces.push_back(FaceCache(pF));
+        for(int i=0; i<pF->size(); i++){
+            _cachedSV.push_back(SVCache(pF->C(i)->E()->pData->pSV[1]));
+            _cachedSV.push_back(SVCache(pF->C(i)->E()->pData->pSV[2]));
+            _cachedSV.push_back(SVCache(pF->C(i)->V()->pData));
+        }
+    }
+}
+
+void MeshOperationCache::add(ShapeVertex_p pSV, bool isdel){
+    if (!isdel)
+        _cachedSV.push_back(SVCache(pSV));
+}
+
+void MeshOperationCache::add(Edge_p pE, bool isdel){
+    if (isdel)
+        _edgesToDel.push_back(pE);
+    else{
+        for(int i=0; i<4; i++)
+            _cachedSV.push_back(SVCache(pE->pData->pSV[i]));
+    }
+}
 
 void MeshPrimitive::onClick(const Click & click){
     if (!click.is(Click::DOWN))

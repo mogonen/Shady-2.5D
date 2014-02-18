@@ -37,6 +37,11 @@ struct EdgeData
        pSV[1]->_isDeleted = false;
        pSV[2]->_isDeleted = false;
        pSV[3]->_isDeleted = false;
+
+       pCurve->set(pSV[0]->pP(),0);
+       pCurve->set(pSV[1]->pP(),1);
+       pCurve->set(pSV[2]->pP(),2);
+       pCurve->set(pSV[3]->pP(),3);
    }
 
    ShapeVertex_p getTangentSV(Corner_p pC)

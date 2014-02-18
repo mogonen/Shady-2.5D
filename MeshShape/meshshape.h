@@ -27,8 +27,6 @@ protected:
     Vertex_p                addMeshVertex();
     Vertex_p                addMeshVertex(const Point&);
 
-
-
     friend class SpineShape;
     friend class MeshOperation;
     friend class MeshPrimitive;

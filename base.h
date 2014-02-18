@@ -168,7 +168,7 @@ public:
 
     void                startSelect(Selectable_p pObj, const Click&);
     void                stopSelect(const Click&);
-    bool                dragTheSelected(const Vec2& t, int button = 0);
+    bool                dragSelected(const Vec2& t, int button = 0);
     void                reset();
 
     bool                isSelect;

@@ -94,7 +94,7 @@ void ControlPoint::render(int mode) {
 
     Selectable::render(mode);
 
-    if (isChild() && !isActive())
+    if (!Session::isRender(NORMALS_ON) && isChild() && !isActive())
         return;
 
     //glColor3f(1.0, 1.0, 1.0);

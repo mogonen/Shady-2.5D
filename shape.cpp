@@ -121,6 +121,42 @@ Vec2 ShapeVertex::getTangent(){
     return Vec2(0,0);
 }
 
+SVCache::SVCache(ShapeVertex_p sv){
+    _sv = sv;
+    _pair = sv->pair();
+    _parent = (ShapeVertex_p)sv->parent();
+    _childs = sv->getChilds();
+    _P = _sv->P();
+    _N = _sv->N();
+}
+
+void SVCache::restore(){
+
+    _sv->_N = _N;
+    _sv->_P = _P;
+    _sv->unparent();
+    if (_parent){
+        _parent->adopt(_sv);
+    }
+
+    if (_pair)
+        _sv->setPair(_pair);
+
+    DraggableList childs = _sv->getChilds();
+    FOR_ALL_ITEMS(DraggableList, childs){
+        (*it)->unparent();
+    }
+
+    if (!_childs.empty()){
+        FOR_ALL_ITEMS(DraggableList, _childs){
+            ShapeVertex_p child = (ShapeVertex_p)(*it);
+            child->unparent();
+            _sv->adopt(child);
+        }
+    }
+
+    //_sv->isNormalControl = _sv->isParent();
+}
 
 //Shape////////////////////////////////////////////////////////////////////////////////////
 

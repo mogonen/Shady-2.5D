@@ -41,6 +41,19 @@ struct BBox{
     Point               pivot() const {return (P[0]+P[1])*0.5;}
 };
 
+class SVCache{
+
+    ShapeVertex_p _sv, _pair, _parent;
+    DraggableList _childs;
+
+    Point  _P;
+    Normal _N;
+
+public:
+    SVCache(ShapeVertex_p sv);
+    void restore();
+};
+
 class ShapeVertex:public ControlPoint
 {
 
@@ -77,6 +90,7 @@ public:
 private:
 
     friend class Shape;
+    friend class SVCache;
 
     int                 _id;
     Shape_p             _pShape;

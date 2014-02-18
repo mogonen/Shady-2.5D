@@ -79,8 +79,8 @@ public:
     Edge_p      insertEdge(Corner_p, Corner_p, bool updatefaces = true);
     Corner_p    splitEdge(Edge_p, Vertex_p vP = 0, Face_p f = 0);
 
-    void remove(Face_p f, bool lazydel = false);
-    void remove(Edge_p e, bool lazydel = false);
+    void remove(Face_p f, bool lazydel = true,  bool isremove = true);
+    void remove(Edge_p e, bool lazydel = true, bool isremove = true);
 
 	void updateF();
 	void enamurateVerts();
@@ -242,14 +242,18 @@ public:
 class FaceCache{
 
     Corner*         _corns;
-    unsigned int    _isC0;
     int             _size;
+    Face_p          _pF;
+    unsigned int    _isC0;
+
+    bool            _isRemove;
 
 public:
-    FaceCache(Face_p);
+    FaceCache(Face_p, bool isRemove = false);
     void restore(Face_p pF = 0);
 
-    Face_p F() const {return _corns[0].F();}
+    Face_p F() const {return _pF;}
+    bool   isRemove(){return _isRemove;}
 
 };
 

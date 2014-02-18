@@ -7,10 +7,12 @@ class Drag:public Command{
 
     Vec2 _t;
     Draggable_p     _pObj;
+    SelectionSet    _selection;
 
 public:
 
     Drag(Draggable_p pObj, const Vec2& t);
+    Drag(SelectionSet set, const Vec2& t);
 
     enum DragTool {NONE, AUTO_BIND, MANUAL_BIND, BREAK};
     enum Continuity {C0, C1, C2};

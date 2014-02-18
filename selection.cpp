@@ -66,7 +66,7 @@ void SelectionManager::startSelect(Selectable_p pObj, const Click & click)
             _selection.insert(pObj);
         else
             _selection.erase(pObj);
-    }else
+    }else if (_theSelected && !_theSelected->isInSelection())
         _selection.clear();
 }
 
@@ -78,8 +78,12 @@ void SelectionManager::stopSelect(const Click& click){
 
     if (_theSelected->isDraggable()){
         Vec2 t = _click1.P - _click0.P;
-        if ( t.normsqr() > 0.0001)
-            Session::get()->exec(new Drag((Draggable_p)_theSelected, t));
+        if ( t.normsqr() > 0.0001){
+            if (!_selection.empty())
+                Session::get()->exec(new Drag(_selection, t));
+            else
+                Session::get()->exec(new Drag((Draggable_p)_theSelected, t));
+        }
     }
 
     _theSelected->onUp();
@@ -91,14 +95,23 @@ void SelectionManager::reset(){
     _count = 0;
 }
 
-bool SelectionManager::dragTheSelected(const Point& t, int button){
+bool SelectionManager::dragSelected(const Point& t, int button){
 
     if (!_theSelected || !_theSelected->isDraggable())
         return false;
     Draggable_p dragged = ((Draggable_p)_theSelected);
     if (dragged->isLocked)
         return false;
-    dragged->drag(t, button);
+
+    if (!_selection.empty()){
+        FOR_ALL_ITEMS(SelectionSet, _selection){
+            if (!(*it)->isDraggable())
+                continue;
+            Draggable_p pDragged = (Draggable_p)(*it);
+            pDragged->drag(t, button);
+        }
+    }else
+        dragged->drag(t, button);
 
     return true;
 }
