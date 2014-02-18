@@ -206,6 +206,7 @@ void MeshShape::makeSmoothCorners(Corner_p pC, bool isskipsharp, int tangenttype
 
 Bezier* initCurve(Edge_p e){
 
+
     if (!e->pData)
         e->pData = new EdgeData(e);
 

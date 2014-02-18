@@ -1,5 +1,7 @@
 #include "meshcommands.h"
 
+
+
 void onSplitEdge(Corner_p c, double t)
 {
     bool isforward = true;
@@ -78,6 +80,7 @@ Point computeVerticalTangent(double t, Edge_p pE, Face_p pF =0)
     Point p1 = p56*(1-t) + p67*t;
     return p0*(1-t) + p1*t;
 }
+
 
 void MeshOperation::insertSegment(Edge_p e, const Point & p,  MeshOperationCache *pCache){
 

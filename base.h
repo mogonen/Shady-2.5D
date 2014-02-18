@@ -229,9 +229,13 @@ public:
     bool isParent()const {return _childs.size()>0;}
     Draggable_p parent() const {return _parent;}
 
-    bool adopt(Draggable_p pObj){
-        if (pObj->_parent)
-            return false;
+    bool adopt(Draggable_p pObj, bool isunparent=true){
+        if (pObj->_parent){
+            if (isunparent)
+                pObj->unparent();
+            else
+                return false;
+        }
         _childs.push_back(pObj);
         pObj->_parent = this;
         return true;

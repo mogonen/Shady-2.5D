@@ -123,6 +123,57 @@ Corner_p Mesh::splitEdge(Edge_p pE, Vertex_p pV, Face_p f){
     return cc;
 }
 
+Edge_p Mesh::insertEdge(Corner_p i_c0, Corner_p i_c1, bool updatefaces){
+
+    if (i_c0->F() != i_c1->F())
+        return 0;
+
+    Corner_p c0n_0 = i_c0->next();
+    Corner_p c1n_0 = i_c1->next();
+
+    Face_p f0 = i_c0->F();
+    Face_p f1 = addFace(4);
+
+    f0->set(i_c0);
+    f1->set(i_c1);
+
+    Corner_p c0n = new Corner();
+    f0->set(c0n,-1);
+    i_c1->V()->set(c0n);
+
+    Corner_p c1n = new Corner();
+    f1->set(c1n,-1);
+    i_c0->V()->set(c1n);
+
+    i_c0->setNext(c0n);
+    i_c1->setNext(c1n);
+    c0n->setNext(c1n_0);
+    c1n->setNext(c0n_0);
+
+    //check edges
+    if (i_c0->E()->_c0 == i_c0)
+        i_c0->E()->set(c1n,0);
+    else
+        i_c0->E()->set(c1n,1);
+
+    if (i_c1->E()->_c0 == i_c1)
+        i_c1->E()->set(c0n,0);
+    else
+        i_c1->E()->set(c0n,1);
+
+    for(Corner_p c = i_c1->next(); c!=i_c1; c = c->next())
+        f1->set(c, -1);
+
+    if (updatefaces){
+        f0->Face::update(true);
+        f1->Face::update(true,2);
+    }
+
+    Edge_p e = addEdge(i_c0, i_c1);
+
+    return e;
+}
+
 void Mesh::updateF(){
     for(std::list<Face_p>::iterator itf = _faces.begin(); itf!=_faces.end(); itf++)
 		(*itf)->update();
@@ -447,56 +498,7 @@ Edge::Edge(){
     pData = 0;
 }
 
-Edge_p Mesh::insertEdge(Corner_p i_c0, Corner_p i_c1, bool updatefaces){
 
-	if (i_c0->F() != i_c1->F())
-		return 0;
-
-    Corner_p c0n_0 = i_c0->next();
-    Corner_p c1n_0 = i_c1->next();
-
-    Face_p f0 = i_c0->F();
-    Face_p f1 = addFace(4);
-
-	f0->set(i_c0);
-	f1->set(i_c1);
-
-    Corner_p c0n = new Corner();
-    f0->set(c0n,-1);
-    i_c1->V()->set(c0n);
-
-    Corner_p c1n = new Corner();
-    f1->set(c1n,-1);
-    i_c0->V()->set(c1n);
-
-    i_c0->setNext(c0n);
-    i_c1->setNext(c1n);
-    c0n->setNext(c1n_0);
-    c1n->setNext(c0n_0);
-
-	//check edges
-	if (i_c0->E()->_c0 == i_c0)
-        i_c0->E()->set(c1n,0);
-	else
-        i_c0->E()->set(c1n,1);
-
-	if (i_c1->E()->_c0 == i_c1)
-        i_c1->E()->set(c0n,0);
-	else
-        i_c1->E()->set(c0n,1);
-
-    for(Corner_p c = i_c1->next(); c!=i_c1; c = c->next())
-		f1->set(c, -1);
-	
-	if (updatefaces){
-        f0->Face::update(true);
-        f1->Face::update(true,2);
-	}
-
-    Edge_p e = addEdge(i_c0, i_c1);
-
-	return e;
-}
 
 FaceCache::FaceCache(Face_p pF, bool isRemove){
 

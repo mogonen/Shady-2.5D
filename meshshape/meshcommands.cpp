@@ -69,7 +69,7 @@ void MeshOperation::execOP(Selectable_p obj){
         break;
 
     case INSERT_SEGMENT:
-        insertSegment(pE, (_click.P - _pMS->P()),  &_cache);
+        insertSegment(pE, (_click.P - _pMS->P()), &_cache);
         break;
 
     case EXTRUDE_FACE:
