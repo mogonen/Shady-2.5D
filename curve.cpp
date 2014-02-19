@@ -83,7 +83,7 @@ Point Bezier::evalP(double t) const{
     return p;
 }
 
-void Bezier::calculateDivideCV(double t, Point newCV[])
+void Bezier::computeSubdivisionCV(double t, Point newCV[])
  {
     newCV[0] = CV(0);
     newCV[6] = CV(3);

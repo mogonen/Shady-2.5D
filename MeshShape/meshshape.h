@@ -58,7 +58,7 @@ public:
 //Callbacks
 void                        onInsertEdge(Edge_p);
 void                        onAddFace(Face_p);
-Bezier*                     initCurve(Edge_p);
+Bezier*                     initCurve(Corner_p);
 
 
 //helper functions

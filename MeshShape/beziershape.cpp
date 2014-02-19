@@ -10,7 +10,7 @@ void  MeshShape::outdate(ShapeVertex_p sv){
             return;
         e->pData->pCurve->update();
         e->C0()->F()->pData->pSurface->outdate();
-        if (e->C1())
+        if (!e->isBorder())
             e->C1()->F()->pData->pSurface->outdate();
 
     }else{//this is vertex
@@ -22,7 +22,8 @@ void  MeshShape::outdate(ShapeVertex_p sv){
             return;
         Corner_p c0 = c;
         while(c){
-            c->F()->pData->pSurface->outdate();
+            if (c->F())
+                c->F()->pData->pSurface->outdate();
             c->E()->pData->pCurve->outdate();
             c = c->vNext();
             if (c==c0)
@@ -204,49 +205,9 @@ void MeshShape::makeSmoothCorners(Corner_p pC, bool isskipsharp, int tangenttype
     }
 }
 
-Bezier* initCurve(Edge_p e){
-
-
-    if (!e->pData)
-        e->pData = new EdgeData(e);
-
-    if (e->pData->pCurve)
-        return e->pData->pCurve;
-
-    Vertex_p v0 = e->C0()->V();
-    Vertex_p v1 = e->C0()->next()->V();
-    Point p0 = v0->pData->P();
-    Point p1 = v1->pData->P();
-
-    Vec2 tan0 = p1 - p0;
-    Vec2 tan1 = p0 - p1;
-
-    MeshShape* shape = (MeshShape*) e->mesh()->caller();
-
-    ShapeVertex_p sv0_t = shape->addVertex(p0 + tan0/3.0, v0->pData, true, false);
-    ShapeVertex_p sv1_t = shape->addVertex(p1 + tan1/3.0, v1->pData, true, false);
-
-    sv0_t->pRef = e;
-    sv1_t->pRef = e;
-    e->pData->pSV[1] = sv0_t;
-    e->pData->pSV[2] = sv1_t;
-
-    e->pData->pSV[0] = e->C0()->V()->pData;
-    e->pData->pSV[3] = e->C0()->next()->V()->pData;
-
-    Bezier* c = new Bezier(100);
-    e->pData->pCurve = c;
-
-    c->insert(v0->pData->pP());
-    c->insert(sv0_t->pP());
-    c->insert(sv1_t->pP());
-    c->insert(v1->pData->pP());
-    c->pRef = (void*) e;
-    return c;
-}
 
 void onInsertEdge(Edge_p e){
-    initCurve(e);
+    initCurve(e->C0());
 }
 
 void onAddFace(Face_p pF)

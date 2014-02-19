@@ -13,6 +13,7 @@
 
 #include <list>
 
+
 /*class Vec2;
 class Vec3;
 class Bezier;
@@ -77,7 +78,7 @@ public:
     Face_p      addTriangle(Vertex_p, Vertex_p, Vertex_p);
     Edge_p      addEdge(Corner_p c0, Corner_p c1=0);
     Edge_p      insertEdge(Corner_p, Corner_p, bool updatefaces = true);
-    Corner_p    splitEdge(Edge_p, Vertex_p vP = 0, Face_p f = 0);
+    Corner_p    splitEdge(Corner_p, Vertex_p vP = 0);
 
     void remove(Face_p f, bool lazydel = true,  bool isremove = true);
     void remove(Edge_p e, bool lazydel = true, bool isremove = true);
@@ -86,7 +87,7 @@ public:
 	void enamurateVerts();
     void enamurateEdges();
     void enamurateFaces();
-	void buildEdges();
+    void buildEdges(bool isouterface = true);
     void restore(FaceCache &face);
 
 	//set callback functions
@@ -133,17 +134,19 @@ public:
 class Edge: public Element{
 
     Edge();
-	Corner	*_c0, *_c1;
+    //Corner_p _corns[2];
+    Corner	*_c0, *_c1;
 
 	void remove();
     friend class Mesh;
 
 public:
 
-    inline Corner_p C0(){return _c0;}
-    inline Corner_p C1(){return _c1;}
+    inline Corner_p C0()const{return _c0;}//?_c0:_c1;}
+    inline Corner_p C1()const{return _c1;}//?_c1:_c0;}
 	
-    Corner_p other(Corner_p c){return (c==_c0)?_c1:_c0;}
+    Corner_p other(Corner_p c) const{return (c==_c0)?_c1:_c0;}
+    bool      isC1(Corner_p c)  const{return (c==_c1);}
     void set(Corner_p, int i=-1);
 	bool isBorder();
 
@@ -232,7 +235,7 @@ public:
     void setNext(Corner_p c);
     //void set(int i){_i = i;}
 
-	bool isC0();
+    bool isC1();
     bool isBorder();
 
     void discardV();
@@ -244,7 +247,7 @@ class FaceCache{
     Corner*         _corns;
     int             _size;
     Face_p          _pF;
-    unsigned int    _isC0;
+    unsigned int    _isC1;
 
     bool            _isRemove;
 

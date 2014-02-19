@@ -65,7 +65,7 @@ public:
     Bezier(int sz):Spline(sz){}
     Point evalP(double) const;
 
-    void calculateDivideCV(double t, Point[]);
+    void computeSubdivisionCV(double t, Point[]);
 };
 
 static const int FTABLE[] = {1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600};

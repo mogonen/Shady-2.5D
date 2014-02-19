@@ -155,6 +155,8 @@ void MeshOperationCache::restore(){
 }
 
 void MeshOperationCache::add(Face_p pF, bool isdel){
+    if (!pF)
+        return;
     if (isdel)
         _facesToDel.push_back(pF);
     else{

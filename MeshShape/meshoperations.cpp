@@ -1,28 +1,92 @@
 #include "meshcommands.h"
 
+Bezier* initCurve(Corner_p pC){
+
+    if(!pC)
+        return 0;
+
+    Edge_p pE = pC->E();
+
+    if (!pE->pData)
+        pE->pData = new EdgeData(pE);
 
 
-void onSplitEdge(Corner_p c, double t)
+    Vertex_p v0 = pC->V();
+    Vertex_p v1 = pC->next()->V();
+
+    if (pE->pData->pCurve)
+        return pE->pData->pCurve;
+    /*{
+        EdgeData* pED = pE->pData;
+        pED->pSV[0] = v0->pData;
+        pED->pSV[3] = v1->pData;
+
+        pED->pSV[0]->pRef = (void*)v0;
+        pED->pSV[3]->pRef = (void*)v1;
+
+        ShapeVertex_p sv1 = pED->getTangentSV(pC);
+        ShapeVertex_p sv2 = pED->getTangentSV(pC->next());
+
+        pED->pSV[1] = sv1;
+        pED->pSV[2] = sv2;
+
+        pED->pCurve->set(pED->pSV[0]->pP(),0);
+        pED->pCurve->set(pED->pSV[1]->pP(),1);
+        pED->pCurve->set(pED->pSV[2]->pP(),2);
+        pED->pCurve->set(pED->pSV[3]->pP(),3);
+
+    }*/
+
+    Point p0 = v0->pData->P();
+    Point p1 = v1->pData->P();
+
+    Vec2 tan0 = p1 - p0;
+    Vec2 tan1 = p0 - p1;
+
+    MeshShape* shape = (MeshShape*) pE->mesh()->caller();
+
+    ShapeVertex_p sv0_t = shape->addVertex(p0 + tan0/3.0, v0->pData, true, false);
+    ShapeVertex_p sv1_t = shape->addVertex(p1 + tan1/3.0, v1->pData, true, false);
+
+    sv0_t->pRef = (void*)pE;
+    sv1_t->pRef = (void*)pE;
+
+    pE->pData->pSV[1] = sv0_t;
+    pE->pData->pSV[2] = sv1_t;
+
+    pE->pData->pSV[0] = pC->V()->pData;
+    pE->pData->pSV[3] = pC->next()->V()->pData;
+
+    Bezier* c = new Bezier(100);
+    pE->pData->pCurve = c;
+
+    c->insert(v0->pData->pP());
+    c->insert(sv0_t->pP());
+    c->insert(sv1_t->pP());
+    c->insert(v1->pData->pP());
+    c->pRef = (void*) pE;
+    return c;
+}
+
+void onSplitEdge(Corner_p pC, double t)
 {
+
     bool isforward = true;
-    if (!c->isC0())
-    {
-        c = c->vNext();
+    if (pC->isC1()){
+        pC = pC->vNext();
         isforward = false;
     }
 
-    MeshShape* pMS = (MeshShape*) c->V()->mesh()->caller();
-
-    c->F()->Face::update(true);
-    if (c->other())
-        c->other()->F()->Face::update(true);
+    pC->F()->Face::update(true);
+    if (!pC->E()->isBorder())
+        pC->other()->F()->Face::update(true);
 
     //clean up
-    Edge_p e0 = c->prev()->E();
-    ShapeVertex_p svtan = e0->pData->pSV[2];
-    c->V()->pData->adopt(e0->pData->pSV[2]);
+    Edge_p e0 = pC->prev()->E();
+    ShapeVertex_p svtan = e0->pData->getTangentSV(pC->next());
+    pC->V()->pData->adopt(svtan);
     if (svtan->pair()){
-        svtan->pair()->setPair(c->E()->pData->pSV[2]);
+        svtan->pair()->setPair(pC->E()->pData->pSV[2]);
     }
 
     //parenting fixed
@@ -30,20 +94,17 @@ void onSplitEdge(Corner_p c, double t)
     Bezier* curve0 = e0->pData->pCurve;
 
     Point newCP[7];
-    //bool isforward = curve0->pCV(0) == e0->C0()->V()->pData->pP();
-    curve0->calculateDivideCV(isforward? t : (1-t), newCP);
-
-    curve0->set(c->V()->pData->pP(), 3);
+    curve0->computeSubdivisionCV(isforward? t:(1-t), newCP);
+    curve0->set(pC->V()->pData->pP(), 3);
 
     curve0->pCV(1)->set(newCP[1]);
     curve0->pCV(2)->set(newCP[2]);
     curve0->pCV(3)->set(newCP[3]);
 
-    Bezier* curve1 = c->E()->pData->pCurve;
+    Bezier* curve1 = pC->E()->pData->pCurve;
 
     curve1->pCV(1)->set(newCP[4]);
     curve1->pCV(2)->set(newCP[5]);
-
 
 }
 
@@ -113,7 +174,7 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p,  MeshOperationCache
     e->pData->pCurve->computeDistance(p, t);
 
     Point tan0 = computeVerticalTangent(t, e);
-    Corner_p c0 = pMesh->splitEdge(e, pMS->addMeshVertex());
+    Corner_p c0 = pMesh->splitEdge(e->C0(), pMS->addMeshVertex());
     onSplitEdge(c0, t);
 
     Corner_p c1 = c0->vNext();
@@ -127,7 +188,7 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p,  MeshOperationCache
         Face_p f1 = c0nnvn ? c0nnvn->F():0;
         Point tan00 = computeVerticalTangent(t, c0->next()->next()->E(),f1);
 
-        Corner* c01 = pMesh->splitEdge(c0->next()->next()->E(), pMS->addMeshVertex(), c0->F());
+        Corner* c01 = pMesh->splitEdge(c0->next()->next(), pMS->addMeshVertex());
         onSplitEdge(c01, 1-t);
         Edge_p e_c01 = c01->E();
 
@@ -145,12 +206,12 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p,  MeshOperationCache
         c0 = c0n;
     }
 
-    if (c0 && c0->F() == endf){
+    if (c0 && c0->F() && c0->F() == endf){ //looping
         Edge_p pEnew = (pMesh->insertEdge(c0, c0->next()->next()->next()));
          if (pCache)
              pCache->add(pEnew, true);
-    }else while(c1){
-        Corner* c11 = pMesh->splitEdge(c1->next()->next()->E(), pMS->addMeshVertex(), c1->F());
+    }else while(c1 && c1->F()){
+        Corner* c11 = pMesh->splitEdge(c1->next()->next(), pMS->addMeshVertex());
         onSplitEdge(c11, t);
         Edge_p e_c11 = c11->E();
 
@@ -211,7 +272,7 @@ Face_p MeshOperation::extrude(Face_p f0, double t, MeshOperationCache *pCache){
         f_side->set(f1->C(i)->V(), 3);
         f_side->Face::update();
 
-        f0->C(i)->E()->set(f_side->C(0), f0->C(i)->isC0()?0:1);
+        f0->C(i)->E()->set(f_side->C(0), f0->C(i)->isC1());
 
         Edge_p e1 = pMesh->addEdge(f_side->C(1),0);
         Edge_p e2 = pMesh->addEdge(f1->C(i), f_side->C(2));
@@ -261,7 +322,7 @@ Edge_p MeshOperation::extrude(Edge_p e0, double t, bool isSmooth, VertexMap *pVM
     Edge_p e1 = 0;
     Edge_p e3 = 0;
 
-    if (pVMap){
+    /*if (pVMap){
         std::map<Vertex_p, Corner_p>::iterator it_v = pVMap->find(e0->C0()->V());
         if (it_v == pVMap->end()){
             v0 = pMS->addMeshVertex(P0(e0)+n);
@@ -284,10 +345,9 @@ Edge_p MeshOperation::extrude(Edge_p e0, double t, bool isSmooth, VertexMap *pVM
             v1->pData->pP()->set(P1(e0) + ((v1->pData->P() + P1(e0)+n)*0.5).normalize()*t);
         }
 
-    }else{
-        v0 = pMS->addMeshVertex(P0(e0)+n);
-        v1 = pMS->addMeshVertex(P1(e0)+n);
-    }
+    }else{*/
+    v0 = pMS->addMeshVertex(P0(e0)+n);
+    v1 = pMS->addMeshVertex(P1(e0)+n);
 
     f->set(e0->C0()->next()->V(), 0);
     f->set(e0->C0()->V(), 1);

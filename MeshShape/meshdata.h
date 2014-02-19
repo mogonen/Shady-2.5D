@@ -44,31 +44,23 @@ struct EdgeData
        pCurve->set(pSV[3]->pP(),3);
    }
 
-   ShapeVertex_p getTangentSV(Corner_p pC)
+   ShapeVertex_p getTangentSV(ShapeVertex_p sv)
    {
+       return (pSV[1]->parent() == sv)? pSV[1] : ((pSV[2]->parent() == sv)? pSV[2]:0);
+   }
 
-       if (!pE->pData || !pE->pData->pCurve)
-           return 0;
-
-       if ((pE->C0() == pC ) || ( pE->C1() && pE->C1()->next() == pC))
-       {
-           return pSV[1];
-       }
-       else if ( (pE->C1() == pC) || (pE->C0()->next() == pC))
-       {
-           return pSV[2];
-       }
-       return 0;
+   ShapeVertex_p getTangentSV(Corner_p pC){
+       return pC ? getTangentSV(pC->V()->pData) : 0;
    }
 
    Corner_p getCornerByTangent(ShapeVertex_p sv, bool isnext=false){
 
-       if (!pE->pData->pCurve)
+       if (!pCurve)
            return 0;
 
        if (pSV[1] == sv){
            return pE->C0();
-       }else if (pSV[2] == sv){
+       }else if (pSV[2]->parent() == sv){
            return  (pE->C1() || !isnext)? pE->C1():pE->C0()->next();
        }
    }
