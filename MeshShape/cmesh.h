@@ -74,7 +74,7 @@ public:
     Vertex_p addVertex(VertexData* pData=0);
 
     Face_p      addFace(int);
-    Face_p      addQuad(Vertex_p, Vertex_p, Vertex_p, Vertex_p); //strickly clock-wise
+    Face_p      addQuad(Vertex_p, Vertex_p, Vertex_p, Vertex_p, bool isedges = false); //strickly clock-wise
     Face_p      addTriangle(Vertex_p, Vertex_p, Vertex_p);
     Edge_p      addEdge(Corner_p c0, Corner_p c1=0);
     Edge_p      insertEdge(Corner_p, Corner_p, bool updatefaces = true);
@@ -142,6 +142,7 @@ class Edge: public Element{
 
 public:
 
+    Corner_p C(int i=-1) const;
     inline Corner_p C0()const{return _c0;}//?_c0:_c1;}
     inline Corner_p C1()const{return _c1;}//?_c1:_c0;}
 	
@@ -160,6 +161,7 @@ class Face: public Element{
     Corner_p* _corns; //strickly cockwise
 
     Face(int s=4);
+
     void remove(bool layzdel = false);
 
     friend class Mesh;
@@ -175,6 +177,7 @@ public:
 
     void update(bool links=false, int offset = 0);
     void reoffset(int);
+    void init(int);
 
     FaceData* pData;
 };
@@ -196,6 +199,9 @@ public:
     void set(Corner_p);
 
     inline Corner_p C() const {return _c;}
+    Corner_p to(Vertex_p);
+    Corner_p from(Vertex_p);
+
     int edgeId(const Vertex_p v) const {return id() + v->id()*mesh()->size();}
     int edgeUId(const Vertex_p v) const {return (id() > v->id())?(v->id() + id()*mesh()->size()):(id() + v->id()*mesh()->size());}
 
@@ -211,12 +217,11 @@ class Corner{
 
     friend void Vertex::set(Corner_p);
     friend void Edge::set(Corner_p,int);
-    friend void Face::set(Corner_p, int);
-    friend void Face::set(Vertex_p, int);
+    friend class Face;
 
 public:
 
-	Corner();
+    Corner(Vertex_p pV=0);
     //~Corner();
 
 
@@ -230,6 +235,8 @@ public:
 
     Corner_p vNext();
     Corner_p vPrev();
+    Corner_p vNextLast();
+    Corner_p vPrevFirst();
     Corner_p other();
 
     void setNext(Corner_p c);
@@ -248,6 +255,7 @@ class FaceCache{
     int             _size;
     Face_p          _pF;
     unsigned int    _isC1;
+    unsigned int    _isBorder;
 
     bool            _isRemove;
 
