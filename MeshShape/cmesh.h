@@ -71,13 +71,14 @@ public:
     inline int sizeF()const {return _faces.size();}
     inline int size() const	{return _verts.size();}
 
-    Vertex_p addVertex(VertexData* pData=0);
+    Vertex_p   addVertex(VertexData* pData=0);
 
     Face_p      addFace(int);
     Face_p      addQuad(Vertex_p, Vertex_p, Vertex_p, Vertex_p, bool isedges = false); //strickly clock-wise
+    Face_p      addQuad(Corner_p, Corner_p, Corner_p, Corner_p); //strickly clock-wise
     Face_p      addTriangle(Vertex_p, Vertex_p, Vertex_p);
     Edge_p      addEdge(Corner_p c0, Corner_p c1=0);
-    Edge_p      insertEdge(Corner_p, Corner_p, bool updatefaces = true);
+    Edge_p      insertEdge(Corner_p, Corner_p, bool updatefaces = true, Edge_p pE = 0);
     Corner_p    splitEdge(Corner_p, Vertex_p vP = 0);
 
     void remove(Face_p f, bool lazydel = true,  bool isremove = true);
@@ -165,6 +166,7 @@ class Face: public Element{
     void remove(bool layzdel = false);
 
     friend class Mesh;
+    bool _isBorder;
 
 public:
 	
@@ -178,6 +180,7 @@ public:
     void update(bool links=false, int offset = 0);
     void reoffset(int);
     void init(int);
+    bool isBorder() const;
 
     FaceData* pData;
 };
@@ -194,7 +197,6 @@ class Vertex: public Element{
 public:
 
     VertexData* pData;
-    //inline Point P(){return *pP;}
 
     void set(Corner_p);
 
@@ -207,6 +209,7 @@ public:
 
 };
 
+#define NULLF 1
 class Corner{
 	
 	int _i;
@@ -215,13 +218,14 @@ class Corner{
     Face_p _f;
     Vertex_p _v;
 
-    friend void Vertex::set(Corner_p);
-    friend void Edge::set(Corner_p,int);
+    friend class Vertex;
+    friend class Edge;
     friend class Face;
+    friend class Mesh;
 
 public:
 
-    Corner(Vertex_p pV=0);
+    Corner(Vertex_p v=0, Face_p f = (Face_p)NULLF);
     //~Corner();
 
 
@@ -235,17 +239,14 @@ public:
 
     Corner_p vNext();
     Corner_p vPrev();
-    Corner_p vNextLast();
-    Corner_p vPrevFirst();
+    Corner_p vNextBorder();
+    Corner_p vPrevBorder();
     Corner_p other();
 
     void setNext(Corner_p c);
-    //void set(int i){_i = i;}
 
-    bool isC1();
-    bool isBorder();
-
-    void discardV();
+    inline bool isC1();
+    inline bool isBorder();
 
 };
 

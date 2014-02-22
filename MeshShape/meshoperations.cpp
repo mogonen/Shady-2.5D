@@ -308,6 +308,41 @@ Edge_p MeshOperation::extrude(Edge_p e0, double t, bool isSmooth, VertexMap *pVM
     Mesh_p pMesh = e0->mesh();
     MeshShape* pMS = (MeshShape*)pMesh->caller();
 
+    Corner_p c0 = e0->C()->other();
+
+    Point p0 = P0(c0);
+    Point p1 = P0(c0->next());
+
+    //set verts
+    Vec2 n = -( Vec3(0,0,1) % Vec3(p1-p0).normalize())*t;
+
+    Vertex_p v0 = pMS->addMeshVertex(p0+n);
+    Vertex_p v1 = pMS->addMeshVertex(p1+n);
+
+    Face_p f = pMesh->addQuad(c0, c0->next(),  new Corner(v1), new Corner(v0));
+
+    if (pCache){
+        pCache->add(f, true);
+        pCache->add(e0);
+    }
+
+    if (isSmooth && !pVMap){
+        for(int i=0; i<4; i++)
+            MeshShape::makeSmoothCorners(f->C(i),true, 1);
+    }
+
+    return 0;
+}
+
+/*
+Edge_p MeshOperation::extrude(Edge_p e0, double t, bool isSmooth, VertexMap *pVMap, MeshOperationCache *pCache){
+
+    if (!e0 || !e0->isBorder())
+        return 0;
+
+    Mesh_p pMesh = e0->mesh();
+    MeshShape* pMS = (MeshShape*)pMesh->caller();
+
     Face_p f = pMesh->addFace(4);
 
     if (pCache){
@@ -329,30 +364,6 @@ Edge_p MeshOperation::extrude(Edge_p e0, double t, bool isSmooth, VertexMap *pVM
     Edge_p e1 = 0;
     Edge_p e3 = 0;
 
-    /*if (pVMap){
-        std::map<Vertex_p, Corner_p>::iterator it_v = pVMap->find(e0->C0()->V());
-        if (it_v == pVMap->end()){
-            v0 = pMS->addMeshVertex(P0(e0)+n);
-            (*pVMap)[e0->C0()->V()] = f->C(1);
-        }else{
-            Corner_p ec = it_v->second;
-            e1 = ec->E();
-            v0 = (ec->V() == e0->C0()->V() || ec->V() == e0->C0()->next()->V())? ec->next()->V():ec->V();
-            v0->pData->pP()->set(P0(e0) + ((v0->pData->P() + P0(e0)+n)*0.5).normalize()*t);
-        }
-
-        it_v = pVMap->find(e0->C0()->next()->V());
-        if (it_v == pVMap->end()){
-            v1 = pMS->addMeshVertex(P1(e0)+n);
-            (*pVMap)[e0->C0()->next()->V()] = f->C(3);
-        }else{
-            Corner_p ec = it_v->second;
-            e3 = ec->E();
-            v1 = (ec->V() == e0->C0()->V() || ec->V() == e0->C0()->next()->V())? ec->next()->V():ec->V();
-            v1->pData->pP()->set(P1(e0) + ((v1->pData->P() + P1(e0)+n)*0.5).normalize()*t);
-        }
-
-    }else{*/
     v0 = pMS->addMeshVertex(p0+n);
     v1 = pMS->addMeshVertex(p1+n);
 
@@ -385,7 +396,7 @@ Edge_p MeshOperation::extrude(Edge_p e0, double t, bool isSmooth, VertexMap *pVM
         e0_c1->setNext(e2_c1);
     }
 
-    e2_c1->setNext(e2->C0()->vPrevFirst());
+    e2_c1->setNext(e2->C0()->vPrevBorder());
 
     f->Face::update(false, c0->I()+2);
 
@@ -396,6 +407,7 @@ Edge_p MeshOperation::extrude(Edge_p e0, double t, bool isSmooth, VertexMap *pVM
 
     return e2;
 }
+*/
 
 void MeshOperation::deleteFace(Face_p f, MeshOperationCache *pCache){
 
@@ -412,7 +424,7 @@ void MeshOperation::deleteFace(Face_p f, MeshOperationCache *pCache){
         if (!ci->E()->isBorder())
             continue;
 
-        if (ci->vNext() == ci->vPrev()) //corner for read
+        if (ci->vNext() == ci->vPrev())//corner for real
             pMS->removeVertex(ci->V()->pData);
 
         pMS->removeVertex(ci->E()->pData->pSV[1]);

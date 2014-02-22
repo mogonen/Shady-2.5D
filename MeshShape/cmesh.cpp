@@ -34,43 +34,24 @@ Face_p Mesh::addFace(int s){
 
 Face_p Mesh::addQuad(Vertex* v0, Vertex* v1, Vertex* v2, Vertex* v3, bool isedges){
 
-    Corner_p ec[4];
-    if (isedges){
-        ec[0] = v0->to(v1);
-        ec[1] = v1->to(v2);
-        ec[2] = v2->to(v3);
-        ec[3] = v3->to(v0);
-    }
-
     Face_p f = addFace(4);
 	f->set(v0, 0);
 	f->set(v1, 1);
 	f->set(v2, 2);
 	f->set(v3, 3);
 	f->update();
+    return f;
+}
 
-    if (!isedges)
-        return f;
-
-    Corner_p ec0[4];
-    Corner_p ec1[4];
-
-    for(int i=0; i<4; i++){
-        if (ec[i] && ec[i]->isBorder()){
-            ec0[i] = ec[i]->prev();
-            ec1[i] = ec[i]->next();
-            ec[i]->E()->set(f->C(i), ec[i]->isC1());
-        }else{
-            ec[i] = addEdge(f->C(i), new Corner()); //this is a border edge
-        }
+Face_p Mesh::addQuad(Corner_p c0, Corner_p c1, Corner_p c2, Corner_p c3)
+{
+    Corner_p corns[4] = {c0, c1, c2, c3};
+    Edge_p e = 0;
+    for(int i=0; i <4; i++){
+        if (corns[i]->next() != corns[(i+1)%4])
+            e = insertEdge(corns[i], corns[(i+1)%4]);
     }
-
-    /*for(int i=0; i<4; i++){
-        if (ec[i]->isBorder()){
-            if (ec0[(i+4-1)%4])
-        }
-    }*/
-
+    Face_p f =  e->C0()->F();
     return f;
 }
 
@@ -160,55 +141,69 @@ Corner_p Mesh::splitEdge(Corner_p pC, Vertex_p pV){
     return pC->next();
 }
 
-Edge_p Mesh::insertEdge(Corner_p i_c0, Corner_p i_c1, bool updatefaces){
+Edge_p Mesh::insertEdge(Corner_p c0, Corner_p c1, bool updatefaces, Edge_p pE){
 
-    if (i_c0->F() != i_c1->F())
-        return 0;
+    if (c0->E() == c1->E())
+        return c0->E();
 
-    Corner_p c0n_0 = i_c0->next();
-    Corner_p c1n_0 = i_c1->next();
+    Corner_p c0n_0 = c0->next();
+    Corner_p c1n_0 = c1->next();
 
-    Face_p f0 = i_c0->F();
-    Face_p f1 = addFace(4);
+    Corner_p c0n = c1;
+    if (c1n_0 && c1n_0 != c1){
+        c0n = new Corner(c1->V());
+        c0n->setNext(c1n_0);
+    }
+    c0->setNext(c0n);
 
-    f0->set(i_c0);
-    f1->set(i_c1);
-
-    Corner_p c0n = new Corner();
-    f0->set(c0n,-1);
-    i_c1->V()->set(c0n);
-
-    Corner_p c1n = new Corner();
-    f1->set(c1n,-1);
-    i_c0->V()->set(c1n);
-
-    i_c0->setNext(c0n);
-    i_c1->setNext(c1n);
-    c0n->setNext(c1n_0);
+    Corner_p c1n = new Corner(c0->V());
     c1n->setNext(c0n_0);
+    c1->setNext(c1n);
 
     //check edges
-    if (i_c0->E()->_c0 == i_c0)
-        i_c0->E()->set(c1n,0);
-    else
-        i_c0->E()->set(c1n,1);
+    if (c0->E())
+        c0->E()->set(c1n, c0->isC1());
 
-    if (i_c1->E()->_c0 == i_c1)
-        i_c1->E()->set(c0n,0);
-    else
-        i_c1->E()->set(c0n,1);
+    if (c1->E())
+        c1->E()->set(c0n, c1->isC1());
 
-    for(Corner_p c = i_c1->next(); c!=i_c1; c = c->next())
-        f1->set(c, -1);
-
-    if (updatefaces){
-        f0->Face::update(true);
-        f1->Face::update(true,2);
+    Face_p f0 = (c0->F() == c1->F()) ? addFace(4) :  c0->F(); //do we need a new face?
+    if (f0){
+        f0->set(c0);
+        f0->set(c0n,-1);
+        if (updatefaces)
+            f0->Face::update(true);
+    }else if (updatefaces){
+        //null face, to be fixed later
+        c0->_f = 0;
+        for(Corner_p c = c0->next(); c!=c0; c = c->next())
+            c->_f = 0;
     }
 
-    Edge_p e = addEdge(i_c0, i_c1);
+    Face_p f1 = c1->F();
+    if (f1){
+        f1->set(c1);
+        f1->set(c1n,-1);
+        for(Corner_p c = c1->next(); c!=c1; c = c->next())
+            f1->set(c, -1);
+        if (updatefaces)
+            f1->Face::update(true);
 
-    return e;
+    }else if (updatefaces){
+        //null face, to be fixed later
+        c1->_f = 0;
+        for(Corner_p c = c1->next(); c!=c1; c = c->next())
+            c->_f = 0;
+    }
+
+    if (!pE){
+        pE = addEdge(c0, c1);
+    }else{
+        pE->set(c0, 0);
+        pE->set(c1, 1);
+    }
+
+    return pE;
 }
 
 void Mesh::updateF(){
@@ -267,9 +262,8 @@ void Mesh::buildEdges(bool isouterface){
             continue;
         int v0 = e->C0()->V()->id();
         int v1 = e->C0()->next()->V()->id();
-        Corner_p c1 = new Corner();
+        Corner_p c1 = new Corner( e->C0()->next()->V(), 0);
         e->set(c1, 1);
-        e->C0()->next()->V()->set(c1);
 
         if (borderCorns[v0]){
             c1->setNext(borderCorns[v0]);
@@ -363,11 +357,12 @@ void Mesh::ForAllVerts(void (*handler)(Vertex_p), bool isskipdeleted, bool isena
 }
 
 
-Corner::Corner(Vertex_p pV){
-        _v = pV;
+Corner::Corner(Vertex_p v, Face_p f){
+        _v = v;
+        _f = f;
 		_e = 0;
-		_f = 0;
         _i = -1;
+        _next = _prev = 0;
 }
 
 void Corner::setNext(Corner_p c){
@@ -379,34 +374,33 @@ void Corner::setNext(Corner_p c){
 //Point Corner::P(){ return *_v->pP;}
 
 Corner_p Corner::next(){
-	return _next?_next:_f->C(_i+1);
+    return _next?_next:( (_f&&_i>=0)?_f->C(_i+1) : 0);
 }
 
 Corner_p Corner::prev(){
-	return _prev?_prev:_f->C(_i-1); 
+    return _prev?_prev:( (_f&&_i>=0)?_f->C(_i-1) : 0);
 }
 
 Corner_p Corner::vNext(){
-    Corner_p _c1 = _e->other(this);
-	return (_c1)?_c1->next():0;	
+    return _e? _e->other(this)->next():0;
 }
 
 Corner_p Corner::vPrev(){
-	return prev()->_e->other(prev());
+    return _prev ? prev()->_e->other(prev()) : 0;
 }
 
 Corner_p Corner::other(){
-    return _e->other(this);
+    return _e? _e->other(this) : 0;
 }
 
-Corner_p Corner::vNextLast(){
+Corner_p Corner::vNextBorder(){
     Corner_p vnext = this->vNext();
     while(vnext->F() && vnext!=this)
         vnext = vnext->vNext();
     return (vnext==this)?0:vnext;
 }
 
-Corner_p Corner::vPrevFirst(){
+Corner_p Corner::vPrevBorder(){
     Corner_p vprev = this->vPrev();
     while(vprev->F() && vprev!=this)
         vprev = vprev->vPrev();
@@ -415,16 +409,7 @@ Corner_p Corner::vPrevFirst(){
 
 
 bool Corner::isC1(){return _e->isC1(this);}
-bool Corner::isBorder(){return _e->isBorder() ||  _prev->_e->isBorder();}
-
-void Corner::discardV(){
-    if (V()->C() == this){
-        if (Corner_p vnext = vNext()){
-            V()->set(vnext);
-        } else
-            V()->set(vPrev());
-    }
-}
+bool Corner::isBorder(){return !_f || _f->isBorder();}
 
 void Vertex::set(Corner_p c){
     _c = c;
@@ -453,8 +438,9 @@ Corner_p Vertex::from(Vertex_p v){
 }
 
 Face::Face(int s){
+    _isBorder = false;
     _corns = 0;
-    pData = 0;
+    pData  = 0;
     init(s);
 }
 
@@ -523,44 +509,24 @@ void Face::reoffset(int off){
     set(c0, c0->I() + off);
 }
 
-void Face::remove(bool lazydel){
-
-    for(int i=0; i<size(); i++){
+void Face::remove(bool lazydel){ 
+    EdgeList todel;
+    for(int i=0; i<_size; i++){
         Corner_p ci = C(i);
         Edge_p e = ci->E();
-        ci->_f = 0;
-        Corner_p vprev = ci->vPrev(), vnext = ci->vNext();
-        if (vprev->F() && vnext->F()){
-            ci->_i = -1; //border
-            continue;
-        }else if ( vprev==vnext){
-            //delete ci, vprev
-            //remove e
-            mesh()->remove(e, lazydel, false);
-        }else if (!vprev->F() && !vnext->F()){
-            vprev->prev()->setNext(vnext);
-            ci->V()->set(vnext);
-            //delete vprev, ci
-            //remove e
-            mesh()->remove(e, lazydel,false);
-        }else if (!vprev->F()){
-            vprev->prev()->setNext(ci);
-            ci->V()->set(ci);
-            ci->_i = -1; //border
-            //delete vprev
-        }else{
-            ci->prev()->setNext(vnext);
-            //delete ci
-            ci->V()->set(vnext);
-            //remove e
-            mesh()->remove(e, lazydel, false);
-        }
+        if (e->isBorder())
+            todel.push_back(e);
     }
+
+    for(EdgeList::iterator it = todel.begin(); it!=todel.end(); it++)
+        mesh()->remove(*it, lazydel);
+
+    _isBorder = true;
 }
 
-int Face::size() const {return _size;}
-
-bool Edge::isBorder(){return !_c0 || !_c0->F() || !_c1 || !_c1->F();}
+int  Face::size()       const {return _size;}
+bool Face::isBorder()   const {return _isBorder;}
+bool Edge::isBorder(){return !_c0 || _c0->isBorder() || !_c1 || _c1->isBorder();}
 
 void Edge::set(Corner_p c, int i){
 
@@ -589,31 +555,53 @@ Corner_p Edge::C(int i)const {
 
 void Edge::remove(){
 
-    if (isBorder()){
-        _c0 = _c1 = 0;
+    Corner_p c0 = _c0, c1 = _c1;
+    if (c1->isBorder() && !c0->isBorder()){
+        c0 = _c1;
+        c1 = _c0;
+    }
+
+    Corner_p c0n = c0->next();
+    Corner_p c1n = c1->next();
+
+    if (c0n == c1){
+        c1n->E()->set(c0, c1n->isC1());
+        c0->setNext(c1n->next());
+        if (c0->F())
+            c0->F()->set(c1n);
+        delete c1n;
+        delete c1;
         return;
     }
 
-    //reunion the faces
-    Face_p f1 = _c1->F();
-    for(Corner_p c = _c1->next(); c!=_c1; c = c->next())
-		_c0->F()->set(c, -1);
-	_c0->F()->set(_c1, -1);
+    if (c1n == c0){
+        c0n->E()->set(c1, c0n->isC1());
+        c1->setNext(c0n->next());
+        if (c1->F())
+            c1->F()->set(c0n);
+        delete c0n;
+        delete c0;
+        return;
+    }
 
-    Corner_p c0 = _c0;
-    Corner_p c0n = _c0->next();
-    Corner_p c0nn = _c0->next()->next();
-    c0n->E()->set(_c1, c0n->isC1());
-	delete _c0->next();
 
-    Corner_p c1n = _c1->next();
-    c1n->E()->set(_c0, c1n->isC1());
-	_c0->setNext(_c1->next()->next());
-	delete _c1->next();
-	_c1->setNext(c0nn);
+    c0n->E()->set(c1, c0n->isC1());
+    c1->setNext(c0n->next());
+    delete c0n;
 
-	c0->F()->set(c0);
-    c0->F()->Face::update(true);
+    c1n->E()->set(c0, c1n->isC1());
+    c0->setNext(c1n->next());
+    delete c1n;
+
+    if (c0->F())
+    {
+        c0->F()->set(c0);
+        c0->F()->Face::update(true);
+    }else{
+        c1->_f = 0;
+        for(Corner_p c = c1->next(); c!= c1; c = c->next())
+            c->_f = 0;
+    }
 }
 
 Edge::Edge(){
@@ -668,11 +656,7 @@ void FaceCache::restore(Face_p pF){
         bool isborder = (_isBorder & (1<<i));
         bool isc1 = (_isC1 & (1<<i));
         if (isborder){
-            Corner_p c1 = new Corner(c->next()->V());
-            c->E()->set(c1, !isc1);
-            Corner_p cnext =  c->vPrevFirst();
-            if (cnext)
-                c1->setNext(cnext);
+
         }
     }
 

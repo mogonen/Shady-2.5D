@@ -251,7 +251,7 @@ void renderFace(Face_p pFace){
         glColor3f(diffuse.redF(),diffuse.greenF(),diffuse.blueF());
    */
 
-    pFace->pData->pSurface->render();
+  pFace->pData->pSurface->render();
 }
 
 void MeshShape::render(int mode) {
