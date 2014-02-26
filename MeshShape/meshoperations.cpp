@@ -16,6 +16,24 @@ Bezier* initCurve(Corner_p pC){
 
     if (pE->pData->pCurve)
         return pE->pData->pCurve;
+
+#if 1
+
+    Line* pL = new Line();
+
+    pE->pData->pCurve = pL;
+    pL->insert(v0->pData->pP());
+    pL->insert(v1->pData->pP());
+    pL->pRef = (void*) pE;
+
+    //pE->pData->pSV[0] = pC->V()->pData;
+    //pE->pData->pSV[1] = pC->next()->V()->pData;
+    return pL;
+
+#endif
+
+
+
     /*{
         EdgeData* pED = pE->pData;
         pED->pSV[0] = v0->pData;
@@ -84,6 +102,14 @@ void onSplitEdge(Corner_p pC, double t)
 
     //clean up
     Edge_p e0 = pC->prev()->E();
+
+    if (e0->pData->pCurve->count() == 2 ){
+        e0->pData->pCurve->set(pC->V()->pData->pP(),1);
+        pC->V()->pData->pP()->set(pC->prev()->V()->pData->P()*0.5 + pC->next()->V()->pData->P()*0.5);
+        //pE->pData->pSV[1] = pC->V()->pData;
+        return;
+    }
+
     ShapeVertex_p svtan = e0->pData->getTangentSV(pC->next());
     pC->V()->pData->adopt(svtan);
     if (svtan->pair()){
@@ -174,7 +200,7 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p,  MeshOperationCache
     double t;
     e->pData->pCurve->computeDistance(p, t);
 
-    Point tan0 = computeVerticalTangent(t, e);
+    //Point tan0 = computeVerticalTangent(t, e);
     Corner_p c0 = pMesh->splitEdge(e->C0(), pMS->addMeshVertex());
     onSplitEdge(c0, t);
 
@@ -183,11 +209,11 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p,  MeshOperationCache
 
     while(c0 && c0->F() && c0->F()!=endf){
 
-        Point tan1  = computeVerticalTangent((1-t), c0->next()->next()->E(), c0->F());
+        //Point tan1  = computeVerticalTangent((1-t), c0->next()->next()->E(), c0->F());
 
         Corner_p c0nnvn = c0->next()->next()->vNext();
-        Face_p f1 = c0nnvn ? c0nnvn->F():0;
-        Point tan00 = computeVerticalTangent(t, c0->next()->next()->E(),f1);
+        //Face_p f1 = c0nnvn ? c0nnvn->F():0;
+        //Point tan00 = computeVerticalTangent(t, c0->next()->next()->E(),f1);
 
         Corner* c01 = pMesh->splitEdge(c0->next()->next(), pMS->addMeshVertex());
         onSplitEdge(c01, 1-t);
@@ -201,9 +227,9 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p,  MeshOperationCache
             pCache->add(e_c01, true);
             pCache->add(pEnew, true);
         }
-        pEnew->pData->pSV[1]->pP()->set(tan0);
-        pEnew->pData->pSV[2]->pP()->set(tan1);
-        tan0 = tan00;
+        //pEnew->pData->pSV[1]->pP()->set(tan0);
+        //pEnew->pData->pSV[2]->pP()->set(tan1);
+        //tan0 = tan00;
         c0 = c0n;
     }
 
@@ -419,7 +445,7 @@ void MeshOperation::deleteFace(Face_p f, MeshOperationCache *pCache){
 
     MeshShape* pMS = (MeshShape*)(f->mesh()->caller());
 
-    for(int i=0; i<f->size(); i++){
+    /*for(int i=0; i<f->size(); i++){
         Corner_p ci = f->C(i);
         if (!ci->E()->isBorder())
             continue;
@@ -430,7 +456,7 @@ void MeshOperation::deleteFace(Face_p f, MeshOperationCache *pCache){
         pMS->removeVertex(ci->E()->pData->pSV[1]);
         pMS->removeVertex(ci->E()->pData->pSV[2]);
         //delete f->C(i)->E()->pData->pCurve;
-    }
+    }*/
 
     pMS->mesh()->remove(f);
     /*if (mesh->sizeF()==0)u

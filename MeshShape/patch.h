@@ -83,4 +83,14 @@ static double H(double t)
     return 3*t*t - 2*t*t;
 }
 
+class Rectangle:public Patch{
+
+
+public:
+
+    Rectangle(Face_p pF):Patch(pF){}
+    void render(int mode = 0);
+    void interpolateNormals(){}
+};
+
 #endif // PATCH_H

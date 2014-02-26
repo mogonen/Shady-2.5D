@@ -99,3 +99,8 @@ void Bezier::computeSubdivisionCV(double t, Point newCV[])
 
     newCV[3] = newCV[2]*(1-t) + newCV[4]*t;
  }
+
+Point Line::evalP(double t) const{
+    return CV(0)*(1-t) + CV(1)*t;
+}
+

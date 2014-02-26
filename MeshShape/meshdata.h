@@ -26,6 +26,12 @@ struct EdgeData
        pE->pData = this;
        pSV[0] = pE->C0()->V()->pData;
        pSV[0]->pRef = (void*)pE->C0()->V();
+       pSV[1] = pE->C0()->next()->V()->pData;
+       pSV[1]->pRef = (void*)pE->C0()->next()->V();
+
+       /*
+       pSV[0] = pE->C0()->V()->pData;
+       pSV[0]->pRef = (void*)pE->C0()->V();
        pSV[3] = pE->C0()->next()->V()->pData;
        pSV[3]->pRef = (void*)pE->C0()->next()->V();
 
@@ -41,7 +47,7 @@ struct EdgeData
        pCurve->set(pSV[0]->pP(),0);
        pCurve->set(pSV[1]->pP(),1);
        pCurve->set(pSV[2]->pP(),2);
-       pCurve->set(pSV[3]->pP(),3);
+       pCurve->set(pSV[3]->pP(),3);*/
    }
 
    ShapeVertex_p getTangentSV(ShapeVertex_p sv)
@@ -79,6 +85,7 @@ struct FaceData
 };
 
 inline Point P0(Corner_p pC) {return pC->V()->pData->P();}
+inline Point P1(Corner_p pC) {return pC->next()->V()->pData->P();}
 inline Point P0(Edge_p pE)   {return pE->C0()->V()->pData->P();}
 inline Point P1(Edge_p pE)   {return pE->C0()->next()->V()->pData->P();}
 

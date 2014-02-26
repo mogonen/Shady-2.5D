@@ -13,6 +13,7 @@ void Mesh::resetCB(){
     _removeFaceCB = 0;
     _removeEdgeCB = 0;
     _caller = 0;
+    _isstackon = true;
 }
 
 Vertex* Mesh::addVertex(VertexData *pData){
@@ -72,11 +73,11 @@ Edge_p Mesh::addEdge(Corner_p c0, Corner_p c1){
 	return e;
 }
 
-void Mesh::remove(Face_p f, bool lazydel, bool isremove){
+void Mesh::remove(Face_p f, bool lazydel){
     /*if (_removeFaceCB)
         _removeFaceCB(f);*/
-    if (isremove)
-        f->remove(lazydel);
+
+    f->remove(lazydel);
 	if (lazydel){
 		f->markDeleted();
 	}else{
@@ -84,18 +85,189 @@ void Mesh::remove(Face_p f, bool lazydel, bool isremove){
 		delete f;
 	}
 }
-void Mesh::remove(Edge_p e, bool lazydel, bool isremove){
+void Mesh::remove(Edge_p e, bool lazydel){
     /*if (_removeEdgeCB)
         _removeEdgeCB(e);*/
-    if (isremove)
-        e->remove();
-	if (lazydel){
-		e->markDeleted();
-	}else{
-		_edges.remove(e);
-		delete e;
-	}
+    Corner_p c0 = e->C(), c1 = c0->other();
+
+    if (lazydel){
+        e->markDeleted();
+    }/*else{
+        _edges.remove(e);
+        delete e;
+        e=0;
+    }*/
+
+    Corner_p c0n = c0->next();
+    Corner_p c1n = c1->next();
+
+    if (c0n == c1 && c1n==c0){
+        addOperation(Operation::REMOVE_EDGE, c0, c1,e);
+        c0->V()->markDeleted();
+        c0->V()->set(0);
+        c1->V()->markDeleted();
+        c1->V()->set(0);
+        delete c0;
+        delete c1;
+        return;
+    }
+
+    if (c0n == c1){
+        c1n->E()->set(c0, c1n->isC1());
+        c0->setNext(c1n->next());
+        if (c0->F())
+            c0->F()->set(c1n);
+
+        addOperation(Operation::REMOVE_EDGE, c0, c1,e);
+        //remove vertex
+        c1->V()->markDeleted();
+        c1->V()->set(0);
+        c1n->V()->set(c0);
+
+        delete c1n;
+        delete c1;
+        return;
+    }
+
+    if (c1n == c0){
+        c0n->E()->set(c1, c0n->isC1());
+        c1->setNext(c0n->next());
+        if (c1->F())
+            c1->F()->set(c0n);
+
+        addOperation(Operation::REMOVE_EDGE, c0, c1,e);
+        c0->V()->markDeleted();
+        c0->V()->set(0);
+        c0n->V()->set(c1);
+
+        delete c0n;
+        delete c0;
+        return;
+    }
+
+
+    c0n->E()->set(c1, c0n->isC1());
+    c1->setNext(c0n->next());
+    c0n->V()->set(c1);
+    delete c0n;
+
+    c1n->E()->set(c0, c1n->isC1());
+    c0->setNext(c1n->next());
+    c1n->V()->set(c0);
+    delete c1n;
+
+    Face_p f0 = c0->F(), f1 = c1->F();
+    if (!c0->isBorder() && c1->isBorder()){
+        Face_p tmp = f0;
+        f0 = f1;
+        f1 = tmp;
+    }
+
+    if (f1){
+        if (lazydel)
+            f1->markDeleted();
+        else
+            delete f1;
+    }
+
+    if (f0)
+    {
+        f0->set(c0);
+        f0->Face::update(true);
+    }else{
+        c1->_f = 0;
+        for(Corner_p c = c1->next(); c!= c1; c = c->next())
+            c->_f = 0;
+    }
+
+    addOperation(Operation::REMOVE_EDGE, c0, c1, e, f1);
+
 }
+
+Edge_p Mesh::insertEdge(Corner_p c0, Corner_p c1, bool updatefaces, Edge_p pE, Face_p pF){
+
+    if (c0->E() == c1->E())
+        return c0->E();
+
+    Corner_p c0n_0 = c0->next();
+    Corner_p c1n_0 = c1->next();
+
+    Corner_p c0n = c1;
+    if (c1n_0 && c1n_0 != c1){ //if not dangling vertex
+        c0n = new Corner(c1->V());
+        c0n->setNext(c1n_0);
+    }
+    c0->setNext(c0n);
+
+    Corner_p c1n = c0;
+    if (c0n_0 && c0n_0 != c0){ //if not dangling vertex
+        c1n = new Corner(c0->V());
+        c1n->setNext(c0n_0);
+    }
+    c1->setNext(c1n);
+
+    //check edges
+    if (c0->E())
+        c0->E()->set(c1n, c0->isC1());
+
+    if (c1->E())
+        c1->E()->set(c0n, c1->isC1());
+
+    Face_p f0 =  c0->F();
+    if (c0->F() == c1->F()){
+        if (pF){
+            pF->_isdeleted = false;
+            pF->_isBorder  = false;
+            f0 = pF;
+        }
+        else
+            f0 = addFace(4);
+    }
+
+    if (f0 && f0!=NULLFACE){
+
+        f0->set(c0);
+        f0->set(c0n,-1);
+        if (updatefaces)
+            f0->Face::update(true);
+    }else if (updatefaces){
+        //null face, to be fixed later
+        c0->_f = 0;
+        for(Corner_p c = c0->next(); c!=c0; c = c->next())
+            c->_f = 0;
+    }
+
+    Face_p f1 = c1->F();
+    if (f1 && f1!=NULLFACE){
+        f1->set(c1);
+        f1->set(c1n,-1);
+        for(Corner_p c = c1->next(); c!=c1; c = c->next())
+            f1->set(c, -1);
+        if (updatefaces)
+            f1->Face::update(true);
+
+    }else if (updatefaces){
+        //null face, to be fixed later
+        c1->_f = 0;
+        for(Corner_p c = c1->next(); c!=c1; c = c->next())
+            c->_f = 0;
+    }
+
+    if (!pE){
+        pE = addEdge(c0, c1);
+    }else{
+        pE->set(c0, 0);
+        pE->set(c1, 1);
+        pE->_isdeleted = true;
+        /*if (_insertEdgeCB)
+            _insertEdgeCB(pE);*/
+    }
+
+    addOperation(Operation::INSERT_EDGE, c0);
+
+    return pE;
+}
+
 
 Corner_p Mesh::splitEdge(Corner_p pC, Vertex_p pV){
 
@@ -134,6 +306,7 @@ Corner_p Mesh::splitEdge(Corner_p pC, Vertex_p pV){
     }
 
     addEdge(c0new, c1old);
+    addOperation(Operation::SPLIT_EDGE, c0new);
 
     if (_splitEdgeCB)
         _splitEdgeCB(c0new);
@@ -141,70 +314,34 @@ Corner_p Mesh::splitEdge(Corner_p pC, Vertex_p pV){
     return pC->next();
 }
 
-Edge_p Mesh::insertEdge(Corner_p c0, Corner_p c1, bool updatefaces, Edge_p pE){
+Corner_p Mesh::mergeEdge(Corner_p pC){
 
-    if (c0->E() == c1->E())
-        return c0->E();
+    if (!pC)
+        return 0;
 
-    Corner_p c0n_0 = c0->next();
-    Corner_p c1n_0 = c1->next();
+    Edge_p pE = pC->E();
+    Corner_p c0 = pC;
+    Corner_p c1 = pC->vNext();
 
-    Corner_p c0n = c1;
-    if (c1n_0 && c1n_0 != c1){
-        c0n = new Corner(c1->V());
-        c0n->setNext(c1n_0);
-    }
-    c0->setNext(c0n);
-
-    Corner_p c1n = new Corner(c0->V());
-    c1n->setNext(c0n_0);
-    c1->setNext(c1n);
-
-    //check edges
-    if (c0->E())
-        c0->E()->set(c1n, c0->isC1());
-
-    if (c1->E())
-        c1->E()->set(c0n, c1->isC1());
-
-    Face_p f0 = (c0->F() == c1->F()) ? addFace(4) :  c0->F(); //do we need a new face?
-    if (f0){
-        f0->set(c0);
-        f0->set(c0n,-1);
-        if (updatefaces)
-            f0->Face::update(true);
-    }else if (updatefaces){
-        //null face, to be fixed later
-        c0->_f = 0;
-        for(Corner_p c = c0->next(); c!=c0; c = c->next())
-            c->_f = 0;
+    if (c0->isC1() && !c1->isC1()) //need swap
+    {
+        Corner_p tmp = c0;
+        c0 = c1;
+        c1 = tmp;
     }
 
-    Face_p f1 = c1->F();
-    if (f1){
-        f1->set(c1);
-        f1->set(c1n,-1);
-        for(Corner_p c = c1->next(); c!=c1; c = c->next())
-            f1->set(c, -1);
-        if (updatefaces)
-            f1->Face::update(true);
+    c0->prev()->setNext(c0->next());
+    c1->prev()->setNext(c1->next());
+    c1->E()->set(c1, c1->isC1());
 
-    }else if (updatefaces){
-        //null face, to be fixed later
-        c1->_f = 0;
-        for(Corner_p c = c1->next(); c!=c1; c = c->next())
-            c->_f = 0;
-    }
+    Corner_p c = c0->prev();
 
-    if (!pE){
-        pE = addEdge(c0, c1);
-    }else{
-        pE->set(c0, 0);
-        pE->set(c1, 1);
-    }
-
-    return pE;
+    delete c0;
+    delete c1;
+    //remove e1 ?
+    return c;
 }
+
 
 void Mesh::updateF(){
     for(std::list<Face_p>::iterator itf = _faces.begin(); itf!=_faces.end(); itf++)
@@ -356,13 +493,78 @@ void Mesh::ForAllVerts(void (*handler)(Vertex_p), bool isskipdeleted, bool isena
     }
 }
 
+void Mesh::addOperation(Operation::Type t, Corner_p c0, Corner_p c1, Edge_p e, Face_p f){
+    if (!_isstackon)
+        return;
+    Operation op;
+    op.type = t;
+    op.c0 = *c0;\
+    if (c1)
+        op.c1 = *c1;
+    op.pE = e;
+    op.pF = f;
+    _stack.push_back(op);
+}
+
+int Mesh::rollback(int opid){
+
+    _isstackon = false;
+
+    int opcount = _stack.size()-opid;
+    for(int i=0; i < opcount; i++){
+        Operation op = _stack.back();
+        _stack.pop_back();
+
+        switch(op.type){
+
+        case Operation::INSERT_EDGE:{
+            remove(op.c0.E());
+        }
+            break;
+
+        case Operation::REMOVE_EDGE:
+        {
+
+            op.c0.V()->_isdeleted = false;
+            op.c1.V()->_isdeleted = false;
+
+            Corner_p c0 = op.c0.V()->find(op.c0.F());
+            Corner_p c1 = op.c1.V()->find(op.c0.F());
+
+            if (!c0)
+                c0 = new Corner(op.c0.V());
+
+            if (!c1)
+                c1 = new Corner(op.c1.V());
+
+            insertEdge(c0, c1, true );//, 0, op.pF);
+            //e->pData = op.pE->pData;
+        }break;
+
+        case Operation::SPLIT_EDGE:
+        {
+            Corner_p c = op.c0.V()->find(op.c0.F());
+            mergeEdge(c);
+        }
+            break;
+
+        }
+
+        if (i==0) break;
+
+    }
+    _isstackon = true;
+
+    return _stack.size();
+}
 
 Corner::Corner(Vertex_p v, Face_p f){
-        _v = v;
-        _f = f;
-		_e = 0;
-        _i = -1;
-        _next = _prev = 0;
+    if (v)
+        v->set(this);
+    _f = f;
+    _e = 0;
+    _i = -1;
+    _next = _prev = 0;
 }
 
 void Corner::setNext(Corner_p c){
@@ -372,6 +574,12 @@ void Corner::setNext(Corner_p c){
 }
 
 //Point Corner::P(){ return *_v->pP;}
+
+int    Corner::I(){return _i;}
+
+Edge_p	Corner::E() const {return _e;}
+Face_p	Corner::F() const {return _f;}
+Vertex_p Corner::V() const {return _v;}
 
 Corner_p Corner::next(){
     return _next?_next:( (_f&&_i>=0)?_f->C(_i+1) : 0);
@@ -418,6 +626,8 @@ void Vertex::set(Corner_p c){
 }
 
 Corner_p Vertex::to(Vertex_p v){
+    if (!_c)
+        return 0;
     Corner_p c = _c;
     while(c->next()->V()!= v){
         c = c->vNext();
@@ -428,6 +638,8 @@ Corner_p Vertex::to(Vertex_p v){
 }
 
 Corner_p Vertex::from(Vertex_p v){
+    if (!_c)
+        return 0;
     Corner_p c = _c;
     while(c->prev()->V()!= v){
         c = c->vNext();
@@ -436,6 +648,21 @@ Corner_p Vertex::from(Vertex_p v){
     }
     return c;
 }
+
+Corner_p Vertex::find(Face_p f){
+    if (!_c)
+        return 0;
+    Corner_p c = _c;
+    while(c->F()!= f){
+        c = c->vNext();
+        if (c==_c)
+            return 0;
+    }
+    return c;
+}
+
+int Vertex::edgeId(const Vertex_p v) const {return id() + v->id()*mesh()->size();}
+int Vertex::edgeUId(const Vertex_p v) const {return (id() > v->id())?(v->id() + id()*mesh()->size()):(id() + v->id()*mesh()->size());}
 
 Face::Face(int s){
     _isBorder = false;
@@ -518,8 +745,10 @@ void Face::remove(bool lazydel){
             todel.push_back(e);
     }
 
-    for(EdgeList::iterator it = todel.begin(); it!=todel.end(); it++)
+    int i=0;
+    for(EdgeList::iterator it = todel.begin(); it!=todel.end(); it++){
         mesh()->remove(*it, lazydel);
+    }
 
     _isBorder = true;
 }
@@ -553,56 +782,6 @@ Corner_p Edge::C(int i)const {
     return (i==-1)? (_c0->F()?_c0 : _c1) : ((i==0)?_c0:_c1);
 }
 
-void Edge::remove(){
-
-    Corner_p c0 = _c0, c1 = _c1;
-    if (c1->isBorder() && !c0->isBorder()){
-        c0 = _c1;
-        c1 = _c0;
-    }
-
-    Corner_p c0n = c0->next();
-    Corner_p c1n = c1->next();
-
-    if (c0n == c1){
-        c1n->E()->set(c0, c1n->isC1());
-        c0->setNext(c1n->next());
-        if (c0->F())
-            c0->F()->set(c1n);
-        delete c1n;
-        delete c1;
-        return;
-    }
-
-    if (c1n == c0){
-        c0n->E()->set(c1, c0n->isC1());
-        c1->setNext(c0n->next());
-        if (c1->F())
-            c1->F()->set(c0n);
-        delete c0n;
-        delete c0;
-        return;
-    }
-
-
-    c0n->E()->set(c1, c0n->isC1());
-    c1->setNext(c0n->next());
-    delete c0n;
-
-    c1n->E()->set(c0, c1n->isC1());
-    c0->setNext(c1n->next());
-    delete c1n;
-
-    if (c0->F())
-    {
-        c0->F()->set(c0);
-        c0->F()->Face::update(true);
-    }else{
-        c1->_f = 0;
-        for(Corner_p c = c1->next(); c!= c1; c = c->next())
-            c->_f = 0;
-    }
-}
 
 Edge::Edge(){
 	_c0 = _c1 = 0;

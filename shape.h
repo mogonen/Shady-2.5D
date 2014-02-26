@@ -64,7 +64,6 @@ protected:
 public:
 
     unsigned long       flag;
-    void*               pRef;
     bool                isPositionControl, isNormalControl;
 
     void setPair(ShapeVertex_p sv, bool isSetTangent =false , bool isSetNormal = false);

@@ -12,8 +12,18 @@ class MeshOperationCache{
     list<Face_p>        _facesToDel;
     list<SVCache>       _cachedSV;
     list<Edge_p>        _edgesToDel;
+
+    int                 _rollback_id;
+
+    Mesh_p              _pMesh;
+
 public:
+    void addMesh(Mesh_p pM){
+        _pMesh = pM;
+        _rollback_id = _pMesh->getOperationID();
+    }
     void restore();
+
     void add(Face_p, bool isdel=false);
     void add(ShapeVertex_p, bool isdel=false);
     void add(Edge_p, bool isdel=false);

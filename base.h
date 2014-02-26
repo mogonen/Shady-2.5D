@@ -89,8 +89,6 @@ public:
         _upToDate = true;
     }
 
-    Void_p pRef; //generic pointer to refering object
-
 private:
     bool _isUI;
     bool _upToDate;
@@ -140,6 +138,8 @@ public:
     int name() const{return _name;}
     bool isTheSelected() const;
     bool isInSelection() const;
+
+    Void_p pRef; //generic pointer to refering object
 
 };
 

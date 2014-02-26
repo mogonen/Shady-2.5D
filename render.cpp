@@ -134,10 +134,16 @@ void ShapeControl::renderControls(Shape_p shape)
     SVList verts = shape->getVertices();
     FOR_ALL_CONST_ITEMS(SVList, verts){
         SKIP_DELETED_ITEM
-        if (Session::isRender(NORMALS_ON) && (*it)->isNormalControl)
-                (*it)->pControlN()->render();
+        ShapeVertex_p sv = *it;
 
-        (*it)->render();
+        //FIX THIS!! MESHSHAPE SPESIFIC!!!
+        if (((dlfl::Element*)sv->pRef)->isDeleted())
+            continue;
+
+        if (Session::isRender(NORMALS_ON) && sv->isNormalControl)
+                (sv)->pControlN()->render();
+
+        sv->render();
     }
   /*
     //could not get pushname popname working!
@@ -222,16 +228,91 @@ void SpineShape::render(int mode){
     glEnd();
 }
 
-void renderEdge(Edge_p pEdge){
+void renderEdge(Edge_p pE){
 
-    if (pEdge->pData->pCurve){
-        pEdge->pData->pCurve->render();
+    //render corners
+
+    Corner_p c0 = pE->C();
+    Corner_p c1 = c0->other();
+
+
+    Vec2 tan = P1(c0) - P0(c0);
+    Vec3 n = Vec3(tan)%Vec3(0,0,1);
+    Vec2 n2d(n.x, n.y);
+
+    Point pc00, pc01, pc10, pc11;
+
+    pc00 = P0(c0) + n2d*0.1 + tan*0.1;
+    pc01 = P1(c0) + n2d*0.1 - tan*0.25;
+
+    pc10 = P0(c1) - n2d*0.1 - tan*0.1;
+    pc11 = P1(c1) - n2d*0.1 + tan*0.25;
+
+    glBegin(GL_LINES);
+
+    if (c0->isBorder())
+        glColor3f(1.0, 0, 0);
+    else
+        glColor3f(0, 1.0, 0);
+
+    glVertex2f(pc00.x, pc00.y);
+    glVertex2f(pc01.x, pc01.y);
+
+    if (c1->isBorder())
+        glColor3f(1.0, 0, 0);
+    else
+        glColor3f(0, 1.0, 0);
+
+    glVertex2f(pc10.x, pc10.y);
+    glVertex2f(pc11.x, pc11.y);
+    glEnd();
+
+
+    glPointSize(2.0);
+    glBegin(GL_POINTS);
+    if (c0->isC1())
+        glColor3f(1.0, 0, 0);
+    else
+        glColor3f(0,1.0,0);
+
+    if (c0->V()->C()->V() != c0->V())
+        glColor3f(0,0,0);
+
+    glVertex2f(pc00.x, pc00.y);
+
+    if (c1->isC1())
+        glColor3f(1.0, 0, 0);
+    else
+        glColor3f(0,1.0,0);
+    if (c1->V()->C()->V() != c1->V())
+        glColor3f(0.0,0,0);
+
+    glVertex2f(pc10.x, pc10.y);
+    glEnd();
+
+    if (c0->I() == 0 ){
+        glPointSize(3.0);
+        glBegin(GL_POINTS);
+        glColor3f(1.0, 1.0, 0);
+        glVertex2f(pc00.x, pc00.y);
+        glEnd();
+    }
+    if (c1->I() == 0 ){
+        glPointSize(3.0);
+        glBegin(GL_POINTS);
+        glColor3f(1.0, 1.0, 0);
+        glVertex2f(pc10.x, pc10.y);
+        glEnd();
+    }
+
+    if (pE->pData->pCurve){
+        pE->pData->pCurve->render();
         return;
     }
     //non selectable line representation
     glColor3f(1.0,1.0, 0);
-    Point p0 = P0(pEdge);
-    Point p1 = P1(pEdge);
+    Point p0 = P0(pE);
+    Point p1 = P1(pE);
 
     glBegin(GL_LINES);
     glVertex3f(p0.x, p0.y, 0);
@@ -240,7 +321,7 @@ void renderEdge(Edge_p pEdge){
 }
 
 void renderFace(Face_p pFace){
-    if (!pFace->pData->pSurface)
+    if (!pFace->pData || !pFace->pData->pSurface)
         return;
 
    /* if(mode&BRIGHT_MODE)
@@ -395,6 +476,24 @@ void Patch4::render(int mode){
             glEnd();
         }
     }
+
+}
+
+void Rectangle::render(int mode){
+
+    if (!Session::isRender(DRAG_ON))
+      Selectable::render(mode);
+
+    Point p[4] = {P0(C(0)), P0(C(1)), P0(C(2)), P0(C(3))};
+    //Point n[4] = {C(0)->V()-, P0(C(1)), P0(C(2)), P0(C(3))};
+    glColor3f(0.75, 0.75, 0.75);
+    selectionColor((Selectable_p)this);
+    glBegin(GL_POLYGON);
+    for(int k = 0; k < 4; k++)
+    {
+        glVertex2f(p[k].x, p[k].y);
+    }
+    glEnd();
 
 }
 

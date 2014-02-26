@@ -4,6 +4,7 @@
 #include "MeshData.h"
 
 void  MeshShape::outdate(ShapeVertex_p sv){
+
     if (sv->parent()){ //if tagent
         Edge_p e = (Edge_p)(sv->pRef);
         if (!e)
@@ -22,31 +23,15 @@ void  MeshShape::outdate(ShapeVertex_p sv){
             return;
         Corner_p c0 = c;
         while(c){
-            if (c->F())
+            if (c->F() && c->F()->pData && c->F()->pData->pSurface)
                 c->F()->pData->pSurface->outdate();
-            c->E()->pData->pCurve->outdate();
+            if (c->E() && c->E()->pData && c->E()->pData->pCurve)
+                c->E()->pData->pCurve->outdate();
             c = c->vNext();
-            if (c==c0)
+            if (c==c0){
                 break;
+            }
         }
-
-        if (c == c0)
-            return;
-
-        Corner_p clast = c0;
-        c = c0->vPrev();
-
-        while(c){
-            c->F()->pData->pSurface->outdate();
-            c->E()->pData->pCurve->outdate();
-            clast = c;
-            c = c->vPrev();
-            if (c==c0)
-                break;
-        }
-
-        if (!c && clast)
-            clast->prev()->E()->pData->pCurve->outdate();
 
     }
 }
@@ -73,12 +58,12 @@ void ensureUpToDateSurface(Face_p pF){
 
 void MeshShape::onUpdate(){
     _control->ForAllEdges(updateCurve);
-    _control->ForAllFaces(updateSurface);
+    //_control->ForAllFaces(updateSurface);
 }
 
 void MeshShape::onEnsureUpToDate(){
     _control->ForAllEdges(ensureUpToDateCurve);
-    _control->ForAllFaces(ensureUpToDateSurface);
+    //_control->ForAllFaces(ensureUpToDateSurface);
 }
 
 void MeshShape::makeSmoothTangents(bool isskip, int ttype, double tank){
@@ -199,11 +184,16 @@ void MeshShape::makeSmoothCorners(Corner_p pC, bool isskipsharp, int tangenttype
 
 
 void onInsertEdge(Edge_p e){
-    initCurve(e->C0());
+    if (e->pData)
+        e->pData->relink(e);
+    else
+        initCurve(e->C0());
 }
 
 void onAddFace(Face_p pF)
 {
-    pF->pData->pSurface = (Patch*)new Patch4(pF);
+
+    pF->pData->pSurface = (Patch*)new Rectangle(pF);
+    //pF->pData->pSurface = (Patch*)new Patch4(pF);
 }
 

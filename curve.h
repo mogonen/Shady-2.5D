@@ -57,6 +57,7 @@ public:
     Point_p pCV(int i)const { return _cvs[i];}
     void insert(Point_p p){ _cvs.push_back(p);}
     void set(Point_p pP, int i){_cvs[i] = pP;}
+    int count()const{return _cvs.size();}
 };
 
 class Bezier:public Spline{
@@ -66,6 +67,14 @@ public:
     Point evalP(double) const;
 
     void computeSubdivisionCV(double t, Point[]);
+};
+
+class Line:public Bezier
+{
+
+public:
+    Line():Bezier(2){}
+    Point evalP(double) const;
 };
 
 static const int FTABLE[] = {1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600};

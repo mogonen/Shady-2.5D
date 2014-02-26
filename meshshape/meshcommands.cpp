@@ -59,6 +59,8 @@ void MeshOperation::execOP(Selectable_p obj){
     _pF = pF;
     _pE = pE;
 
+    _cache.addMesh(pMS->mesh());
+
     switch(_operation){
 
     case NONE:
@@ -110,6 +112,7 @@ Command_p MeshOperation::exec(){
 
 Command_p MeshOperation::unexec(){
     _cache.restore();
+    _pMS->update();
     return 0;
 }
 
@@ -122,14 +125,14 @@ void MeshOperation::onClick(const Click & click)
 }
 
 void MeshOperationCache::restore(){
-
-    for(list<Edge_p>::reverse_iterator it = _edgesToDel.rbegin(); it!=_edgesToDel.rend(); it++)
+    _pMesh->rollback(_rollback_id);
+    /*for(list<Edge_p>::reverse_iterator it = _edgesToDel.rbegin(); it!=_edgesToDel.rend(); it++)
     {
         Edge_p e = (*it);
         for(int i=0; i<4; i++){
             e->pData->pSV[i]->_isDeleted = true;
         }
-        e->mesh()->remove(e, true, false);
+        //e->mesh()->remove(e, true, false);
     }
 
     for(list<Face_p>::reverse_iterator it = _facesToDel.rbegin(); it!=_facesToDel.rend(); it++)
@@ -147,11 +150,10 @@ void MeshOperationCache::restore(){
         }
         pF->pData->pSurface->outdate();
     }
-
     for(list<SVCache>::reverse_iterator it = _cachedSV.rbegin(); it!=_cachedSV.rend(); it++)
     {
         (*it).restore();
-    }
+    }*/
 }
 
 void MeshOperationCache::add(Face_p pF, bool isdel){
@@ -161,11 +163,11 @@ void MeshOperationCache::add(Face_p pF, bool isdel){
         _facesToDel.push_back(pF);
     else{
         _cachedFaces.push_back(FaceCache(pF));
-        for(int i=0; i<pF->size(); i++){
+       /* for(int i=0; i<pF->size(); i++){
             _cachedSV.push_back(SVCache(pF->C(i)->E()->pData->pSV[1]));
             _cachedSV.push_back(SVCache(pF->C(i)->E()->pData->pSV[2]));
             _cachedSV.push_back(SVCache(pF->C(i)->V()->pData));
-        }
+        }*/
     }
 }
 
@@ -178,8 +180,8 @@ void MeshOperationCache::add(Edge_p pE, bool isdel){
     if (isdel)
         _edgesToDel.push_back(pE);
     else{
-        for(int i=0; i<4; i++)
-            _cachedSV.push_back(SVCache(pE->pData->pSV[i]));
+        /*for(int i=0; i<4; i++)
+            _cachedSV.push_back(SVCache(pE->pData->pSV[i]));*/
     }
 }
 
