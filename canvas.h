@@ -9,6 +9,7 @@
 #define UNITZ 0.01
 #define MAX_LIGHTS 8
 
+#ifndef MODELING_MODE
 void updateGLSLLight(double, double, double);
 
 typedef class Light:public Draggable
@@ -35,17 +36,16 @@ public:
 
 } * Light_p;
 
+#endif
+
 class Canvas{
 
     ShapeList       _shapes;
-    Light_p         _lights[MAX_LIGHTS];
     friend class    GLWidget;
 
 public:
 
-    Canvas(){
-        _lights[0] = new Light(-0.5, 0.5, 1.0);
-    }
+
 
     void insert(Shape_p sp);
     void remove(Shape_p sp);
@@ -66,8 +66,16 @@ public:
 	int loadFrom(const char * fname);
 
     void setImagePlane(const string &filename);
-    Point lightPos(int i)const {return _lights[i]->P();}
 
+#ifndef MODELING_MODE
+    Point lightPos(int i)const {return _lights[i]->P();}
+    Canvas(){
+        _lights[0] = new Light(-0.5, 0.5, 1.0);
+    }
+
+private:
+    Light_p         _lights[MAX_LIGHTS];
+#endif
 };
 
 #endif

@@ -45,12 +45,6 @@ public:
     static void                    makeSmoothCorners(Corner_p, bool isskipsharp = true, int tangenttype=1, double tan_k=1.0);
 
     //mesh operations
-
-
-    void                    assignPattern(Edge_p, string pattern);
-    void                    setFolds(Edge_p, int, double min = 0);
-
-
     static bool             isSMOOTH;
 
 };

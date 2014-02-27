@@ -46,7 +46,10 @@
 #include "meshshape/meshshape.h"
 #include "ellipseshape.h"
 #include "shapecontrol.h"
+
+#ifdef MODELING_MODE
 #include "Renderer/renderoptionspenal.h"
+#endif
 
 double                  EllipseShape::Radius = 0.2;
 ControlPoint_p          ControlPoint::_pTheActive = 0;
@@ -117,6 +120,10 @@ void MainWindow::initTools()
 
     toolbar->addSeparator();
 
+    toolbar->addSeparator();
+    toolbar->addAction(assignPatternAct);
+    toolbar->addAction(setFoldsAct);
+
     //init tool options dock
     optionsDockWidget = new QDockWidget(QString("Options"), this);
     attrDockWidget = new QDockWidget(QString("Attributes"), this);
@@ -127,14 +134,17 @@ void MainWindow::initTools()
     optionsDockWidget->setWidget(optionsStackedWidget);
     attrDockWidget->setWidget(attrStackedWidget);
 
-    rendererDockWidget = new QDockWidget(QString("Render"), this);
-    rendererDockWidget->setWidget(new RenderOptionsPenal(this, glWidget));
-
 
     this->addDockWidget(Qt::LeftDockWidgetArea, optionsDockWidget);
     this->addDockWidget(Qt::LeftDockWidgetArea, attrDockWidget);
-    this->addDockWidget(Qt::LeftDockWidgetArea, rendererDockWidget);
     this->setDockOptions(!QMainWindow::AllowTabbedDocks);
+
+#ifndef MODELING_MODE
+    rendererDockWidget = new QDockWidget(QString("Render"), this);
+    rendererDockWidget->setWidget(new RenderOptionsPenal(this, glWidget));
+    this->addDockWidget(Qt::LeftDockWidgetArea, rendererDockWidget);
+#endif
+
 
     addAttrWidget(new QWidget, 0);//default widget
     createAllOptionsWidgets();
@@ -289,6 +299,15 @@ void MainWindow::createActions()
     deleteFaceAct->setShortcut(tr("Ctrl+D"));
     connect(deleteFaceAct, SIGNAL(triggered()), this, SLOT(selectDeleteFace()));
 
+
+    assignPatternAct = new QAction(tr("&Assign Pattern "), this);
+    assignPatternAct->setShortcut(tr("Ctrl+P"));
+    connect(assignPatternAct, SIGNAL(triggered()), this, SLOT(selectAssignPatternTool()));
+
+    setFoldsAct = new QAction(tr("&Set Folds "), this);
+    setFoldsAct->setShortcut(tr("Ctrl+P"));
+    connect(setFoldsAct, SIGNAL(triggered()), this, SLOT(selectSetFoldsTool()));
+
     QActionGroup* toolset = new QActionGroup(this);
 
     dragAct->setCheckable(true);
@@ -306,6 +325,7 @@ void MainWindow::createActions()
     extrudeFaceAct->setActionGroup(toolset);
     insertSegmentAct->setActionGroup(toolset);
     deleteFaceAct->setActionGroup(toolset);
+
 
     //SHAPE ACTIONS
     shapeInsertTorusAct = new QAction(tr("Torus"), this);

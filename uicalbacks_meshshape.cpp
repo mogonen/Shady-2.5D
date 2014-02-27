@@ -86,14 +86,14 @@ void MainWindow::selectInsertSegment()
     unselectDrag();
 }
 
-void MainWindow::assignPatternTool(){
+void MainWindow::selectAssignPatternTool(){
     setOptionsWidget(Options::ASSIGN_PATTERN);
     Session::get()->setCommand(new MeshOperation(MeshOperation::ASSIGN_PATTERN));
     //MeshShape::setOPMODE(MeshShape::ASSIGN_PATTERN);
     unselectDrag();
 }
 
-void MainWindow::setFoldsTool(){
+void MainWindow::selectSetFoldsTool(){
     setOptionsWidget(Options::SET_FOLDS);
     Session::get()->setCommand(new MeshOperation(MeshOperation::SET_FOLDS));
     unselectDrag();
@@ -187,14 +187,14 @@ QWidget* createSpineOptions()
 QWidget* createAssignPatternOptions()
 {
     CustomDialog * widget = new CustomDialog("Pattern Options",0, "Assign", executeMeshShapeOperations, &MeshOperation::EXEC_ONCLICK);
-    widget->addLineEdit("pattern:",&MeshOperation::PATTERN);
+    widget->addLineEdit("pattern:",&PatternOperation::PATTERN);
     return widget;
 }
 
 QWidget* createSetFoldsOptions()
 {
     CustomDialog * widget = new CustomDialog("FoldingOptions",0, "Fold", executeMeshShapeOperations, &MeshOperation::EXEC_ONCLICK);
-    widget->addSpinBox("Folds:", 1, 24, &MeshOperation::FOLD_N, 1, "Number of Folds");
+    widget->addSpinBox("Folds:", 1, 24, &PatternOperation::FOLD_N, 1, "Number of Folds");
     return widget;
 }
 

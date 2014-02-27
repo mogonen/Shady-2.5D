@@ -80,16 +80,6 @@ void SampleShape::render(int mode) {
     glEnd();
 }
 
-void Light::render(int mode) {
-    Selectable::render(mode);
-
-    glColor3f(1.0, 1.0, 0);
-    glPointSize(8);
-    glBegin(GL_POINTS);
-    glVertex3f(P().x, P().y, 0.001);
-    glEnd();
-}
-
 void ControlPoint::render(int mode) {
 
     Selectable::render(mode);
@@ -785,6 +775,16 @@ float ImageShape::CapValue(float in_num, float low_cap, float high_cap)
     if(in_num>high_cap)
         return high_cap;
     return in_num;
+}
+
+void Light::render(int mode) {
+    Selectable::render(mode);
+
+    glColor3f(1.0, 1.0, 0);
+    glPointSize(8);
+    glBegin(GL_POINTS);
+    glVertex3f(P().x, P().y, 0.001);
+    glEnd();
 }
 
 #endif

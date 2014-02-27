@@ -152,32 +152,13 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p,  MeshOperationCache
     if (!e )
         return;
 
-    if (pCache){
-        //need tp cache faces first
-        Corner_p c0 = e->C0(), c1 = e->C1();
-        bool isloop = false;
-        while(c0){
-            pCache->add(c0->F());
-            c0 = c0->prev()->vPrev();
-            if (c0 && c0->F() == e->C0()->F()){
-                isloop = true;
-                break;
-            }
-        }
-
-        while(!isloop && c1){
-            pCache->add(c1->F());
-            c1 = c1->prev()->vPrev();
-        }
-    }
-
     Mesh_p pMesh = e->mesh();
     MeshShape* pMS = (MeshShape*)pMesh->caller();
 
     double t;
     e->pData->pCurve->computeDistance(p, t);
 
-    //Point tan0 = computeVerticalTangent(t, e);
+    Point tan0 = computeVerticalTangent(t, e);
     Corner_p c0 = pMesh->splitEdge(e->C0(), pMS->addMeshVertex());
     onSplitEdge(c0, t);
 
@@ -186,11 +167,8 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p,  MeshOperationCache
 
     while(c0 && c0->F() && c0->F()!=endf){
 
-        //Point tan1  = computeVerticalTangent((1-t), c0->next()->next()->E(), c0->F());
-
-        Corner_p c0nnvn = c0->next()->next()->vNext();
-        //Face_p f1 = c0nnvn ? c0nnvn->F():0;
-        //Point tan00 = computeVerticalTangent(t, c0->next()->next()->E(),f1);
+        Point tan1  = computeVerticalTangent((1-t), c0->next()->next()->E(), c0->F());
+        Point tan00 = computeVerticalTangent(t, c0->next()->next()->E(), c0->next()->next()->vNext()->F());
 
         Corner* c01 = pMesh->splitEdge(c0->next()->next(), pMS->addMeshVertex());
         onSplitEdge(c01, 1-t);
@@ -204,9 +182,11 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p,  MeshOperationCache
             pCache->add(e_c01, true);
             pCache->add(pEnew, true);
         }
-        //pEnew->pData->pSV[1]->pP()->set(tan0);
-        //pEnew->pData->pSV[2]->pP()->set(tan1);
-        //tan0 = tan00;
+
+        pEnew->pData->pSV[1]->pP()->set(tan0);
+        pEnew->pData->pSV[2]->pP()->set(tan1);
+        tan0 = tan00;
+
         c0 = c0n;
     }
 

@@ -1,8 +1,7 @@
 CONFIG +=
 
-DEFINES += \
-    SHOW_DLFL \
-    MODELING_MODE
+#DEFINES += SHOW_DLFL
+DEFINES += MODELING_MODE
 
 HEADERS += glwidget.h \
     mainwindow.h \
@@ -55,7 +54,8 @@ SOURCES += glwidget.cpp \
     meshshape/meshcommands.cpp \
     fileio.cpp \
     commands.cpp \
-    meshshape/patternpatch.cpp
+    meshshape/patternpatch.cpp \
+    meshshape/pattern.cpp
 
 QT           += opengl widgets
 
@@ -89,9 +89,14 @@ FACIAL_SHAPE{
     FacialShape/shadingcolorextractor.cpp
 }
 
+
 MODELING_MODE{
 
-}else{
+HEADERS +=
+SOURCES +=
+}
+
+RENDERING_MODE{
 
     HEADERS +=  Renderer/shaderprogram.h \
     Renderer/shaderparameters.h \

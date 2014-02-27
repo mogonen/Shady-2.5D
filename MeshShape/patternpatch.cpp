@@ -107,7 +107,8 @@ void PatternPatch::assignPattern(int uv, int off, int len, int * data)
 
 void PatternPatch::render(int mode)
 {
-    Patch::render(mode);
+    if (!Session::isRender(DRAG_ON))
+        Patch::render(mode);
 
     for(int u=0; u < _nU; u++)
     {

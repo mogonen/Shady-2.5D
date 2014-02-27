@@ -30,7 +30,7 @@ public:
     Patch(Face_p);
     Corner* C(int i) const {return _pFace->C(i);}
 
-    virtual void interpolateNormals()=0;
+    //virtual void interpolateNormals()=0;
     void propateNormals();
     Normal computeN(Corner_p);
     Normal computeN(Corner_p, double);

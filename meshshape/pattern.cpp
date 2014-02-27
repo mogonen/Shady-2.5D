@@ -1,5 +1,10 @@
-#include "meshshape.h"
+#include "meshcommands.h"
 #include "patch.h"
+
+int         PatternOperation::FOLD_N           = 8;
+double      PatternOperation::FOLD_D           = 0;
+string      PatternOperation::PATTERN          = "1,2";
+
 
 int * parsePattern(string patternstr , int &len)
 {
@@ -17,7 +22,7 @@ int * parsePattern(string patternstr , int &len)
     return pattern;
 }
 
-void  MeshShape::assignPattern(Edge_p pE, string patternstr)
+void  PatternOperation::assignPattern(Edge_p pE, string patternstr)
 {
 
     if (!pE )
@@ -35,7 +40,10 @@ void  MeshShape::assignPattern(Edge_p pE, string patternstr)
     int off = 0;
     while(c0 && c0->F()!=endf)
     {
-        Patch4* patch = (Patch4*)c0->F()->pData->pSurface;
+        PatternPatch* patch = dynamic_cast<PatternPatch*>(c0->F()->pData->pSurface);
+        if (!patch)
+            return;
+
         int i = c0->I();
         patch->assignPattern(i%2, off, len, pattern);
         c0 = c0->prev()->vPrev();
@@ -44,7 +52,7 @@ void  MeshShape::assignPattern(Edge_p pE, string patternstr)
 
 }
 
-void MeshShape::setFolds(Edge_p pE, int n, double dmin)
+void PatternOperation::setFolds(Edge_p pE, int n, double dmin)
 {
     if (!pE )
         return;
@@ -57,12 +65,15 @@ void MeshShape::setFolds(Edge_p pE, int n, double dmin)
 
     while(c0 && c0->F()!=endf)
     {
-        Patch4* patch = (Patch4*)c0->F()->pData->pSurface;
+        PatternPatch* patch = dynamic_cast<PatternPatch*>(c0->F()->pData->pSurface);
+        if (!patch)
+            return;
         int i = c0->I();
         if (i%2)
             patch->init(n, patch->V());
        else
             patch->init(patch->U(), n);
+
         c0 = c0->prev()->vPrev();
     }
 }

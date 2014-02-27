@@ -41,6 +41,7 @@ class MeshOperation: public Command
 protected:
 
     void onClick(const Click &);
+    virtual void  execOP();
 
 public:
 
@@ -63,18 +64,13 @@ public:
     CommandType type() const {return MESH_OPERATION;}
 
 
-    Command_p exec();
-    Command_p unexec();
-
-
-    static int              FOLD_N;
-    static double           FOLD_D;
+    virtual Command_p exec();
+    virtual Command_p unexec();
 
     static bool             EXEC_ONCLICK;
     static double           EXTRUDE_T;
     static bool             isKEEP_TOGETHER;
 
-    static string           PATTERN;
 
     static void             insertSegment(Edge_p, const Point&, MeshOperationCache* pCache=0);
     static void             diagonalDivide(Corner_p);
@@ -82,12 +78,11 @@ public:
     static Edge_p           extrude(Edge_p, double, bool isSmooth, VertexMap* vmap=0, MeshOperationCache* pCache=0);
     static void             deleteFace(Face_p, MeshOperationCache* pCache=0);
 
-
 private:
 
     OperationMode           _operation;
     Click                   _click;
-    void                    execOP(Selectable_p);
+
 };
 
 class MeshPrimitive: public Command
@@ -135,5 +130,20 @@ private:
     Primitive _primitive;
 };
 
+class PatternOperation:public MeshOperation{
+
+public:
+
+    PatternOperation(OperationMode op):MeshOperation(op){}
+
+
+    static void             assignPattern(Edge_p, string pattern);
+    static void             setFolds(Edge_p, int, double min = 0);
+
+    static int              FOLD_N;
+    static double           FOLD_D;
+    static string           PATTERN;
+
+};
 
 #endif // MESHCOMMANDS_H

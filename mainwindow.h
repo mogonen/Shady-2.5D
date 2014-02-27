@@ -96,9 +96,6 @@ private slots:
     void selectInsertSegment();
     void selectDeleteFace();
 
-    void assignPatternTool();
-    void setFoldsTool();
-
     void toggleNormals();
     void togglePathces();
     void toggleShading();
@@ -125,6 +122,10 @@ private slots:
     void sendShapeBack();
     void sendShapeFront();
     void deleteShape();
+
+    void selectAssignPatternTool();
+    void selectSetFoldsTool();
+
 
 private:
 
@@ -222,6 +223,9 @@ private:
     QAction *       shapeParentAct;
     QAction *       shapeTransformAct;
     QAction *       shapeDeleteAct;
+
+    QAction *       assignPatternAct;
+    QAction *       setFoldsAct;
 
     //QAction *       windowSh
 

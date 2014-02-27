@@ -788,8 +788,6 @@ Edge::Edge(){
     pData = 0;
 }
 
-
-
 FaceCache::FaceCache(Face_p pF, bool isRemove){
 
     if (!pF){

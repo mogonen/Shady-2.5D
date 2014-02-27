@@ -7,12 +7,9 @@
 bool        MeshShape::isSMOOTH             = true;
 
 double      MeshOperation::EXTRUDE_T        = 0.25;
-int         MeshOperation::FOLD_N           = 8;
-double      MeshOperation::FOLD_D           = 0;
-
 bool        MeshOperation::isKEEP_TOGETHER  = false;
 bool        MeshOperation::EXEC_ONCLICK     = true;
-string      MeshOperation::PATTERN          = "1,2";
+
 
 
 
@@ -33,10 +30,51 @@ double      MeshPrimitive::TORUS_ARC        = 1.0;
 
 std::map<Vertex_p, Corner_p> vertexToCornerMap;
 
-void MeshOperation::execOP(Selectable_p obj){
+void MeshOperation::execOP(){
 
-    if (!obj->pRef)
-        return;
+    switch(_operation){
+
+    case NONE:
+        break;
+
+    case EXTRUDE_EDGE:
+        extrude(_pE, EXTRUDE_T, MeshShape::isSMOOTH, isKEEP_TOGETHER?&vertexToCornerMap:0, &_cache);
+        break;
+
+    case INSERT_SEGMENT:
+        insertSegment(_pE, (_click.P - _pMS->P()), &_cache);
+        break;
+
+    case EXTRUDE_FACE:
+        extrude(_pF, EXTRUDE_T,  &_cache);
+        break;
+
+    case DELETE_FACE:
+        deleteFace(_pF, &_cache);
+        break;
+
+    //Pattern Operatioms here for now
+    case ASSIGN_PATTERN:
+    {
+       PatternOperation::assignPattern(_pE, PatternOperation::PATTERN);
+    }
+        break;
+
+    case SET_FOLDS:
+    {
+        PatternOperation::setFolds(_pE, PatternOperation::FOLD_N, PatternOperation::FOLD_D);
+    }
+        break;
+
+    }
+
+}
+
+//all operations on meshshape needs to be made static to allow operation on all layers
+Command_p MeshOperation::exec(){
+    Selectable_p obj = Session::get()->selectionMan()->getLastSelected();
+    if (!obj || obj->isUI() || !obj->pRef)
+        return new MeshOperation(_operation);
 
     Edge_p pE = 0;
     Face_p pF = 0;
@@ -45,68 +83,24 @@ void MeshOperation::execOP(Selectable_p obj){
     //there might be a better way for this
     if (_operation == EXTRUDE_EDGE || _operation == INSERT_SEGMENT || _operation == ASSIGN_PATTERN || _operation == SET_FOLDS){
          pE = dynamic_cast<Edge_p>((Edge_p)obj->pRef);
-         if (!pE) return;
+         if (!pE) return new MeshOperation(_operation);
          pMS = ((MeshShape*)pE->mesh()->caller());
          _pE = pE;
     }else if (_operation == EXTRUDE_FACE || _operation == DELETE_FACE){
          pF = dynamic_cast<Face_p>((Face_p)obj->pRef);
-         if(!pF) return;
+         if(!pF) return new MeshOperation(_operation);
          pMS = ((MeshShape*)pF->mesh()->caller());
     }
 
-    if (!pMS) return; //assert
+    if (!pMS) return 0; //assert
     _pMS = pMS;
     _pF = pF;
     _pE = pE;
 
-    _cache.addMesh(pMS->mesh());
+    execOP();
 
-    switch(_operation){
+    _pMS->Renderable::update();
 
-    case NONE:
-        break;
-
-    case EXTRUDE_EDGE:
-        extrude(pE, EXTRUDE_T, MeshShape::isSMOOTH, isKEEP_TOGETHER?&vertexToCornerMap:0, &_cache);
-        break;
-
-    case INSERT_SEGMENT:
-        insertSegment(pE, (_click.P - _pMS->P()), &_cache);
-        break;
-
-    case EXTRUDE_FACE:
-        extrude(pF, EXTRUDE_T,  &_cache);
-        break;
-
-    case DELETE_FACE:
-        deleteFace(pF, &_cache);
-        break;
-
-    case ASSIGN_PATTERN:
-    {
-       //pMS->assignPattern(pE, PATTERN);
-    }
-        break;
-
-    case SET_FOLDS:
-    {
-        //pMS->setFolds(pE, FOLD_N, FOLD_D);
-    }
-        break;
-
-    }
-
-    pMS->Renderable::update();
-
-}
-
-//all operations on meshshape needs to be made static to allow operation on all layers
-Command_p MeshOperation::exec(){
-    Selectable_p obj = Session::get()->selectionMan()->getLastSelected();
-    if (!obj || obj->isUI())
-        return new MeshOperation(_operation);
-
-    execOP(obj);
     return new MeshOperation(_operation); // keep it going
 }
 
