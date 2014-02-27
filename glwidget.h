@@ -137,7 +137,7 @@ private:
     qreal _translateY;
     qreal _translateZ;
 
-};
 #endif
+};
 
 #endif // GLWIDGET_H

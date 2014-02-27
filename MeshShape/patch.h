@@ -69,13 +69,40 @@ protected:
 
 public:
 
-    void render(int mode = 0);
+    virtual void render(int mode = 0);
 
     Patch4(Face_p);
     //~Patch4();
 
     void interpolateNormals();
 
+};
+
+class PatternPatch:public Patch{
+
+    inline int ind(int uv, int n, int i){return i + uv*(_nU*N) + n*N;}
+    inline Point P(int uv, int n, int i)const{return _ps[i + uv*(_nU*N) + n*N];}
+    int    _nU, _nV;
+    int*   _pattern;
+
+protected:
+
+    void onUpdate();
+
+public:
+
+    void render(int mode = 0);
+    void init(int nu, int nv);
+
+    void assignPattern(int uv, int off, int len, int * data);
+
+    int U() const {return _nU;}
+    int V() const {return _nV;}
+
+    PatternPatch(Face_p);
+    //~Patch4();
+
+     static int NU, NV;
 };
 
 static double H(double t)

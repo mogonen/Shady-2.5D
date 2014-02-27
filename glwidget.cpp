@@ -64,11 +64,14 @@ GLWidget::GLWidget(Canvas * pCanvas, QWidget *parent)
     _scale = 1.0;
     _renderFlags = 0x00;
     _pCanvas = pCanvas;
+
+#ifndef    MODELING_MODE
     _pGLSLShader_M = NULL;
     _pGLSLShader_R = NULL;
     _translateX = 0;
     _translateY = 0;
     _translateZ = 0;
+#endif
 
     setRender(DRAG_ON, true);
 }
@@ -155,12 +158,14 @@ void GLWidget::paintGL()
 
 void GLWidget::setView()
 {
+#ifndef MODELING_MODE
     QMatrix4x4 matrix;
     matrix.translate(_translateX, _translateY, _translateZ);
     matrix.rotate(_rotation);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glMultMatrixf(matrix.constData());
+#endif
 }
 
 
@@ -247,6 +252,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
     if(event->modifiers() & Qt::ShiftModifier)
     {
+#ifndef    MODELING_MODE
         if((event->buttons() & Qt::RightButton)) {
             _translateX += diff.x()/100;
             _translateY -= diff.y()/100;
@@ -259,6 +265,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         _angularChange = acc;
         _rotation = QQuaternion::fromAxisAndAngle(_rotationAxis, _angularChange) * _rotation;
         }
+#endif
     }
     else
     {
@@ -289,6 +296,8 @@ void GLWidget::wheelEvent(QWheelEvent* e ){
 
 void GLWidget::keyPressEvent(QKeyEvent * event){
 
+#ifndef    MODELING_MODE
+
     switch(event->key())
     {
     case Qt::Key_Enter:
@@ -298,6 +307,8 @@ void GLWidget::keyPressEvent(QKeyEvent * event){
         _rotationAxis = QVector3D(0.0,0.0,0.0);
         _rotation = QQuaternion::fromAxisAndAngle(QVector3D(0.0,0.0,1.0),0.0);
     }
+#endif
+
     updateGL();
 }
 

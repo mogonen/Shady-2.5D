@@ -11,7 +11,12 @@ GLdouble             tM[16];
 bool Session::isRender(RenderSetting rs){
     return GLWidget::is(rs);
 }
-
+#ifdef MODELING_MODE
+void GLWidget::renderCanvas()
+{
+  renderShapes();
+}
+#else
 void GLWidget::renderCanvas()
 {
     _pGLSLShader_R->release();
@@ -99,6 +104,7 @@ void GLWidget::renderCanvas()
     }
 
 }
+#endif
 
 void GLWidget::renderShapes(int mode){
     FOR_ALL_CONST_ITEMS(ShapeList,_pCanvas->_shapes){ //need to add layers

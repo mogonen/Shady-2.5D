@@ -1,5 +1,9 @@
 CONFIG +=
 
+DEFINES += \
+    SHOW_DLFL \
+    MODELING_MODE
+
 HEADERS += glwidget.h \
     mainwindow.h \
     vec/Vector.h \
@@ -13,22 +17,13 @@ HEADERS += glwidget.h \
     curve.h \
     customdialog.h \
     shape.h \
-    FacialShape/facialshape.h \
-    FacialShape/symmetryquad.h \
-    FacialShape/featurequads.h \
     meshshape/patch.h \
     meshshape/spineshape.h \
     meshshape/meshshape.h \
     meshshape/meshdata.h \
     shapecontrol.h \
     ellipseshape.h \
-    Renderer/shaderprogram.h \
-    Renderer/shaderparameters.h \
-    FacialShape/shadingcolorextractor.h \
     meshshape/cmesh.h \
-    Renderer/qsliderspinbox.h \
-    Renderer/renderoptionspenal.h \
-    Renderer/imageshape.h \
     meshshape/meshcommands.h \
     fileio.h \
     commands.h
@@ -44,9 +39,6 @@ SOURCES += glwidget.cpp \
     curve.cpp \
     customdialog.cpp \
     shape.cpp \
-    FacialShape/facialshape.cpp \
-    FacialShape/symmetryquad.cpp \
-    FacialShape/featurequads.cpp \
     meshshape/patch.cpp \
     meshshape/spine.cpp \
     meshshape/meshshape.cpp \
@@ -56,19 +48,14 @@ SOURCES += glwidget.cpp \
     meshshape/meshprimitives.cpp \
     uicalbacks_meshshape.cpp \
     shapecontrol.cpp \
-    Renderer/shaderprogram.cpp \
-    Renderer/shaderparameters.cpp \
-    FacialShape/shadingcolorextractor.cpp \
     glwidget_render.cpp \
     glwidget_canvas.cpp \
     selection.cpp \
     session.cpp \
-    Renderer/qsliderspinbox.cpp \
-    Renderer/renderoptionspenal.cpp \
-    Renderer/imageshape.cpp \
     meshshape/meshcommands.cpp \
     fileio.cpp \
-    commands.cpp
+    commands.cpp \
+    meshshape/patternpatch.cpp
 
 QT           += opengl widgets
 
@@ -91,17 +78,34 @@ FACIAL_SHAPE{
     -lopencv_objdetect$${OPENCV_V} \
     -L$${STASM_HOME}\build\mingw48_32\bin \
     -l$${STASM_LIB}
-}else{
-    HEADERS -=    FacialShape/facialshape.h \
+
+    HEADERS +=    FacialShape/facialshape.h \
     FacialShape/symmetryquad.h \
     FacialShape/featurequads.h \
     FacialShape/shadingcolorextractor.h
-    SOURCES -=     FacialShape/facialshape.cpp \
+    SOURCES +=     FacialShape/facialshape.cpp \
     FacialShape/symmetryquad.cpp \
     FacialShape/featurequads.cpp \
     FacialShape/shadingcolorextractor.cpp
 }
 
+MODELING_MODE{
+
+}else{
+
+    HEADERS +=  Renderer/shaderprogram.h \
+    Renderer/shaderparameters.h \
+    Renderer/qsliderspinbox.h \
+    Renderer/renderoptionspenal.h \
+    Renderer/imageshape.h \
+
+    SOURCES += Renderer/qsliderspinbox.cpp \
+    Renderer/renderoptionspenal.cpp \
+    Renderer/imageshape.cpp \
+    Renderer/shaderprogram.cpp \
+    Renderer/shaderparameters.cpp \
+
+}
 
 RESOURCES += \
     Renderer/Shaders.qrc

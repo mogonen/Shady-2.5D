@@ -58,12 +58,12 @@ void ensureUpToDateSurface(Face_p pF){
 
 void MeshShape::onUpdate(){
     _control->ForAllEdges(updateCurve);
-    //_control->ForAllFaces(updateSurface);
+    _control->ForAllFaces(updateSurface);
 }
 
 void MeshShape::onEnsureUpToDate(){
     _control->ForAllEdges(ensureUpToDateCurve);
-    //_control->ForAllFaces(ensureUpToDateSurface);
+    _control->ForAllFaces(ensureUpToDateSurface);
 }
 
 void MeshShape::makeSmoothTangents(bool isskip, int ttype, double tank){
@@ -192,8 +192,16 @@ void onInsertEdge(Edge_p e){
 
 void onAddFace(Face_p pF)
 {
-
+#ifdef SHOW_DLFL
     pF->pData->pSurface = (Patch*)new Rectangle(pF);
-    //pF->pData->pSurface = (Patch*)new Patch4(pF);
+#else
+
+#ifdef MODELING_MODE
+    pF->pData->pSurface = (Patch*)new PatternPatch(pF);
+#else
+    pF->pData->pSurface = (Patch*)new Patch4(pF);
+#endif
+
+#endif
 }
 

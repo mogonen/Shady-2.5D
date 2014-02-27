@@ -17,7 +17,7 @@ Bezier* initCurve(Corner_p pC){
     if (pE->pData->pCurve)
         return pE->pData->pCurve;
 
-#if 1
+#if SHOW_DLFL
 
     Line* pL = new Line();
 
@@ -31,29 +31,6 @@ Bezier* initCurve(Corner_p pC){
     return pL;
 
 #endif
-
-
-
-    /*{
-        EdgeData* pED = pE->pData;
-        pED->pSV[0] = v0->pData;
-        pED->pSV[3] = v1->pData;
-
-        pED->pSV[0]->pRef = (void*)v0;
-        pED->pSV[3]->pRef = (void*)v1;
-
-        ShapeVertex_p sv1 = pED->getTangentSV(pC);
-        ShapeVertex_p sv2 = pED->getTangentSV(pC->next());
-
-        pED->pSV[1] = sv1;
-        pED->pSV[2] = sv2;
-
-        pED->pCurve->set(pED->pSV[0]->pP(),0);
-        pED->pCurve->set(pED->pSV[1]->pP(),1);
-        pED->pCurve->set(pED->pSV[2]->pP(),2);
-        pED->pCurve->set(pED->pSV[3]->pP(),3);
-
-    }*/
 
     Point p0 = v0->pData->P();
     Point p1 = v1->pData->P();

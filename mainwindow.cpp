@@ -649,6 +649,8 @@ void MainWindow::insertEllipse(){
     Session::get()->insertShape(new EllipseShape());
 }
 
+#ifndef MODELING_MODE
 void updateGLSLLight(double x, double y, double z){
     MainWindow::glWidget->updateGLSLLight(x,y,z);
 }
+#endif

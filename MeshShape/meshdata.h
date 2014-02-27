@@ -24,30 +24,32 @@ struct EdgeData
    void relink(Edge_p pe){
        pE = pe;
        pE->pData = this;
-       pSV[0] = pE->C0()->V()->pData;
-       pSV[0]->pRef = (void*)pE->C0()->V();
-       pSV[1] = pE->C0()->next()->V()->pData;
-       pSV[1]->pRef = (void*)pE->C0()->next()->V();
 
-       /*
-       pSV[0] = pE->C0()->V()->pData;
-       pSV[0]->pRef = (void*)pE->C0()->V();
-       pSV[3] = pE->C0()->next()->V()->pData;
-       pSV[3]->pRef = (void*)pE->C0()->next()->V();
+#ifdef SHOW_DLFL
+           pSV[0] = pE->C0()->V()->pData;
+           pSV[0]->pRef = (void*)pE->C0()->V();
+           pSV[1] = pE->C0()->next()->V()->pData;
+           pSV[1]->pRef = (void*)pE->C0()->next()->V();
+#else
+           pSV[0] = pE->C0()->V()->pData;
+           pSV[0]->pRef = (void*)pE->C0()->V();
+           pSV[3] = pE->C0()->next()->V()->pData;
+           pSV[3]->pRef = (void*)pE->C0()->next()->V();
 
-       pSV[1]->pRef = (void*)pE;
-       pSV[2]->pRef = (void*)pE;
+           pSV[1]->pRef = (void*)pE;
+           pSV[2]->pRef = (void*)pE;
 
-       //reanimate vertices, these should be handled better way
-       pSV[0]->_isDeleted = false;
-       pSV[1]->_isDeleted = false;
-       pSV[2]->_isDeleted = false;
-       pSV[3]->_isDeleted = false;
+           //reanimate vertices, these should be handled better way
+           pSV[0]->_isDeleted = false;
+           pSV[1]->_isDeleted = false;
+           pSV[2]->_isDeleted = false;
+           pSV[3]->_isDeleted = false;
 
-       pCurve->set(pSV[0]->pP(),0);
-       pCurve->set(pSV[1]->pP(),1);
-       pCurve->set(pSV[2]->pP(),2);
-       pCurve->set(pSV[3]->pP(),3);*/
+           pCurve->set(pSV[0]->pP(),0);
+           pCurve->set(pSV[1]->pP(),1);
+           pCurve->set(pSV[2]->pP(),2);
+           pCurve->set(pSV[3]->pP(),3);
+#endif
    }
 
    ShapeVertex_p getTangentSV(ShapeVertex_p sv)

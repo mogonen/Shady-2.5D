@@ -112,6 +112,7 @@ void Canvas::setImagePlane(const string &filename){
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 }
 
+#ifndef MODELING_MODE
 void Canvas::updateDepth()
 {
     unsigned char m=0;
@@ -120,5 +121,6 @@ void Canvas::updateDepth()
         (*it)->setLayerLabel(m++);
     }
 }
+#endif
 
 //NOW GL WIDGET ////////////////////////////////////////////

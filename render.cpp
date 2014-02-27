@@ -230,11 +230,11 @@ void SpineShape::render(int mode){
 
 void renderEdge(Edge_p pE){
 
+ #ifdef SHOW_DLFL
     //render corners
 
     Corner_p c0 = pE->C();
     Corner_p c1 = c0->other();
-
 
     Vec2 tan = P1(c0) - P0(c0);
     Vec3 n = Vec3(tan)%Vec3(0,0,1);
@@ -304,6 +304,7 @@ void renderEdge(Edge_p pE){
         glVertex2f(pc10.x, pc10.y);
         glEnd();
     }
+#endif
 
     if (pE->pData->pCurve){
         pE->pData->pCurve->render();
@@ -587,7 +588,7 @@ void TransformHandler::render(){
     }
 }
 
-
+#ifndef MODELING_MODE
 void ImageShape::InitializeTex()
 {
     QImage loadedImage;
@@ -785,3 +786,5 @@ float ImageShape::CapValue(float in_num, float low_cap, float high_cap)
         return high_cap;
     return in_num;
 }
+
+#endif
