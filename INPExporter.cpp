@@ -35,7 +35,7 @@ bool INPExporter::exportShape(Shape* pShape, const char *fname){
         if (!pF->pData || !pF->pData->pSurface)
             continue;
 
-        PatternPatch* patch = dynamic_cast<PatternPatch*>(pF->pData->pSurface);
+        UVPatternPatch* patch = dynamic_cast<UVPatternPatch*>(pF->pData->pSurface);
         if (!patch)
             continue;
 
@@ -75,7 +75,7 @@ bool INPExporter::exportShape(Shape* pShape, const char *fname){
         if (!pF->pData || !pF->pData->pSurface)
             continue;
 
-        PatternPatch* patch = dynamic_cast<PatternPatch*>(pF->pData->pSurface);
+        UVPatternPatch* patch = dynamic_cast<UVPatternPatch*>(pF->pData->pSurface);
         if (!patch)
             continue;
 
@@ -108,7 +108,7 @@ bool INPExporter::exportShape(Shape* pShape, const char *fname){
         if (!pF->pData || !pF->pData->pSurface)
             continue;
 
-        PatternPatch* patch = dynamic_cast<PatternPatch*>(pF->pData->pSurface);
+        UVPatternPatch* patch = dynamic_cast<UVPatternPatch*>(pF->pData->pSurface);
         if (!patch)
             continue;
 

@@ -9,7 +9,6 @@ int     Patch::NN2;
 double  Patch::T;
 bool    Patch::isH = true;
 
-
 Patch::Patch(Face_p pF):Selectable(false){
     _ps = 0;
     _ns = 0;

@@ -40,7 +40,7 @@ void  PatternOperation::assignPattern(Edge_p pE, string patternstr)
     int off = 0;
     while(c0 && c0->F()!=endf)
     {
-        PatternPatch* patch = dynamic_cast<PatternPatch*>(c0->F()->pData->pSurface);
+        UVPatternPatch* patch = dynamic_cast<UVPatternPatch*>(c0->F()->pData->pSurface);
         if (!patch)
             return;
 
@@ -65,7 +65,7 @@ void PatternOperation::setFolds(Edge_p pE, int n, double dmin)
 
     while(c0 && c0->F()!=endf)
     {
-        PatternPatch* patch = dynamic_cast<PatternPatch*>(c0->F()->pData->pSurface);
+        UVPatternPatch* patch = dynamic_cast<UVPatternPatch*>(c0->F()->pData->pSurface);
         if (!patch)
             return;
         int i = c0->I();

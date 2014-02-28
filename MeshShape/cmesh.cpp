@@ -116,7 +116,7 @@ void Mesh::removeEdge(Corner_p c0, bool lazydel){
     }else{ //dangling corner
         c0->setNext(c0);
     }
-return;
+
     Face_p f0 = c0->F(), f1 = c1->F();
     if (f0 == f1){
         f0 = addFace(1, f1->isBorder());
@@ -145,9 +145,9 @@ return;
         c1->V()->set(0);
     }
 
-   /* e->markDeleted();
+    e->markDeleted();
     delete c0n;
-    delete c1n;*/
+    delete c1n;
 }
 
 /*
@@ -814,7 +814,7 @@ void Face::remove(bool lazydel){
         if (C(i)->E()->isBorder())
             todel.push_back(C(i)->E());
 
-    for(CornerList::iterator it = todel.begin(); it!=todel.end(); it++)
+    for(EdgeList::iterator it = todel.begin(); it!=todel.end(); it++)
         mesh()->remove(*it, lazydel);
 
     _isBorder = true;
