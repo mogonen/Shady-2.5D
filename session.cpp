@@ -25,6 +25,8 @@ void Session::init(MainWindow * pMW){
     _pSession->_filename        = 0;
     _pSession->_pTheCommand     = 0;
     _pSession->_pTheShape       = 0;
+
+    _pSession->_pExporters[0]   = new INPExporter();
 }
 
 void Session::activate(Shape_p sp){
@@ -76,6 +78,14 @@ void Session::saveAs(const char *fname){
     _filename = fname;
     _pFileIO->save(_filename);
 }
+
+void Session::exportShape(const char *fname, int exporterid){
+    if (!_pTheShape)
+        return;
+    _filename = fname;
+    _pExporters[exporterid]->exportShape(_pTheShape, _filename);
+}
+
 
 int Session::save(){
     if (!_filename)

@@ -1,6 +1,6 @@
 CONFIG +=
 
-#DEFINES += SHOW_DLFL
+DEFINES += SHOW_DLFL
 DEFINES += MODELING_MODE
 
 HEADERS += glwidget.h \
@@ -55,7 +55,8 @@ SOURCES += glwidget.cpp \
     fileio.cpp \
     commands.cpp \
     meshshape/patternpatch.cpp \
-    meshshape/pattern.cpp
+    meshshape/pattern.cpp \
+    INPExporter.cpp
 
 QT           += opengl widgets
 

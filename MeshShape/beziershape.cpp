@@ -42,7 +42,7 @@ void updateCurve(Edge_p pE){
 }
 
 void updateSurface(Face_p pF){
-    if (pF->pData->pSurface)
+    if (pF->pData && pF->pData->pSurface && !pF->isBorder())
         pF->pData->pSurface->update();
 }
 
@@ -52,7 +52,7 @@ void ensureUpToDateCurve(Edge_p pE){
 }
 
 void ensureUpToDateSurface(Face_p pF){
-    if (pF->pData->pSurface)
+    if (pF->pData && pF->pData->pSurface && !pF->isBorder())
         pF->pData->pSurface->ensureUpToDate();
 }
 
@@ -112,7 +112,7 @@ void MeshShape::makeSmoothCorners(Corner_p pC, bool isskipsharp, int tangenttype
     ShapeVertex_p sv_tan1 = 0;
     Point p0, p1;
 
-    if (vprev->F() && vnext->F()){
+    if (!vprev->isBorder() && !vnext->isBorder()){
 
         sv_tan0 = c0->E()->pData->getTangentSV(c0);
 
@@ -132,7 +132,7 @@ void MeshShape::makeSmoothCorners(Corner_p pC, bool isskipsharp, int tangenttype
         p0 = P0(c0->next());
 
         //return; //this is not a corner
-    }else if (!vprev->F() && !vnext->F() ){
+    }else if (vprev->isBorder() && vnext->isBorder()){
 
         sv_tan1 = c0->E()->pData->getTangentSV(c0);
         sv_tan0 = c0->prev()->E()->pData->getTangentSV(c0);
@@ -140,7 +140,7 @@ void MeshShape::makeSmoothCorners(Corner_p pC, bool isskipsharp, int tangenttype
         p1 = P0(c0->next());
         p0 = P0(c0->prev());
 
-    }else if (vprev->F()){
+    }else if (vnext->isBorder()){
 
         sv_tan1 = c0->E()->pData->getTangentSV(c0);
         sv_tan0 = vnext->E()->pData->getTangentSV(vnext);
@@ -192,6 +192,9 @@ void onInsertEdge(Edge_p e){
 
 void onAddFace(Face_p pF)
 {
+    if (pF->isBorder())
+        return;
+
 #ifdef SHOW_DLFL
     pF->pData->pSurface = (Patch*)new Rectangle(pF);
 #else

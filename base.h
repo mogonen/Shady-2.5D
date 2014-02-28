@@ -294,6 +294,12 @@ public:
     virtual bool save(const char * fname) = 0;
 };
 
+class Exporter {
+
+public:
+    virtual bool exportShape(Shape*, const char * fname) = 0;
+};
+
 
 class Session{
 
@@ -303,6 +309,7 @@ class Session{
     ShapeControl*       _pController;
     MainWindow*         _pMainWindow;
     FileIO*             _pFileIO; //default;
+    Exporter*           _pExporters[10];
 
     const char*         _filename;
 
@@ -341,6 +348,7 @@ public:
 
     void                open(const char *fname);
     void                saveAs(const char* fname);
+    void                exportShape(const char *fname, int exporterid);
     int                 save();
     void                reset();
 

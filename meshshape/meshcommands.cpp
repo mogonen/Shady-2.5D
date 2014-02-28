@@ -97,6 +97,8 @@ Command_p MeshOperation::exec(){
     _pF = pF;
     _pE = pE;
 
+    _cache.addMesh(pMS->mesh());
+
     execOP();
 
     _pMS->Renderable::update();

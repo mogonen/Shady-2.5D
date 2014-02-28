@@ -138,3 +138,4 @@ Shape* DefaultIO::parseShape(const char* line){
     pShape->translate(Vec2(x,y));
     return pShape;
 }
+

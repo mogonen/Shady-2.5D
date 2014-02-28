@@ -222,6 +222,10 @@ void MainWindow::createActions()
     fileOpenAct->setShortcuts(QKeySequence::Open);
     connect(fileOpenAct, SIGNAL(triggered()), this, SLOT(openFile()));
 
+    fileExportINPAct = new QAction(tr("Export INP"), this);
+    connect(fileExportINPAct, SIGNAL(triggered()), this, SLOT(exportINP()));
+
+
     editUndoAct = new QAction(tr("Undo"), this);
     editUndoAct->setShortcuts(QKeySequence::Undo);
     connect(editUndoAct, SIGNAL(triggered()), this, SLOT(undo()));
@@ -387,8 +391,9 @@ void MainWindow::createMenus()
     fileMenu->addAction(fileSaveAct);
     fileMenu->addAction(fileSaveAsAct);
 
+    fileMenu->addSeparator();
     fileMenu->addAction("Import");
-    fileMenu->addAction("Export");
+    fileMenu->addAction(fileExportINPAct);
 
     fileMenu->addSeparator();
     fileMenu->addAction(exitAct);
@@ -531,6 +536,11 @@ void MainWindow::saveFile(){
 void MainWindow::saveFileAs(){
     QString fname = QFileDialog::getSaveFileName(this,"Save As");
     Session::get()->saveAs(fname.toUtf8().constData());
+}
+
+void MainWindow::exportINP(){
+    QString fname = QFileDialog::getSaveFileName(this,"Export INP");
+    Session::get()->exportShape(fname.toUtf8().constData(), 0);
 }
 
 void MainWindow::undo(){

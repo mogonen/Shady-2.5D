@@ -80,8 +80,9 @@ public:
 
 class PatternPatch:public Patch{
 
-    inline int ind(int uv, int n, int i){return i + uv*(_nU*N) + n*N;}
-    inline Point P(int uv, int n, int i)const{return _ps[i + uv*(_nU*N) + n*N];}
+
+
+
     int    _nU, _nV;
     int*   _pattern;
 
@@ -98,6 +99,14 @@ public:
 
     int U() const {return _nU;}
     int V() const {return _nV;}
+    int UV(int uv = 0) const {return (uv==0) ? _nU:_nV;}
+
+    inline int ind(int uv, int n, int i, int j=0) const {return i + (j*N) + uv*(_nU*N)*2 + n*N*2;}
+    inline Point P(int uv, int n, int i, int j=0) const {return _ps[i + (j*N) + uv*(_nU*N)*2 + n*N*2];}
+    inline Point Pu(int n, int i, int j=0) const {return P(0,n,i,j);}
+    inline Point Pv(int n, int i, int j=0) const {return P(1,n,i,j);}
+
+    int getN(){return N;}
 
     PatternPatch(Face_p);
     //~Patch4();

@@ -22,11 +22,13 @@ public:
 
     bool load(const char *fname);
     bool save(const char *fname);
-
-    bool exportOBJ(Shape* pShape, char *fname);
-    bool exportEPS(Shape* pShape, char *fname);
-
 };
 
+
+class INPExporter:public Exporter{
+
+public:
+    bool exportShape(Shape *, const char *fname);
+};
 
 #endif // FILEIO_H

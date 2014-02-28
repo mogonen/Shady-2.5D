@@ -80,6 +80,8 @@ private slots:
     void saveFile();
     void saveFileAs();
 
+    void exportINP();
+
     void undo();
     void redo();
     void about();
@@ -187,6 +189,8 @@ private:
     QAction *       fileSaveAct;
     QAction *       fileSaveAsAct;
     QAction *       fileOpenAct;
+
+    QAction *       fileExportINPAct;
 
     //Edit Menu Action
     QAction *       editUndoAct;

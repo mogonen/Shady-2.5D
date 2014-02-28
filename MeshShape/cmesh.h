@@ -43,6 +43,7 @@ typedef Mesh*       Mesh_p;
 typedef std::list<Edge_p>   EdgeList;
 typedef std::list<Vertex_p> VertexList;
 typedef std::list<Face_p>   FaceList;
+typedef std::list<Corner_p> CornerList;
 
 class Element{
 
@@ -144,7 +145,7 @@ public:
 
 };
 
-#define NULLFACE (Face_p)1
+//#define NULLFACE (Face_p)1
 class Corner{
 	
 	int _i;
@@ -160,8 +161,9 @@ class Corner{
 
 public:
 
-    Corner(Vertex_p v=0, Face_p f = NULLFACE);
-    //~Corner();
+    Corner(Vertex_p v=0, Face_p f = 0);
+    ~Corner();
+
     inline int I();
 
     inline Edge_p	E() const;
@@ -233,7 +235,7 @@ public:
 
     Vertex_p    addVertex(VertexData* pData=0);
 
-    Face_p      addFace(int);
+    Face_p      addFace(int, bool isborder = false);
     Face_p      addQuad(Vertex_p, Vertex_p, Vertex_p, Vertex_p, bool isedges = false); //strickly clock-wise
     Face_p      addQuad(Corner_p, Corner_p, Corner_p, Corner_p); //strickly clock-wise
     Face_p      addTriangle(Vertex_p, Vertex_p, Vertex_p);
@@ -242,6 +244,7 @@ public:
     //atomic operations
     Edge_p      insertEdge(Corner_p, Corner_p, bool updatefaces = true, Edge_p pE = 0, Face_p pF = 0);
     Corner_p    splitEdge(Corner_p, Vertex_p vP = 0);
+    void        removeEdge(Corner_p c, bool lazydel = true);
     Corner_p    mergeEdge(Corner_p);
     void        remove(Edge_p e, bool lazydel = true);
 
