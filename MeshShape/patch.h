@@ -89,6 +89,8 @@ protected:
 public:
 
     virtual void assignPattern(int uv, int off, int len, int * data);
+    virtual void init(int nu, int nv)=0;
+
 
     int U() const {return _nU;}
     int V() const {return _nV;}
@@ -102,7 +104,7 @@ public:
 
 class GridPattern:public PatternPatch{
 
-    void init(int nu, int nv);
+
 
 protected:
 
@@ -112,6 +114,7 @@ public:
 
     GridPattern(Face_p pF);
     void render(int mode = 0);
+    void init(int nu, int nv);
 
     int getPattern(int i, int j) const;
 

@@ -63,7 +63,7 @@ int GridPattern::getPattern(int i, int j) const{
         return _pattern[_nU + vj];
     }
 
-    return 0;
+    return -1;
 }
 
 
@@ -114,12 +114,13 @@ void GridPattern::render(int mode){
 
             int pat = getPattern(i,j);
 
+            glColor3f(0.95, 0.95, 0.95);
             if (pat == 0)
-                glColor3f(0.85, 0.85, 0.85);
+                glColor3f(0.90, 0.90, 0.90);
             else if (pat == 1)
-                glColor3f(0.85, 0.05, 0.05);
+                glColor3f(0.9, 0.1, 0.1);
             else if (pat == 2)
-                glColor3f(0.05, 0.85, 0.05);
+                glColor3f(0.1, 0.9, 0.1);
 
             glBegin(GL_POLYGON);
             for(int k = 0; k < 4; k++){
