@@ -29,7 +29,7 @@ void GridPattern::init(int nu, int nv){
     if (_pattern)
         delete _pattern;
 
-    setN(75);
+    setN(24);
     _pattern = new int[(_nU+_nV)];
     for(int i = 0; i < (_nU + _nV); i++)
         _pattern[i] = 0;

@@ -37,9 +37,10 @@ public:
 
 
     static bool isH;
+    static inline int ind(int i, int j){return i + j*N;}
 
 protected:
-    static inline int ind(int i, int j){return i + j*N;}
+
     static int N, Ni, NN, NN2;
     static double T;
 
