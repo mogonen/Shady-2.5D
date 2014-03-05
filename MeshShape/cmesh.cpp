@@ -283,7 +283,7 @@ Edge_p Mesh::insertEdge(Corner_p c0, Corner_p c1, bool updatefaces, Edge_p pE, F
     if (c0->F() == c1->F()){
         if (pF){
             pF->_isdeleted = false;
-            pF->_isBorder  = false;
+            //pF->_isBorder  = false;
             f0 = pF;
         }
         else

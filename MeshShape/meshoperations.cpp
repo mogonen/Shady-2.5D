@@ -158,17 +158,17 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p,  MeshOperationCache
     double t;
     e->pData->pCurve->computeDistance(p, t);
 
-    Point tan0 = computeVerticalTangent(t, e);
+    //Point tan0 = computeVerticalTangent(t, e);
     Corner_p c0 = pMesh->splitEdge(e->C0(), pMS->addMeshVertex());
     onSplitEdge(c0, t);
 
     Corner_p c1 = c0->vNext();
     Face_p endf = (c1)?c1->F():0;
 
-    while(c0 && c0->F() && c0->F()!=endf){
+    while(!c0->isBorder() && c0->F()!=endf){
 
-        Point tan1  = computeVerticalTangent((1-t), c0->next()->next()->E(), c0->F());
-        Point tan00 = computeVerticalTangent(t, c0->next()->next()->E(), c0->next()->next()->vNext()->F());
+        //Point tan1  = computeVerticalTangent((1-t), c0->next()->next()->E(), c0->F());
+        //Point tan00 = computeVerticalTangent(t, c0->next()->next()->E(), c0->next()->next()->vNext()->F());
 
         Corner* c01 = pMesh->splitEdge(c0->next()->next(), pMS->addMeshVertex());
         onSplitEdge(c01, 1-t);
@@ -183,18 +183,18 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p,  MeshOperationCache
             pCache->add(pEnew, true);
         }
 
-        pEnew->pData->pSV[1]->pP()->set(tan0);
-        pEnew->pData->pSV[2]->pP()->set(tan1);
-        tan0 = tan00;
+        //pEnew->pData->pSV[1]->pP()->set(tan0);
+        //pEnew->pData->pSV[2]->pP()->set(tan1);
+        //tan0 = tan00;
 
         c0 = c0n;
     }
 
-    if (c0 && c0->F() && c0->F() == endf){ //looping
+    if (!c0->isBorder() && c0->F() == endf){ //looping
         Edge_p pEnew = (pMesh->insertEdge(c0, c0->next()->next()->next()));
          if (pCache)
              pCache->add(pEnew, true);
-    }else while(c1 && c1->F()){
+    }else while(!c1->isBorder()){
         Corner* c11 = pMesh->splitEdge(c1->next()->next(), pMS->addMeshVertex());
         onSplitEdge(c11, t);
         Edge_p e_c11 = c11->E();
@@ -401,6 +401,7 @@ void MeshOperation::deleteFace(Face_p f, MeshOperationCache *pCache){
         pCache->add(f);
 
     MeshShape* pMS = (MeshShape*)(f->mesh()->caller());
+    pMS->mesh()->remove(f);
 
     /*for(int i=0; i<f->size(); i++){
         Corner_p ci = f->C(i);
@@ -414,8 +415,6 @@ void MeshOperation::deleteFace(Face_p f, MeshOperationCache *pCache){
         pMS->removeVertex(ci->E()->pData->pSV[2]);
         //delete f->C(i)->E()->pData->pCurve;
     }*/
-
-    pMS->mesh()->remove(f);
     /*if (mesh->sizeF()==0)u
     {
         //Session::get()->removeShape((Shape_p)mesh->caller());

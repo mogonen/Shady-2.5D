@@ -47,7 +47,7 @@
 #include "ellipseshape.h"
 #include "shapecontrol.h"
 
-#ifdef MODELING_MODE
+#ifndef MODELING_MODE
 #include "Renderer/renderoptionspenal.h"
 #endif
 

@@ -2,6 +2,7 @@ CONFIG +=
 
 #DEFINES += SHOW_DLFL
 DEFINES += MODELING_MODE
+#DEFINES += RENDERING_MODE
 
 HEADERS += glwidget.h \
     mainwindow.h \
@@ -95,9 +96,11 @@ MODELING_MODE{
 
 HEADERS +=
 SOURCES +=
+
+
 }
 
-RENDERING_MODE{
+Rweter{
 
     HEADERS +=  Renderer/shaderprogram.h \
     Renderer/shaderparameters.h \
@@ -110,7 +113,6 @@ RENDERING_MODE{
     Renderer/imageshape.cpp \
     Renderer/shaderprogram.cpp \
     Renderer/shaderparameters.cpp \
-
 }
 
 RESOURCES += \

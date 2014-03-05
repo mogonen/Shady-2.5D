@@ -29,7 +29,7 @@ void GridPattern::init(int nu, int nv){
     if (_pattern)
         delete _pattern;
 
-    setN(24);
+    setN(25);
     _pattern = new int[(_nU+_nV)];
     for(int i = 0; i < (_nU + _nV); i++)
         _pattern[i] = 0;
@@ -43,23 +43,24 @@ void GridPattern::init(int nu, int nv){
 
 int GridPattern::getPattern(int i, int j) const{
 
-    int wu  = Ni/_nU;
+    double wu  = Ni *1.0 / _nU;
     int ui  = i / wu;
-    int uii = i % wu;
+    int uii = i -  (wu * ui);
 
-    int margin_u = wu/3;
+    double margin_u = wu/10.0;
 
-    if ( uii > margin_u && uii < (wu-margin_u) ){
+    if ( uii > margin_u && uii < (wu-margin_u) )
+    {
         return _pattern[ui];
     }
 
-    int wv  = Ni/_nV;
+    double  wv  = Ni*1.0/_nV;
     int vj  = j / wv;
-    int vjj = j % wv;
+    int vjj = j -  (wv * vj);
 
-    int margin_v = wv/3;
+    int margin_v = wv/10.0;
 
-    if ( vjj > margin_v && vjj < (wv-margin_v) ){
+    if ( (vjj > margin_v) && (vjj < (wv-margin_v)) ) {
         return _pattern[_nU + vj];
     }
 

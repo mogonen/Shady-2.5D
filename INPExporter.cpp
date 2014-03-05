@@ -47,7 +47,7 @@ bool INPExporter::exportShape(Shape* pShape, const char *fname){
         for(int j=0; j < Nv; j++){
             for(int i = 0; i < Nu; i++){
                 Point p = patch->P(i, j);
-                int id = i + j*Nu;
+                int id = i + j*Nu + nodePage[facenum];
                 outfile<<id<<", "<<p.x<<", "<<p.y<<", "<<", 0." <<endl;
             }
         }

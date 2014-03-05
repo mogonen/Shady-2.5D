@@ -44,10 +44,10 @@ void  PatternOperation::assignPattern(Edge_p pE, string patternstr)
         if (!patch)
             return;
 
-        int i = c0->I();
+        int i = c0->I()+1;
         patch->assignPattern(i%2, off, len, pattern);
         c0 = c0->prev()->vPrev();
-        off+= (i%2) ? patch->V() : patch->U();
+        off+= (i%2) ? patch->U() : patch->V();
     }
 
 }
