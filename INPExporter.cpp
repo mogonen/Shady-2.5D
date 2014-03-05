@@ -103,12 +103,16 @@ bool INPExporter::exportShape(Shape* pShape, const char *fname){
         if (elements[i].empty())
             continue;
             outfile<<"*Nset, nset = Set-"<<i<< endl;
+        int count = 0;
         FOR_ALL_ITEMS(std::list<int>, elements[i]){
             int eid = *it;
-            if (it == elements[i].begin())
+            if ((count%16)==0)
                 outfile<<eid;
             else
                 outfile<<", "<<eid;
+            count++;
+            if ((count%16)==0)
+                outfile<<endl;
         }
          outfile<<endl;
     }

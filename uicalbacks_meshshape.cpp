@@ -194,7 +194,7 @@ QWidget* createAssignPatternOptions()
 QWidget* createSetFoldsOptions()
 {
     CustomDialog * widget = new CustomDialog("FoldingOptions",0, "Fold", executeMeshShapeOperations, &MeshOperation::EXEC_ONCLICK);
-    widget->addSpinBox("Folds:", 1, 24, &PatternOperation::FOLD_N, 1, "Number of Folds");
+    widget->addSpinBox("Folds:", 0, 24, &PatternOperation::FOLD_N, 1, "Number of Folds");
     return widget;
 }
 
