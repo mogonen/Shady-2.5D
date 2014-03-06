@@ -1,7 +1,7 @@
 #include "fileio.h"
 #include "MeshShape/patch.h"
 #include "MeshShape/meshshape.h"
-
+#include <sstream>
 
 bool INPExporter::exportShape(Shape* pShape, const char *fname){
 
@@ -61,7 +61,7 @@ bool INPExporter::exportShape(Shape* pShape, const char *fname){
     int*  elementPage = new int[faces.size()];
     elementPage[0] = 1;
 
-    std::list<int> elements[5];
+    std::list<int> elements[3];
 
     outfile<<endl;
     outfile<<"*Element, type=S4R"<<endl;
@@ -95,14 +95,19 @@ bool INPExporter::exportShape(Shape* pShape, const char *fname){
         fi++;
     }
 
-
     //now sets
     fi = 0;
     outfile<<endl;
-    for(int i=0; i<5; i++){
+    for(int i=0; i<3; i++)
+    {
         if (elements[i].empty())
             continue;
-            outfile<<"*Nset, nset = Set-"<<i<< endl;
+
+        //outfile<<"*Nset, nset = Set-"<<i<< endl;
+        std::ostringstream name;
+        name<<"ElemSet"<<i;
+        outfile<<"*Elset, elset="<<name.str()<<", internal"<<endl;
+
         int count = 0;
         FOR_ALL_ITEMS(std::list<int>, elements[i]){
             int eid = *it;
@@ -114,6 +119,16 @@ bool INPExporter::exportShape(Shape* pShape, const char *fname){
             if ((count%16)==0)
                 outfile<<endl;
         }
+         outfile<<endl;
+
+         if (i==1)
+         {
+             outfile<<"*Surface, type=ELEMENT, name="<<name.str()<<"_Bot"<<endl;
+             outfile<<name.str()<<", SNEG"<<endl;
+         }else if (i==2){
+             outfile<<"*Surface, type=ELEMENT, name="<<name.str()<<"_Top"<<endl;
+             outfile<<name.str()<<", SPOS"<<endl;
+         }
          outfile<<endl;
     }
     outfile.close();
