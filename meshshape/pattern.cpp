@@ -24,32 +24,30 @@ int * parsePattern(string patternstr , int &len)
 
 void  PatternOperation::assignPattern(Edge_p pE, string patternstr)
 {
-
-    if (!pE )
+    if (!pE)
         return;
 
-    //Mesh_p pMesh = pE->mesh();
     Corner* c0 = pE->C0();
-    Corner* c1 = pE->C1();
-
-    Face_p endf = (c1)?c1->F():0;
 
     int len;
     int * pattern = parsePattern(patternstr, len);
 
     int off = 0;
-    while(c0 && c0->F()!=endf)
-    {
+    do{
+        if (c0->isBorder())
+            break;
+
         PatternPatch* patch = dynamic_cast<PatternPatch*>(c0->F()->pData->pSurface);
         if (!patch)
             return;
 
-        int i = c0->I()+1;
+        int i = c0->I();
         patch->assignPattern(i%2, off, len, pattern);
-        c0 = c0->prev()->vPrev();
         off+= (i%2) ? patch->U() : patch->V();
-    }
 
+        c0 = c0->prev()->vPrev();
+
+    }while(c0 != pE->C0());
 }
 
 void PatternOperation::setFolds(Edge_p pE, int n, double dmin)
@@ -59,21 +57,21 @@ void PatternOperation::setFolds(Edge_p pE, int n, double dmin)
 
     //Mesh_p pMesh = pE->mesh();
     Corner* c0 = pE->C0();
-    Corner* c1 = pE->C1();
+    do{
+        if (c0->isBorder())
+            break;
 
-    Face_p endf = (c1)?c1->F():0;
-
-    while(c0 && c0->F()!=endf)
-    {
         PatternPatch* patch = dynamic_cast<PatternPatch*>(c0->F()->pData->pSurface);
         if (!patch)
             return;
         int i = c0->I();
         if (i%2)
-            patch->init(n, patch->V());
-       else
             patch->init(patch->U(), n);
+        else
+            patch->init(n, patch->V());
 
         c0 = c0->prev()->vPrev();
-    }
+
+    }while(c0 != pE->C0());
+
 }

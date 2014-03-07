@@ -399,8 +399,8 @@ void Patch4::render(int mode){
     if (!Session::isRender(DRAG_ON))
       Selectable::render(mode);
 
-      for(int j=0; j < Ni; j++){
-        for(int i = 0; i< Ni; i++){
+      for(int j=0; j < _sampleVi; j++){
+        for(int i = 0; i< _sampleUi; i++){
 
             Point p[4];
             p[0] = P(i, j);

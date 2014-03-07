@@ -2,11 +2,11 @@
 #include "../curve.h"
 #include <QDebug>
 
-int     Patch::N;
+/*int     Patch::N;
 int     Patch::Ni;
 int     Patch::NN;
 int     Patch::NN2;
-double  Patch::T;
+double  Patch::T;*/
 bool    Patch::isH = true;
 
 Patch::Patch(Face_p pF):Selectable(false){
@@ -26,6 +26,8 @@ void Patch::propateNormals(){
 
     for(int i=0; i<_pFace->size(); i++){
 
+        int Ni = (i%2)? _sampleVi : _sampleUi;
+
         Vec3 n0 = corner_ns[i];
         Vec3 n1 = corner_ns[(i+1)%4];
         _ns[edgeInd(i, 0)] = n0;
@@ -37,8 +39,8 @@ void Patch::propateNormals(){
         Vec3 n0_d = Patch::decompose(n0, Vec3(tan0));
         Vec3 n1_d = Patch::decompose(n1, Vec3(tan1));
 
-        for(int j=1; j<N-1; j++){
-            double t = j*T;
+        for(int j=1; j<Ni; j++){
+            double t = j*(1.0/Ni);
             Vec3 n_d = n0_d*(1-t) + n1_d*(t);
             Vec3 tan = (_ps[edgeInd(i, j+1)] - _ps[edgeInd(i, j-1)]).normalize();
             //compose
@@ -48,17 +50,21 @@ void Patch::propateNormals(){
 }
 
 Patch4::Patch4(Face_p pF):Patch(pF){
-    _ps = new Point[NN];
-    _ns = new Vec3[NN];
+    //setSample(N,N);
+    _ps = new Point[_sampleUV];
+    _ns = new Vec3[_sampleUV];
 }
 
 Vec3 Patch4::interpolateN(int i, int j){
+
+    int Ni = _sampleUi;
+    int N  = _sampleU;
 
     double t =  H(i*1.0 / Ni); //isH? H(i*1.0 / Ni) : (i*1.0 / Ni);
     double s =  H(j*1.0 / Ni) ;//isH? H(j*1.0 / Ni) : (j*1.0 / Ni);
 
     Vec3 n0 = _ns[i]*(1.0-s) + _ns[i + Ni*N]*s;
-    n0 = n0 + _ns[0 + j*N]*(1.0 - t) + _ns[Ni + j*N]*t;
+    n0 = n0 + _ns[0 + j*_sampleU]*(1.0 - t) + _ns[Ni + j*_sampleU]*t;
     n0 = n0 - _ns[0]*(1-s)*(1.0-t) - _ns[Ni]*(1-s)*t - _ns[Ni + Ni*N]*s*t - _ns[Ni*N]*s*(1-t);
     return n0;
 }
@@ -84,12 +90,12 @@ void Patch4::onUpdate(){
     _K[10] = _K[11] + _K[14] - _K[15];
 
     //bezier surface interpolation
-    for(int j=0; j<N;j++)
-        for(int i=0; i<N; i++){
+    for(int j=0; j<_sampleV;j++)
+        for(int i=0; i<_sampleU; i++){
             Point p;
             for(int bj = 0; bj<4; bj++)
                 for(int bi = 0; bi<4; bi++)
-                    p = p + cubicBernstein(bi, i*T)*cubicBernstein(bj, j*T)*_K[bi+bj*4];
+                    p = p + cubicBernstein(bi, i*_Tu)*cubicBernstein(bj, j*-_Tv)*_K[bi+bj*4];
             _ps[ind(i,j)] = p;
         }
 
@@ -98,12 +104,16 @@ void Patch4::onUpdate(){
 }
 
 void Patch4::interpolateNormals(){
-    for(int j = 1; j<Ni;j++)
-        for(int i = 1; i<Ni; i++)
+    for(int j = 1; j<_sampleVi;j++)
+        for(int i = 1; i<_sampleUi; i++)
                 _ns[ind(i,j)] = interpolateN(i, j);
 }
 
 int Patch::edgeInd(int ei, int i){
+
+    int Ni = _sampleUi;
+    int N  = _sampleU;
+
     switch(ei){
         case 0:
             return i;
@@ -122,6 +132,10 @@ int Patch::edgeInd(int ei, int i){
 }
 
 int Patch::edgeUInd(int ei, int i){
+
+    int Ni = _sampleUi;
+    int N  = _sampleU;
+
     switch(ei){
         case 0:
             return i;

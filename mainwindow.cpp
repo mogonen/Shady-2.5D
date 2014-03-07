@@ -86,7 +86,7 @@ MainWindow::MainWindow()
     resize(1200, 900);
 
     // set the number of patch lines
-    Patch::setN(16);
+    //Patch::setN(16);
 }
 
 

@@ -7,6 +7,8 @@ int     PatternPatch::NU = 4;
 int     PatternPatch::NV = 4;
 //double  Patch::T;
 
+#define FOLD_W 12
+
 void PatternPatch::assignPattern(int uv, int off, int len, int * data)
 {
     int end = (uv == 0)? _nU :_nV;
@@ -29,7 +31,8 @@ void GridPattern::init(int nu, int nv){
     if (_pattern)
         delete _pattern;
 
-    setN(25);
+    setSample(nu? nu*FOLD_W:FOLD_W*2, nv?nv*FOLD_W:FOLD_W*2);
+
     _pattern = new int[(_nU+_nV)];
     for(int i = 0; i < (_nU + _nV); i++)
         _pattern[i] = 0;
@@ -37,30 +40,31 @@ void GridPattern::init(int nu, int nv){
     if (_ps)
         delete _ps;
 
-    _ps = new Point[N*N];
+    _ps = new Point[_sampleUV];
 
 }
 
 int GridPattern::getPattern(int i, int j) const{
 
-    double wu  = Ni *1.0 / _nU;
+    double wu  = _sampleUi*1.0 /_nU;
     int ui  = i / wu;
     int uii = i -  (wu * ui);
 
-    double margin_u = wu/3.2;
+    double margin_u = wu*0.25;
 
     if ( uii > margin_u && uii < (wu-margin_u) )
     {
         return _pattern[ui];
     }
 
-    double  wv  = Ni*1.0/_nV;
+    double  wv  =  _sampleVi*1.0 /_nV;
     int vj  = j / wv;
     int vjj = j -  (wv * vj);
 
-    int margin_v = wv/3.2;
+    int margin_v = wv*0.25;
 
-    if ( (vjj > margin_v) && (vjj < (wv-margin_v)) ) {
+    if ( (vjj > margin_v) && (vjj < (wv-margin_v)) )
+    {
         return _pattern[_nU + vj];
     }
 
@@ -88,12 +92,12 @@ void GridPattern::onUpdate(){
     _K[10] = _K[11] + _K[14] - _K[15];
 
     //bezier surface interpolation
-    for(int j=0; j<N;j++)
-        for(int i=0; i<N; i++){
+    for(int j=0; j<_sampleV;j++)
+        for(int i=0; i<_sampleU; i++){
             Point p;
             for(int bj = 0; bj<4; bj++)
                 for(int bi = 0; bi<4; bi++)
-                    p = p + cubicBernstein(bi, i*T)*cubicBernstein(bj, j*T)*_K[bi+bj*4];
+                    p = p + cubicBernstein(bi, i*_Tu)*cubicBernstein(bj, j*_Tv)*_K[bi+bj*4];
             _ps[ind(i,j)] = p;
 
         }
@@ -104,8 +108,8 @@ void GridPattern::render(int mode){
     if (!Session::isRender(DRAG_ON))
       Selectable::render(mode);
 
-      for(int j=0; j < Ni; j++){
-        for(int i = 0; i< Ni; i++){
+      for(int j=0; j < _sampleVi; j++){
+        for(int i = 0; i< _sampleUi; i++){
 
             Point p[4];
             p[0] = P(i, j);
@@ -154,8 +158,8 @@ void UVPatternPatch::init(int nu, int nv)
     if (_ps)
         delete _ps;
 
-    setN(75);
-    _ps = new Point[_nU*_nV*N*2*2];
+    //setN(75);
+    _ps = new Point[(_nU*_sampleU + _nV*_sampleV)*2];
 }
 
 /*
@@ -283,13 +287,13 @@ void UVPatternPatch::onUpdate(){
 
     for(int u = 0; u < _nU; u++)
     {
-        for(int i=0; i<N; i++)
+        for(int i=0; i < _sampleU; i++)
         {
             Point p0, p1;
             for(int bj = 0; bj<4; bj++)
                 for(int bi = 0; bi<4; bi++){
-                    p0 = p0 + cubicBernstein(bi, i*T)*cubicBernstein(bj, (u+0.5)*Tu - Wu)*_K[bi+bj*4];
-                    p1 = p1 + cubicBernstein(bi, i*T)*cubicBernstein(bj, (u+0.5)*Tu + Wu)*_K[bi+bj*4];
+                    p0 = p0 + cubicBernstein(bi, i*_Tu)*cubicBernstein(bj, (u+0.5)*Tu - Wu)*_K[bi+bj*4];
+                    p1 = p1 + cubicBernstein(bi, i*_Tu)*cubicBernstein(bj, (u+0.5)*Tu + Wu)*_K[bi+bj*4];
                 }
 
             _ps[ind(0,u,i,0)] = p0;
@@ -300,13 +304,13 @@ void UVPatternPatch::onUpdate(){
 
     for(int v = 0; v < _nV; v++)
     {
-        for(int i=0; i<N; i++)
+        for(int i=0; i<_sampleV; i++)
         {
             Point p0, p1;
             for(int bj = 0; bj<4; bj++)
                 for(int bi = 0; bi<4; bi++){
-                    p0 = p0 + cubicBernstein(bi, (v+0.5)*Tv - Wv)*cubicBernstein(bj, i*T)*_K[bi+bj*4];
-                    p1 = p1 + cubicBernstein(bi, (v+0.5)*Tv + Wv)*cubicBernstein(bj, i*T)*_K[bi+bj*4];
+                    p0 = p0 + cubicBernstein(bi, (v+0.5)*Tv - Wv)*cubicBernstein(bj, i*_Tv)*_K[bi+bj*4];
+                    p1 = p1 + cubicBernstein(bi, (v+0.5)*Tv + Wv)*cubicBernstein(bj, i*_Tv)*_K[bi+bj*4];
                 }
 
             _ps[ind(1,v,i,0)] = p0;
@@ -330,7 +334,7 @@ void UVPatternPatch::render(int mode)
         else
             glColor3f(0.8, 0.8, 0.8);
 
-        for(int i = 0; i< Ni; i++)
+        for(int i = 0; i< _sampleUi; i++)
         {
             Point p[4] = {P(0, u, i), P(0, u, i,1), P(0, u, i+1, 1), P(0, u, i+1, 0)};
             if (Session::isRender(WIREFRAME_ON))
@@ -356,7 +360,7 @@ void UVPatternPatch::render(int mode)
         else
             glColor3f(0.8, 0.8, 0.8);
 
-        for(int i = 0; i< Ni; i++)
+        for(int i = 0; i< _sampleVi; i++)
         {
             Point p[4] = {P(1, v, i), P(1, v, i, 1), P(1, v, i+1, 1), P(1, v, i+1, 0)};
             if (Session::isRender(WIREFRAME_ON))
