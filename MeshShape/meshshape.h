@@ -40,9 +40,9 @@ public:
 
     void                    set(Mesh_p);
 
-    void                           makeSmoothTangents(bool isskip = false, int ttype = 2, double tank =1.0);
-    static void                    makeSmoothTangents(Corner_p);
-    static void                    makeSmoothCorners(Corner_p, bool isskipsharp = true, int tangenttype=1, double tan_k=1.0);
+    void                    makeSmoothTangents(bool isskip = false, int ttype = 2, double tank =1.0);
+    static void             makeSmoothTangents(Corner_p);
+    static void             makeSmoothCorners(Corner_p, bool isskipsharp = true, int tangenttype=1, double tan_k=1.0);
 
     //mesh operations
     static bool             isSMOOTH;
@@ -51,6 +51,7 @@ public:
 
 //Callbacks
 void                        onInsertEdge(Edge_p);
+void                        onUnsplitEdge(Corner_p pC);
 void                        onAddFace(Face_p);
 Bezier*                     initCurve(Corner_p);
 

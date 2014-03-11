@@ -22,13 +22,11 @@ protected:
    static Vec3 decompose(const Vec3& v, const Vec3& nx);
    static Vec3 compose(const Vec3& v, const Vec3& nx);
 
-   int edgeInd(int ei, int i);
-   int edgeUInd(int ei, int i);
-
    int      _sampleU, _sampleV, _sampleUi, _sampleVi, _sampleUV;
    double   _Tu, _Tv;
 
 public:
+
 
     Patch(Face_p);
     Corner* C(int i) const {return _pFace->C(i);}
@@ -38,6 +36,11 @@ public:
     Normal computeN(Corner_p);
     Normal computeN(Corner_p, double);
 
+    int edgeInd(int ei, int i);
+    int edgeUInd(int ei, int i);
+
+    int edgeI(int i,int j);
+    int cornerI(int i, int j);
 
     static bool isH;
     inline int ind(int i, int j){return i + j*_sampleU;}
@@ -66,6 +69,8 @@ public:
 
     int USamples(){return _sampleU;}
     int VSamples(){return _sampleV;}
+
+    Face_p face() const {return _pFace;}
 
     static void flipH(){
         isH=!isH;

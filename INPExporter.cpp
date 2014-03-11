@@ -3,6 +3,44 @@
 #include "MeshShape/meshshape.h"
 #include <sstream>
 
+#define NODEPAGE 10000
+
+int INPExporter::mapNodeId(GridPattern* patch, int i, int j, int node_id){
+    _nodeMap[ patch->face()->id() * NODEPAGE + patch->ind(i,j) ] = node_id;
+}
+
+int INPExporter::nodeIndex(GridPattern* patch, int i, int j){
+
+    int ci = patch->cornerI(i, j);
+    int ei = patch->edgeI(i, j);
+
+    if (ci== -1 && ei == -1)
+        return _nodeMap[ patch->face()->id()*NODEPAGE + patch->ind(i,j) ];//_nodePage[patch->face()->id()] + patch->ind(i,j);
+
+    if (ci!=-1){
+        int vid = patch->face()->C(ei)->V()->id();
+        Corner_p pC = (Corner_p) _vertexNodes[vid];
+
+        if (pC->F() == patch->face())
+            return  _nodeMap[pC->F()->id()*NODEPAGE + patch->ind(i,j) ];
+
+        //now return the node from the neigbor
+        Patch* patch1 = (Patch*)pC->F()->pData->pSurface;
+        return  _nodeMap[ pC->F()->id()*NODEPAGE + patch1->edgeInd(pC->I(), 0)];
+    }
+
+    int eid = patch->face()->C(ei)->E()->id();
+
+    Corner_p pC = (Corner_p) _edgeNodes[eid];
+
+    if (pC->F() == patch->face())
+        return  _nodeMap[pC->F()->id()*NODEPAGE + patch->ind(i,j)];
+
+    //now return the node from the neigbor
+    Patch* patch1 = (Patch*)pC->F()->pData->pSurface;
+    return _nodeMap[pC->F()->id()*NODEPAGE + patch1->edgeUInd(pC->I(), (pC->I()%2)?j:i)];
+}
+
 bool INPExporter::exportShape(Shape* pShape, const char *fname){
 
     MeshShape* pMS = dynamic_cast<MeshShape*>(pShape);
@@ -23,14 +61,24 @@ bool INPExporter::exportShape(Shape* pShape, const char *fname){
     outfile<<"** "<<endl;
     outfile<<"* Part, name=Part-1"<<endl;
 
+    mesh->enamurateFaces();
+    mesh->enamurateEdges();
+
     FaceList faces = mesh->faces();
 
-    int   facenum = 0;
-    int*  nodePage = new int[faces.size()];
+
+    //this is a caching for common nodes
+    _edgeNodes = (void**) new void*[mesh->sizeE()];
+    FOR_ALL_I(mesh->sizeE())
+            _edgeNodes[i] = 0;
+
+    _vertexNodes = (void**) new void*[mesh->size()];
+    FOR_ALL_I(mesh->size())
+            _vertexNodes[i] = 0;
 
     list<int> allnodes;
 
-    nodePage[0] = 1;
+    int node_id = 1;
     outfile<<"*Node"<<endl;
     FOR_ALL_ITEMS(FaceList, faces){
         Face_p pF = (*it);
@@ -42,22 +90,43 @@ bool INPExporter::exportShape(Shape* pShape, const char *fname){
         if (!patch)
             continue;
 
-        int fi = nodePage[facenum];
-        int Nu = patch->USamples();;
+        int Nu = patch->USamples();
         int Nv = patch->VSamples();
 
         for(int j=0; j < Nv; j++){
             for(int i = 0; i < Nu; i++){
+
+
+                int ci = patch->cornerI(i, j);
+                if (ci != -1){
+                    int vid =  pF->C(ci)->V()->id();
+                    if (_vertexNodes[vid]){
+                       continue;
+                    }else{
+                        _vertexNodes[vid] = (void*)pF->C(ci);
+                    }
+                }
+
+                int ei = patch->edgeI(i, j);
+                if (ei != -1){
+                    int eid =  pF->C(ei)->E()->id();
+                    if (_edgeNodes[eid] && _edgeNodes[eid]!= pF->C(ei) ){
+                       continue;
+                    }else{
+                        _edgeNodes[eid] = (void*)pF->C(ei);
+                    }
+                }
+
                 Point p = patch->P(i, j);
-                int id = i + j*Nu + nodePage[facenum];
-                allnodes.push_back(id);
-                outfile<<id<<", "<<p.x<<", "<<p.y<<", "<<", 0." <<endl;
+                allnodes.push_back(node_id);
+                outfile<<node_id<<", "<<p.x<<", "<<p.y<<", "<<", 0." <<endl;
+                mapNodeId(patch, i, j, node_id);
+                node_id++;
             }
         }
-
-        nodePage[facenum+1] = nodePage[facenum] + Nu*Nv;
-        facenum++;
     }
+
+   //return true;
 
     //now quads
     int fi = 0;
@@ -80,21 +149,22 @@ bool INPExporter::exportShape(Shape* pShape, const char *fname){
         if (!patch)
             continue;
 
-        int nodeP = nodePage[fi];
         int Nu = patch->USamples();;
         int Nv = patch->VSamples();
 
         for(int j=0; j<(Nv-1); j++){
             for(int i=0; i<(Nu-1); i++){
-                int id[4] = {patch->ind(i,  j), patch->ind(i+1,  j), patch->ind(i+1,  j+1), patch->ind(i,  j+1)};
-                int eid = elementPage[fi] + i + j*(Nu-1);
-                outfile<<eid<<", "<<(id[0]+nodeP)<<", "<<(id[1]+nodeP)<<", "<<(id[2]+nodeP)<<", "<<(id[3]+nodeP)<<endl;
+                //int id[4] = {patch->ind(i,  j), patch->ind(i+1,  j), patch->ind(i+1,  j+1), patch->ind(i,  j+1)};
+
+                int id[4] = {nodeIndex(patch, i,  j), nodeIndex(patch, i+1,  j), nodeIndex(patch, i+1,  j+1), nodeIndex(patch, i,  j+1)};
+                int eid = elementPage[fi] + i + j*(Nu-1);                
+                outfile<<eid<<", "<<id[0]<<", "<<id[1]<<", "<<id[2]<<", "<<id[3]<<endl;
 
                 int pat = patch->getPattern(i, j);
 
                 if (pat>0){
                     for(int k=0; k<4; k++)
-                        foldnodes[pat-1].insert(id[k]+nodeP);
+                        foldnodes[pat-1].insert(id[k]);
                 }
 
                 pat = (pat<0)?0:pat;
@@ -206,6 +276,7 @@ bool INPExporter::exportShape(Shape* pShape, const char *fname){
         outfile<<endl;
     }
     outfile.close();
+
 }
 
 

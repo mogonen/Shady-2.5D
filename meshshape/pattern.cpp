@@ -2,7 +2,7 @@
 #include "patch.h"
 
 int         PatternOperation::FOLD_N           = 8;
-double      PatternOperation::FOLD_D           = 0;
+double      PatternOperation::FOLD_W          = 0;
 string      PatternOperation::PATTERN          = "1,2";
 
 
@@ -50,7 +50,7 @@ void  PatternOperation::assignPattern(Edge_p pE, string patternstr)
     }while(c0 != pE->C0());
 }
 
-void PatternOperation::setFolds(Edge_p pE, int n, double dmin)
+void PatternOperation::setFolds(Edge_p pE, int n, double w)
 {
     if (!pE )
         return;

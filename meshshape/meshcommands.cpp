@@ -4,7 +4,11 @@
 #include "patch.h"
 
 //Defaults
+#ifdef  SHOW_DLFL
+bool        MeshShape::isSMOOTH             = false;
+#else
 bool        MeshShape::isSMOOTH             = true;
+#endif
 
 double      MeshOperation::EXTRUDE_T        = 0.25;
 bool        MeshOperation::isKEEP_TOGETHER  = false;
@@ -62,7 +66,7 @@ void MeshOperation::execOP(){
 
     case SET_FOLDS:
     {
-        PatternOperation::setFolds(_pE, PatternOperation::FOLD_N, PatternOperation::FOLD_D);
+        PatternOperation::setFolds(_pE, PatternOperation::FOLD_N, PatternOperation::FOLD_W);
     }
         break;
 

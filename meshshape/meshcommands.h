@@ -138,10 +138,10 @@ public:
 
 
     static void             assignPattern(Edge_p, string pattern);
-    static void             setFolds(Edge_p, int, double min = 0);
+    static void             setFolds(Edge_p, int, double w = 0);
 
     static int              FOLD_N;
-    static double           FOLD_D;
+    static double           FOLD_W;
     static string           PATTERN;
 
 };

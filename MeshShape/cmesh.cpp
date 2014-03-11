@@ -9,6 +9,7 @@ Mesh::Mesh(){
 void Mesh::resetCB(){
     _insertEdgeCB = 0;
     _splitEdgeCB  = 0;
+    _unsplitEdgeCB  = 0;
     _addFaceCB	  = 0;
     _removeFaceCB = 0;
     _removeEdgeCB = 0;
@@ -255,6 +256,11 @@ Edge_p Mesh::insertEdge(Corner_p c0, Corner_p c1, bool updatefaces, Edge_p pE, F
     if (c0->E() && (c0->E() == c1->E()))
         return c0->E();
 
+    bool issameface = c0->F() == c1->F();
+
+    if (issameface)
+        c0->F()->update(true);
+
     Corner_p c0n_0 = c0->next();
     Corner_p c1n_0 = c1->next();
 
@@ -279,23 +285,27 @@ Edge_p Mesh::insertEdge(Corner_p c0, Corner_p c1, bool updatefaces, Edge_p pE, F
     if (c1->E())
         c1->E()->set(c0n, c1->isC1());
 
-    Face_p f0 =  c0->F();
-    if (c0->F() == c1->F()){
-        if (pF){
+    if (issameface){// need to split the face
+        Face_p f0 = pF? pF : addFace(4);
+        if (pF)
             pF->_isdeleted = false;
-            //pF->_isBorder  = false;
-            f0 = pF;
+
+        int fsize = c0->F()->size();
+        if (c0->I() > c1->I()){
+            f0->set(c0->go(fsize - c0->I()-1));
+            f0->update(true);
+            //f1 do nothing
+        }else{
+            f0->set(c0->F()->C(0));
+            c1->F()->set(c1->go(fsize - c1->I()-1));
+
+            f0->update(true);
+            c1->F()->update(true);
         }
-        else
-            f0 = addFace(4);
+
+    }else{ //combine faces
+        c0->F()->update(true);
     }
-
-    f0->set(c0);
-    f0->Face::update(true);
-
-    Face_p f1 = c1->F();
-    f1->set(c1);
-    f1->Face::update(true);
 
     if (!pE){
         pE = addEdge(c0, c1);
@@ -323,7 +333,6 @@ Corner_p Mesh::splitEdge(Corner_p pC, Vertex_p pV){
     Edge_p pE = pC->E();
     Corner_p c0 = pC->E()->C0();
     Corner_p c1 = pC->E()->C1();
-
 
     Corner_p c0new = 0;
     if (c0){
@@ -358,12 +367,12 @@ Corner_p Mesh::splitEdge(Corner_p pC, Vertex_p pV){
     return pC->next();
 }
 
-Corner_p Mesh::mergeEdge(Corner_p pC){
+Corner_p Mesh::unsplitEdge(Corner_p pC){
 
     if (!pC)
         return 0;
 
-    Edge_p pE = pC->E();
+    //Edge_p pE = pC->E();
     Corner_p c0 = pC;
     Corner_p c1 = pC->vNext();
 
@@ -374,14 +383,33 @@ Corner_p Mesh::mergeEdge(Corner_p pC){
         c1 = tmp;
     }
 
+    //c1->E()->_isdeleted = true;
+    c0->E()->_isdeleted = true;
+    c0->V()->_isdeleted = true;
+    c1->E()->set(c1->prev(), c1->isC1());
+
+    if (c0 == c0->F()->C(0)){
+        c0->F()->set(c0->prev());
+    }
+
+    if (c1 == c1->F()->C(0)){
+        c1->F()->set(c1->prev());
+    }
+
     c0->prev()->setNext(c0->next());
     c1->prev()->setNext(c1->next());
-    c1->E()->set(c1, c1->isC1());
 
     Corner_p c = c0->prev();
 
+    c0->F()->update(true);
+    c1->F()->update(true);
+
     delete c0;
     delete c1;
+
+    if (_unsplitEdgeCB)
+        _unsplitEdgeCB(c);
+
     //remove e1 ?
     return c;
 }
@@ -459,6 +487,8 @@ void Mesh::buildEdges(bool isouterface){
 
         borderCorns[v1] = c1;
     }
+    pOutF->set(borderCorns[0]);
+    pOutF->update(true);
 
 }
 
@@ -592,7 +622,7 @@ int Mesh::rollback(int opid){
         case Operation::SPLIT_EDGE:
         {
             Corner_p c = op.c0.V()->find(op.c0.F());
-            mergeEdge(c);
+            unsplitEdge(c);
         }
             break;
 
@@ -671,6 +701,20 @@ Corner_p Corner::vPrev(){
 
 Corner_p Corner::other(){
     return _e? _e->other(this) : 0;
+}
+
+Corner_p Corner::go(int i){
+    Corner_p c = this;
+    while(i!=0){
+        if (i>0){
+            c = c->next();
+            i--;
+        }else{
+            c = c->prev();
+            i++;
+        }
+    }
+    return c;
 }
 
 Corner_p Corner::vNextBorder(){
@@ -802,6 +846,10 @@ void Face::update(bool links, int offset){
 void Face::reoffset(int off){
     if (off==0)
         return;
+
+    if (off < 0)
+        off = (_size*10 + off) % _size;
+
     Corner_p c0 = C(0);
     for(Corner_p c = c0->next(); c!=c0; c = c->next())
         set(c, c->I() + off);

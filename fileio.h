@@ -6,6 +6,7 @@
 
 class MeshShape;
 class EllipseShape;
+class GridPattern;
 
 class DefaultIO:public FileIO
 {
@@ -26,6 +27,16 @@ public:
 
 
 class INPExporter:public Exporter{
+
+    //int*        _nodePage;
+
+   std::map<int, int> _nodeMap;
+
+    void**      _edgeNodes;
+    void**      _vertexNodes;
+
+    int nodeIndex(GridPattern*, int i, int j);
+    int mapNodeId(GridPattern* patch, int i, int j, int node_id);
 
 public:
     bool exportShape(Shape *, const char *fname);

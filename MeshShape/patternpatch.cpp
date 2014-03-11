@@ -3,11 +3,11 @@
 #include "../curve.h"
 
 
-int     PatternPatch::NU = 4;
-int     PatternPatch::NV = 4;
+int     PatternPatch::NU = 1;
+int     PatternPatch::NV = 1;
 //double  Patch::T;
 
-#define FOLD_W 12
+#define FOLD_W 4
 
 void PatternPatch::assignPattern(int uv, int off, int len, int * data)
 {
@@ -31,7 +31,7 @@ void GridPattern::init(int nu, int nv){
     if (_pattern)
         delete _pattern;
 
-    setSample(nu? nu*FOLD_W:FOLD_W*2, nv?nv*FOLD_W:FOLD_W*2);
+    setSample(nu? nu*FOLD_W+1 : FOLD_W*2, nv?nv*FOLD_W + 1 :FOLD_W*2);
 
     _pattern = new int[(_nU+_nV)];
     for(int i = 0; i < (_nU + _nV); i++)
@@ -52,7 +52,7 @@ int GridPattern::getPattern(int i, int j) const{
 
     double margin_u = wu*0.25;
 
-    if ( uii > margin_u && uii < (wu-margin_u) )
+    if ( uii >= margin_u && uii < (wu-margin_u) )
     {
         return _pattern[ui];
     }
@@ -63,7 +63,7 @@ int GridPattern::getPattern(int i, int j) const{
 
     int margin_v = wv*0.25;
 
-    if ( (vjj > margin_v) && (vjj < (wv-margin_v)) )
+    if ( (vjj >= margin_v) && (vjj < (wv-margin_v)) )
     {
         return _pattern[_nU + vj];
     }
@@ -127,7 +127,10 @@ void GridPattern::render(int mode){
             else if (pat == 2)
                 glColor3f(0.1, 0.9, 0.1);
 
-            glBegin(GL_POLYGON);
+            if (Session::isRender(WIREFRAME_ON))
+                glBegin(GL_LINE_LOOP);
+            else
+                glBegin(GL_POLYGON);
             for(int k = 0; k < 4; k++){
                 glVertex2f(p[k].x, p[k].y);
             }

@@ -111,8 +111,8 @@ void Patch4::interpolateNormals(){
 
 int Patch::edgeInd(int ei, int i){
 
-    int Ni = _sampleUi;
-    int N  = _sampleU;
+    int N = (ei%2) ? _sampleV : _sampleU;
+    int Ni  = N-1;
 
     switch(ei){
         case 0:
@@ -133,8 +133,8 @@ int Patch::edgeInd(int ei, int i){
 
 int Patch::edgeUInd(int ei, int i){
 
-    int Ni = _sampleUi;
-    int N  = _sampleU;
+    int N = (ei%2) ? _sampleV : _sampleU;
+    int Ni  = N-1;
 
     switch(ei){
         case 0:
@@ -152,6 +152,53 @@ int Patch::edgeUInd(int ei, int i){
     }
     return -1;
 }
+
+int Patch::edgeI(int i, int j){
+
+    //make i U dominant
+
+    if (j == 0 )
+        return 0;
+
+    if (j == _sampleVi)
+        return 2;
+
+    if ( i == 0)
+        return 3;
+
+    if (i == _sampleUi)
+        return 1;
+
+    /*if (j == 0 && i < _sampleUi)
+        return 0;
+
+    if ( i == _sampleUi && j < _sampleVi)
+        return 1;
+
+    if ( i > 0 && j == _sampleVi)
+        return 2;
+
+    if ( i == 0 && j < 0)
+        return 3;
+*/
+    return -1;
+}
+
+int Patch::cornerI(int i, int j){
+    if (j == 0 && i == 0)
+        return 0;
+
+    if ( i == _sampleUi && j == 0)
+        return 1;
+
+    if ( i == _sampleUi && j == _sampleVi)
+        return 2;
+
+    if ( i == 0 && j == _sampleVi)
+        return 3;
+    return -1;
+}
+
 
 Vec3 Patch::decompose(const Vec3& v, const Vec3& nx){
     Vec3 nz(0, 0, 1);

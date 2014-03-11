@@ -105,8 +105,8 @@ class Face: public Element{
 
 public:
 	
-    Corner_p  C(int i) const;
-    Vertex_p  V(int i) const;
+    Corner_p  C(int i=0) const;
+    Vertex_p  V(int i=0) const;
     int size() const;
 
     void set(Corner_p, int i=0);
@@ -172,6 +172,7 @@ public:
 
     Corner_p next();
     Corner_p prev();
+    Corner_p go(int);
 
     Corner_p vNext();
     Corner_p vPrev();
@@ -215,6 +216,7 @@ class Mesh{
     //callbacks:
     void (*_insertEdgeCB)(Edge_p);
     void (*_splitEdgeCB)(Corner_p);
+    void (*_unsplitEdgeCB)(Corner_p);
     void (*_removeEdgeCB)(Edge_p);
 
     void (*_addFaceCB)(Face_p);
@@ -245,7 +247,7 @@ public:
     Edge_p      insertEdge(Corner_p, Corner_p, bool updatefaces = true, Edge_p pE = 0, Face_p pF = 0);
     Corner_p    splitEdge(Corner_p, Vertex_p vP = 0);
     void        removeEdge(Corner_p c, bool lazydel = true);
-    Corner_p    mergeEdge(Corner_p);
+    Corner_p    unsplitEdge(Corner_p);
     void        remove(Edge_p e, bool lazydel = true);
 
     // non atomic oeprations
@@ -262,6 +264,7 @@ public:
     void resetCB();
     void setInsertEdgeCB(void (*handler)(Edge_p)){_insertEdgeCB = handler;}
     void setSplitEdgeCB(void (*handler)(Corner_p)){_splitEdgeCB = handler;}
+    void setUnsplitEdgeCB(void (*handler)(Corner_p)){_unsplitEdgeCB = handler;}
     void setRemoveEdgeCB(void (*handler)(Edge_p)){_removeEdgeCB = handler;}
     void setAddFaceCB(void (*handler)(Face_p)){	_addFaceCB = handler;}
     void setRemoveFaceCB(void (*handler)(Face_p)){_removeFaceCB = handler;}

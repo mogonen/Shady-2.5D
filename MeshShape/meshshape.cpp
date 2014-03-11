@@ -7,6 +7,7 @@ MeshShape::MeshShape()
     _control = new Mesh();
     _control->setInsertEdgeCB(onInsertEdge);
     _control->setAddFaceCB(onAddFace);
+    _control->setUnsplitEdgeCB(onUnsplitEdge);
     _control->setCaller((void*)this);
 }
 

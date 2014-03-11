@@ -222,77 +222,78 @@ void renderEdge(Edge_p pE){
 
  #ifdef SHOW_DLFL
     //render corners
+    if (isInRenderMode()){
+        Corner_p c0 = pE->C();
+        Corner_p c1 = c0->other();
 
-    Corner_p c0 = pE->C();
-    Corner_p c1 = c0->other();
+        Vec2 tan = P1(c0) - P0(c0);
+        Vec3 n = Vec3(tan)%Vec3(0,0,1);
+        Vec2 n2d(n.x, n.y);
 
-    Vec2 tan = P1(c0) - P0(c0);
-    Vec3 n = Vec3(tan)%Vec3(0,0,1);
-    Vec2 n2d(n.x, n.y);
+        Point pc00, pc01, pc10, pc11;
 
-    Point pc00, pc01, pc10, pc11;
+        pc00 = P0(c0) + n2d*0.1 + tan*0.05;
+        pc01 = P1(c0) + n2d*0.1 - tan*0.25;
 
-    pc00 = P0(c0) + n2d*0.1 + tan*0.1;
-    pc01 = P1(c0) + n2d*0.1 - tan*0.25;
+        pc10 = P0(c1) - n2d*0.1 - tan*0.05;
+        pc11 = P1(c1) - n2d*0.1 + tan*0.25;
 
-    pc10 = P0(c1) - n2d*0.1 - tan*0.1;
-    pc11 = P1(c1) - n2d*0.1 + tan*0.25;
+        glBegin(GL_LINES);
 
-    glBegin(GL_LINES);
+        if (c0->isBorder())
+            glColor3f(1.0, 0, 0);
+        else
+            glColor3f(0, 1.0, 0);
 
-    if (c0->isBorder())
-        glColor3f(1.0, 0, 0);
-    else
-        glColor3f(0, 1.0, 0);
-
-    glVertex2f(pc00.x, pc00.y);
-    glVertex2f(pc01.x, pc01.y);
-
-    if (c1->isBorder())
-        glColor3f(1.0, 0, 0);
-    else
-        glColor3f(0, 1.0, 0);
-
-    glVertex2f(pc10.x, pc10.y);
-    glVertex2f(pc11.x, pc11.y);
-    glEnd();
-
-
-    glPointSize(2.0);
-    glBegin(GL_POINTS);
-    if (c0->isC1())
-        glColor3f(1.0, 0, 0);
-    else
-        glColor3f(0,1.0,0);
-
-    if (c0->V()->C()->V() != c0->V())
-        glColor3f(0,0,0);
-
-    glVertex2f(pc00.x, pc00.y);
-
-    if (c1->isC1())
-        glColor3f(1.0, 0, 0);
-    else
-        glColor3f(0,1.0,0);
-    if (c1->V()->C()->V() != c1->V())
-        glColor3f(0.0,0,0);
-
-    glVertex2f(pc10.x, pc10.y);
-    glEnd();
-
-    if (c0->I() == 0 ){
-        glPointSize(3.0);
-        glBegin(GL_POINTS);
-        glColor3f(1.0, 1.0, 0);
         glVertex2f(pc00.x, pc00.y);
+        glVertex2f(pc01.x, pc01.y);
+
+        if (c1->isBorder())
+            glColor3f(1.0, 0, 0);
+        else
+            glColor3f(0, 1.0, 0);
+
+        glVertex2f(pc10.x, pc10.y);
+        glVertex2f(pc11.x, pc11.y);
         glEnd();
-    }
-    if (c1->I() == 0 ){
-        glPointSize(3.0);
+
+
+        glPointSize(2.0);
         glBegin(GL_POINTS);
-        glColor3f(1.0, 1.0, 0);
+        if (c0->isC1())
+            glColor3f(1.0, 0, 0);
+        else
+            glColor3f(0,1.0,0);
+
+        if (c0->V()->C()->V() != c0->V())
+            glColor3f(0,0,0);
+
+        glVertex2f(pc00.x, pc00.y);
+
+        if (c1->isC1())
+            glColor3f(1.0, 0, 0);
+        else
+            glColor3f(0,1.0,0);
+        if (c1->V()->C()->V() != c1->V())
+            glColor3f(0.0,0,0);
+
         glVertex2f(pc10.x, pc10.y);
         glEnd();
+
+        if (c0->I() == 0 ){
+            glPointSize(4.0);
+            glBegin(GL_POINTS);
+            glColor3f(1.0, 1.0, 0);
+            glVertex2f(pc00.x, pc00.y);
+            glEnd();
+        }
+        if (c1->I() == 0 ){
+            glPointSize(4.0);
+            glBegin(GL_POINTS);
+            glColor3f(1.0, 1.0, 0);
+            glVertex2f(pc10.x, pc10.y);
+            glEnd();
+        }
     }
 #endif
 
@@ -300,6 +301,7 @@ void renderEdge(Edge_p pE){
         pE->pData->pCurve->render();
         return;
     }
+
     //non selectable line representation
     glColor3f(1.0,1.0, 0);
     Point p0 = P0(pE);
@@ -475,7 +477,7 @@ void Rectangle::render(int mode){
     if (!Session::isRender(DRAG_ON))
       Selectable::render(mode);
 
-    Point p[4] = {P0(C(0)), P0(C(1)), P0(C(2)), P0(C(3))};
+    /*Point p[4] = {P0(C(0)), P0(C(1)), P0(C(2)), P0(C(3))};
     //Point n[4] = {C(0)->V()-, P0(C(1)), P0(C(2)), P0(C(3))};
     glColor3f(0.75, 0.75, 0.75);
     selectionColor((Selectable_p)this);
@@ -483,6 +485,13 @@ void Rectangle::render(int mode){
     for(int k = 0; k < 4; k++)
     {
         glVertex2f(p[k].x, p[k].y);
+    }*/
+    glColor3f(0.75, 0.75, 0.75);
+    glBegin(GL_POLYGON);
+    for(int k = 0; k < _pFace->size(); k++)
+    {
+        Point p = P0(_pFace->C(k));
+        glVertex2f(p.x, p.y);
     }
     glEnd();
 
