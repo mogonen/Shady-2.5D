@@ -526,7 +526,8 @@ void MainWindow::newFile(){
 }
 
 void MainWindow::openFile(){
-
+    QString fname = QFileDialog::getOpenFileName(this,"Open");
+    Session::get()->open(fname.toUtf8().constData());
 }
 
 void MainWindow::saveFile(){

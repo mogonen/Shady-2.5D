@@ -21,16 +21,32 @@ struct EdgeData
        pCurve = 0;
    }
 
+   void initCurve(ShapeVertex_p sv1, ShapeVertex_p sv2){
+
+       if (!sv1 || !sv2){
+           Line* pL = new Line();
+           pCurve = pL;
+           pL->insert(pE->C0()->V()->pData->pP());
+           pL->insert(pE->C1()->V()->pData->pP());
+           pL->pRef = (void*) pE;
+       }else{
+           pCurve = new Bezier(100);
+           pSV[1] = sv1;
+           pSV[2] = sv2;
+       }
+       relink(pE);
+   }
+
    void relink(Edge_p pe){
        pE = pe;
        pE->pData = this;
 
-#ifdef SHOW_DLFL
+       if (pCurve->count() ==2){
            pSV[0] = pE->C0()->V()->pData;
            pSV[0]->pRef = (void*)pE->C0()->V();
            pSV[1] = pE->C0()->next()->V()->pData;
            pSV[1]->pRef = (void*)pE->C0()->next()->V();
-#else
+       }else{
            pSV[0] = pE->C0()->V()->pData;
            pSV[0]->pRef = (void*)pE->C0()->V();
            pSV[3] = pE->C0()->next()->V()->pData;
@@ -49,7 +65,7 @@ struct EdgeData
            pCurve->set(pSV[1]->pP(),1);
            pCurve->set(pSV[2]->pP(),2);
            pCurve->set(pSV[3]->pP(),3);
-#endif
+       }
    }
 
    ShapeVertex_p getTangentSV(ShapeVertex_p sv)

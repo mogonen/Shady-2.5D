@@ -63,7 +63,7 @@ bool DefaultIO::write(Shape * pShape, ofstream &outfile){
     SVList verts = pShape->getVertices();
     FOR_ALL_ITEMS(SVList, verts){
         ShapeVertex_p sv = (*it);
-        outfile<<"sv "<<sv->P().x<<" "<<sv->P().y<<" "<<sv->N().x<<" "<<sv->N().y<<" "<<sv->N().z<<" "<<sv->id()<<"/"<<(sv->parent()?((ShapeVertex_p)sv->parent())->id():0)<<(sv->pair()?sv->pair()->id():0)<<endl;
+        outfile<<"sv "<<sv->P().x<<" "<<sv->P().y<<" "<<sv->N().x<<" "<<sv->N().y<<" "<<sv->N().z<<" "<<sv->id()<<"/"<<(sv->parent()?((ShapeVertex_p)sv->parent())->id():0)<<"/"<<(sv->pair()?sv->pair()->id():0)<<endl;
     }
     switch(pShape->type())
     {
@@ -106,7 +106,10 @@ bool DefaultIO::write(MeshShape * pMS, ofstream& outfile){
         SKIP_DELETED_ITEM
         Edge_p pE = (*it);
         //<<pE->C0()-F()-id()<<"/"<<pE->C0()->I()<<" "
-        outfile<<"e "<<pE->C0()->F()->id()<<"/"<<pE->C0()->I()<<" "<<pE->C1()->F()->id()<<"/"<<pE->C1()->I()<<" "<<pE->pData->pSV[1]->id()<<" "<<pE->pData->pSV[2]->id()<<endl;
+        if (pE->pData->pCurve->count()==2)
+            outfile<<"e "<<pE->C0()->F()->id()<<"/"<<pE->C0()->I()<<" "<<pE->C1()->F()->id()<<"/"<<pE->C1()->I()<<endl;
+        else
+            outfile<<"e "<<pE->C0()->F()->id()<<"/"<<pE->C0()->I()<<" "<<pE->C1()->F()->id()<<"/"<<pE->C1()->I()<<" "<<pE->pData->pSV[1]->id()<<" "<<pE->pData->pSV[2]->id()<<endl;
     }
 
     return true;
@@ -116,7 +119,7 @@ bool DefaultIO::read(Shape * pShape,  ifstream& infile){
 
     string line;
     char label[1];
-    double px, py, nx, ny, nz;
+    float px, py, nx, ny, nz;
     int id, parent, pair;
     SVLoadMap svmap;
     while(getline(infile, line)){
@@ -143,7 +146,7 @@ bool DefaultIO::read(Shape * pShape,  ifstream& infile){
     switch(pShape->type())
     {
     case MESH_SHAPE:
-        read((MeshShape*)pShape, infile);
+        read((MeshShape*)pShape, infile, svmap);
         break;
 
     case ELLIPSE_SHAPE:
@@ -166,21 +169,30 @@ bool DefaultIO::read(MeshShape * pMS, ifstream &infile, SVLoadMap& svmap){
     char label[1];
 
     VertexLoadMap vertmap;
-    EdgeLoadMap edgemap;
     FaceLoadMap facemap;
 
+    int edgecount = 0;
+
     while(getline(infile, line)){
+
         if (line.empty())
             break;
 
         StringVec toks = split(line, ' ');
 
-        if (toks[0].compare("e") == 0){
+        if (toks[0].compare("e") == 0)
+        {
             int c0f, c0i,c1f, c1i, sv1, sv2;
-            sscanf(line.c_str(),"%s %d/%d %d %d", label, &c0f, &c0i, &c1f, &c1i, &sv1, &sv2);
-            Edge_p pE = pMesh->addEdge(facemap[c0f]->C(c0i), facemap[c1f]->C(c1i));
-
-            //pE->pData->pSV[] =0;
+            sscanf(line.c_str(),"%s %d/%d %d/%d %d %d", label, &c0f, &c0i, &c1f, &c1i, &sv1, &sv2);
+            Edge_p pE = pMesh->addEdge(0);//facemap[c0f]->C(c0i), facemap[c1f]->C(c1i));
+            pE->set(facemap[c0f]->C(c0i), 0);
+            pE->set(facemap[c1f]->C(c1i), 1);
+            pE->pData = new EdgeData(pE);
+            if (sv1 && sv2)
+                pE->pData->initCurve(svmap[sv1]->sv, svmap[sv2]->sv);
+            else
+                pE->pData->initCurve(0,0);
+            edgecount++;
         }
 
         if (toks[0].compare("f") == 0){
@@ -197,13 +209,14 @@ bool DefaultIO::read(MeshShape * pMS, ifstream &infile, SVLoadMap& svmap){
                 VertexLoadMap::iterator it = vertmap.find(svid);
                 Vertex_p pV =0;
                 if (it == vertmap.end()){//create new vertex
-                    Vertex_p pV = pMesh->addVertex(sv);
+                    pV = pMesh->addVertex(sv);
                     vertmap[svid] = pV;
                 }else
                     pV = it->second;
 
                 pV->set(pF->C(i));
             }
+            pF->update();
         }
 
     }
@@ -213,9 +226,9 @@ bool DefaultIO::read(MeshShape * pMS, ifstream &infile, SVLoadMap& svmap){
 Shape* DefaultIO::parseShape(const char* line){
 
     char label[1];
-    double x, y;
+    float x, y;
     int type, id, parent;
-    sscanf(line,"%s %f %f %d/%d/%d",&label, &type, &id, &parent);
+    sscanf(line,"%s %f %f %d/%d/%d",&label, &x, &y, &type, &id, &parent);
     if (label[0] != 's')
         return 0;
 
