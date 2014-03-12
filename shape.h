@@ -79,7 +79,7 @@ public:
     ControlNormal* pControlN()          const {return _pControlN;}
 
     inline ShapeVertex_p pair()         const {return _pair;}
-    inline int           id()           const {return _id;}
+    inline int           id()           const {return name();}
     inline bool          isDeleted()    const {return _isDeleted;}
 
     void                 outdate();
@@ -91,7 +91,6 @@ private:
     friend class Shape;
     friend class SVCache;
 
-    int                 _id;
     Shape_p             _pShape;
     Point               _P;
     Normal              _N;

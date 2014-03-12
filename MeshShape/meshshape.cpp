@@ -11,9 +11,9 @@ MeshShape::MeshShape()
     _control->setCaller((void*)this);
 }
 
-
-Vertex_p MeshShape::addMeshVertex(){
-    ShapeVertex_p sv = addVertex();
+Vertex_p MeshShape::addMeshVertex(ShapeVertex_p sv){
+    if (!sv)
+        sv = addVertex();
     Vertex_p v = _control->addVertex(sv);
     sv->pRef = v;
     return v;

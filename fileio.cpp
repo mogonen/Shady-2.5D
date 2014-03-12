@@ -1,6 +1,30 @@
 #include <string>
+#include <sstream>
+
 #include "fileio.h"
+#include "shape.h"
+#include "MeshShape/cmesh.h"
 #include "MeshShape/meshshape.h"
+
+
+typedef std::vector<std::string> StringVec;
+
+StringVec &split(const std::string &s, char delim, StringVec &elems) {
+    std::stringstream ss(s);
+    std::string item;
+    while (std::getline(ss, item, delim)) {
+        if (!item.empty())
+            elems.push_back(item);
+    }
+    return elems;
+}
+
+
+StringVec split(const std::string &s, char delim) {
+    StringVec elems;
+    split(s, delim, elems);
+    return elems;
+}
 
 bool DefaultIO::save(const char *fname){
 
@@ -39,7 +63,7 @@ bool DefaultIO::write(Shape * pShape, ofstream &outfile){
     SVList verts = pShape->getVertices();
     FOR_ALL_ITEMS(SVList, verts){
         ShapeVertex_p sv = (*it);
-        //outfile<<"sv "<<sv->P.x<<" "<<sv->P.y<<" "<<sv->N.x<<" "<<sv->N.y<<" "<<sv->N.z<<" "<<sv->id()<<"/"<<(sv->parent()?sv->parent()->id():0)<<endl;
+        outfile<<"sv "<<sv->P().x<<" "<<sv->P().y<<" "<<sv->N().x<<" "<<sv->N().y<<" "<<sv->N().z<<" "<<sv->id()<<"/"<<(sv->parent()?((ShapeVertex_p)sv->parent())->id():0)<<(sv->pair()?sv->pair()->id():0)<<endl;
     }
     switch(pShape->type())
     {
@@ -64,35 +88,56 @@ bool DefaultIO::write(MeshShape * pMS, ofstream& outfile){
         outfile<<"v "<<pV->id()<<"/"<<pV->pData->id()<<endl;
     }*/
 
+    mesh->enamurateFaces();
+    FaceList faces = mesh->faces();
+    FOR_ALL_ITEMS(FaceList, faces){
+        SKIP_DELETED_ITEM
+        Face_p pF = (*it);
+        outfile<<"f "<<pF->id();
+        for(int i=0; i<pF->size(); i++)
+            outfile<<" "<<pF->C(i)->V()->pData->id();
+        outfile<<" "<<pF->isBorder();
+        outfile<<endl;
+    }
+
     mesh->enamurateEdges();
     EdgeList edges = mesh->edges();
     FOR_ALL_ITEMS(EdgeList, edges){
+        SKIP_DELETED_ITEM
         Edge_p pE = (*it);
-        outfile<<"e "<<pE->pData->pSV[0]->id()<<" "<<pE->pData->pSV[1]->id()<<" "<<pE->pData->pSV[2]->id()<<" "<<pE->pData->pSV[3]->id()<<endl;
-    }
-
-    FaceList faces = mesh->faces();
-    FOR_ALL_ITEMS(FaceList, faces){
-        Face_p pF = (*it);
-        outfile<<"f "<<pF->C(0)->V()->pData->id()<<"/"<<pF->C(0)->E()->id()<<" "<<pF->C(1)->V()->pData->id()<<"/"<<pF->C(1)->E()->id()<<" "<<pF->C(2)->V()->pData->id()<<"/"<<pF->C(2)->E()->id()<<" "<<pF->C(3)->V()->pData->id()<<"/"<<pF->C(3)->E()->id()<<endl;
+        //<<pE->C0()-F()-id()<<"/"<<pE->C0()->I()<<" "
+        outfile<<"e "<<pE->C0()->F()->id()<<"/"<<pE->C0()->I()<<" "<<pE->C1()->F()->id()<<"/"<<pE->C1()->I()<<" "<<pE->pData->pSV[1]->id()<<" "<<pE->pData->pSV[2]->id()<<endl;
     }
 
     return true;
 }
-
 
 bool DefaultIO::read(Shape * pShape,  ifstream& infile){
 
     string line;
     char label[1];
     double px, py, nx, ny, nz;
-    int id, parent;
+    int id, parent, pair;
+    SVLoadMap svmap;
     while(getline(infile, line)){
         if (line.empty())
             break;
-        sscanf(line.c_str(),"%s %f %f %f %f %f %d/%d",label, &px, &py, &nx, &ny, &nz, &id, &parent);
-        pShape->addVertex(Point(px, py));
-        //ShapeVertex::get();
+        sscanf(line.c_str(),"%s %f %f %f %f %f %d/%d/%d",label, &px, &py, &nx, &ny, &nz, &id, &parent, &pair);
+        ShapeVertex* sv = pShape->addVertex(Point(px, py));
+        sv->pN()->set(nx, ny, nz);
+        svmap[id] = new SVLoad(sv, parent, pair);
+    }
+
+    FOR_ALL_ITEMS(SVLoadMap, svmap){
+        //int id = it->first;
+        SVLoad* svload = it->second;
+        if (svload->parent_id){
+            svmap[svload->parent_id]->sv->adopt(svload->sv);
+        }
+
+        if (svload->pair_id){
+            svload->sv->setPair(svmap[svload->pair_id]->sv);
+        }
     }
 
     switch(pShape->type())
@@ -109,7 +154,59 @@ bool DefaultIO::read(Shape * pShape,  ifstream& infile){
     }
 }
 
-bool DefaultIO::read(MeshShape * pMS, ifstream &infile){
+typedef std::map<int, Vertex_p> VertexLoadMap;
+typedef std::map<int, Edge_p>   EdgeLoadMap;
+typedef std::map<int, Face_p>   FaceLoadMap;
+
+bool DefaultIO::read(MeshShape * pMS, ifstream &infile, SVLoadMap& svmap){
+
+    Mesh_p pMesh = pMS->mesh();
+
+    string line;
+    char label[1];
+
+    VertexLoadMap vertmap;
+    EdgeLoadMap edgemap;
+    FaceLoadMap facemap;
+
+    while(getline(infile, line)){
+        if (line.empty())
+            break;
+
+        StringVec toks = split(line, ' ');
+
+        if (toks[0].compare("e") == 0){
+            int c0f, c0i,c1f, c1i, sv1, sv2;
+            sscanf(line.c_str(),"%s %d/%d %d %d", label, &c0f, &c0i, &c1f, &c1i, &sv1, &sv2);
+            Edge_p pE = pMesh->addEdge(facemap[c0f]->C(c0i), facemap[c1f]->C(c1i));
+
+            //pE->pData->pSV[] =0;
+        }
+
+        if (toks[0].compare("f") == 0){
+
+            int size = toks.size()-3;
+            Face_p pF = pMesh->addFace(size, toks[size+2].compare("1")==0 );
+            int fid;
+            sscanf(toks[1].c_str(),"%d", &fid);
+            facemap[fid] = pF;
+            for(int i=0; i < size; i++){
+                int svid;
+                sscanf(toks[i+2].c_str(),"%d", &svid);
+                ShapeVertex_p sv = svmap[svid]->sv;
+                VertexLoadMap::iterator it = vertmap.find(svid);
+                Vertex_p pV =0;
+                if (it == vertmap.end()){//create new vertex
+                    Vertex_p pV = pMesh->addVertex(sv);
+                    vertmap[svid] = pV;
+                }else
+                    pV = it->second;
+
+                pV->set(pF->C(i));
+            }
+        }
+
+    }
 
 }
 

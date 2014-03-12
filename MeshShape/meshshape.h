@@ -24,7 +24,7 @@ protected:
 
     //void onOutdate();
 
-    Vertex_p                addMeshVertex();
+    Vertex_p                addMeshVertex(ShapeVertex_p sv =0);
     Vertex_p                addMeshVertex(const Point&);
 
     friend class SpineShape;

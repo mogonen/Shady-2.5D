@@ -279,7 +279,7 @@ Edge_p MeshOperation::extrude(Edge_p e0, double t, bool isSmooth, VertexMap *pVM
 
     Face_p f = pMesh->addQuad(c0, c0->next(),  new Corner(v1), new Corner(v0));
     f->update(true);
-    //f->reoffset(e0->C()->I() + 2 - e0->C()->other()->I());
+    f->reoffset(e0->C()->I() + 2 - e0->C()->other()->I());
 
     if (isSmooth && !pVMap){
         for(int i=0; i<4; i++)
@@ -299,19 +299,7 @@ void MeshOperation::deleteFace(Face_p f, MeshOperationCache *pCache){
 
     MeshShape* pMS = (MeshShape*)(f->mesh()->caller());
     pMS->mesh()->remove(f);
-
-    /*for(int i=0; i<f->size(); i++){
-        Corner_p ci = f->C(i);
-        if (!ci->E()->isBorder())
-            continue;
-
-        if (ci->vNext() == ci->vPrev())//corner for real
-            pMS->removeVertex(ci->V()->pData);
-
-        pMS->removeVertex(ci->E()->pData->pSV[1]);
-        pMS->removeVertex(ci->E()->pData->pSV[2]);
-        //delete f->C(i)->E()->pData->pCurve;
-    }
+   /*
     if (mesh->sizeF()==0)u
     {
         //Session::get()->removeShape((Shape_p)mesh->caller());

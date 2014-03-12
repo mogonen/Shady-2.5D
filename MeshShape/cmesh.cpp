@@ -69,7 +69,7 @@ Edge_p Mesh::addEdge(Corner_p c0, Corner_p c1){
 	if (c1)
 		e->set(c1);
 
-	if (_insertEdgeCB)
+    if (c0 && _insertEdgeCB)
         _insertEdgeCB(e);
 
 	return e;
@@ -294,7 +294,7 @@ Edge_p Mesh::insertEdge(Corner_p c0, Corner_p c1, bool updatefaces, Edge_p pE, F
         if (c0->I() > c1->I()){
             f0->set(c0->go(fsize - c0->I()-1));
             f0->update(true);
-            //f1 do nothing
+            c1->F()->update(true);
         }else{
             f0->set(c0->F()->C(0));
             c1->F()->set(c1->go(fsize - c1->I()-1));
@@ -304,6 +304,7 @@ Edge_p Mesh::insertEdge(Corner_p c0, Corner_p c1, bool updatefaces, Edge_p pE, F
         }
 
     }else{ //combine faces
+        c1->F()->_isdeleted = true; //????
         c0->F()->update(true);
     }
 
@@ -648,6 +649,7 @@ Corner::Corner(Vertex_p v, Face_p f){
 
     if (v && !f){
         f = v->mesh()->addFace(1, true);
+        f->set(this);
     }
 
     _f = f;

@@ -38,6 +38,8 @@ class MeshOperation: public Command
 
     MeshOperationCache _cache;
 
+    bool        pickElement();
+
 protected:
 
     void onClick(const Click &);
@@ -87,6 +89,8 @@ private:
 
 class MeshPrimitive: public Command
 {
+
+   Shape_p      _pShape;
 
 protected:
 

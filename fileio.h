@@ -8,6 +8,18 @@ class MeshShape;
 class EllipseShape;
 class GridPattern;
 
+struct SVLoad{
+    ShapeVertex* sv;
+    int parent_id, pair_id;
+    SVLoad(ShapeVertex* sv_, int parent, int pair){
+        sv = sv_;
+        parent_id = parent;
+        pair_id = pair;
+    }
+};
+
+typedef std::map<int, SVLoad*> SVLoadMap;
+
 class DefaultIO:public FileIO
 {
 
@@ -15,7 +27,7 @@ class DefaultIO:public FileIO
     bool read(Shape*, ifstream &);
 
     bool write(MeshShape*, ofstream&);
-    bool read(MeshShape*,  ifstream&);
+    bool read(MeshShape*,  ifstream&, SVLoadMap &svmap);
 
     Shape*  parseShape(const char*);
 

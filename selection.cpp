@@ -27,9 +27,9 @@ SelectionManager::SelectionManager(){
 
 void SelectionManager::insert(Selectable_p pS){
     if (pS==0) return;
+    _count++;
     _selectables[_count] = pS;
     pS->_name = _count;
-    _count++;
 }
 
 void SelectionManager::remove(Selectable_p pS){
