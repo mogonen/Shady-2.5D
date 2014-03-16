@@ -581,6 +581,8 @@ void Mesh::addOperation(Operation::Type t, Corner_p c0, Corner_p c1, Edge_p e, F
     if (c1)
         op.c1 = *c1;
     op.pE = e;
+    if (e)
+        op.pED = e->pData;
     op.pF = f;
     _stack.push_back(op);
 }
@@ -616,8 +618,8 @@ int Mesh::rollback(int opid){
             if (!c1)
                 c1 = new Corner(op.c1.V());
 
-            insertEdge(c0, c1, true, 0, op.pF);
-            //e->pData = op.pE->pData;
+            Edge_p e = insertEdge(c0, c1, true, 0, op.pF);
+            e->pData = op.pED;
         }break;
 
         case Operation::SPLIT_EDGE:

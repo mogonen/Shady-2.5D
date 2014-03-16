@@ -88,7 +88,9 @@ void onSplitEdge(Corner_p pC, double t)
     }
 
     ShapeVertex_p svtan = e0->pData->getTangentSV(pC->next());
-    pC->V()->pData->adopt(svtan);
+    svtan->_isDeleted = true;
+    //pC->V()->pData->adopt(svtan);
+
     if (svtan->pair()){
         svtan->pair()->setPair(pC->E()->pData->pSV[2]);
     }
@@ -175,7 +177,7 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p,  MeshOperationCache
     double t;
     e->pData->pCurve->computeDistance(p, t);
 
-    //Point tan0 = computeVerticalTangent(t, e);
+    Point tan0 = computeVerticalTangent(t, e);
     Corner_p c0 = pMesh->splitEdge(e->C0(), pMS->addMeshVertex());
     onSplitEdge(c0, t);
 
@@ -184,8 +186,8 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p,  MeshOperationCache
 
     while(!c0->isBorder() && c0->F()!=endf){
 
-        //Point tan1  = computeVerticalTangent((1-t), c0->next()->next()->E(), c0->F());
-        //Point tan00 = computeVerticalTangent(t, c0->next()->next()->E(), c0->next()->next()->vNext()->F());
+        Point tan1  = computeVerticalTangent((1-t), c0->next()->next()->E(), c0->F());
+        Point tan00 = computeVerticalTangent(t, c0->next()->next()->E(), c0->next()->next()->vNext()->F());
 
         Corner* c01 = pMesh->splitEdge(c0->next()->next(), pMS->addMeshVertex());
         onSplitEdge(c01, 1-t);
@@ -194,9 +196,9 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p,  MeshOperationCache
         Corner* c0n = c01->vNext();
         Edge_p pEnew = pMesh->insertEdge(c0, c01);
 
-        //pEnew->pData->pSV[1]->pP()->set(tan0);
-        //pEnew->pData->pSV[2]->pP()->set(tan1);
-        //tan0 = tan00;
+        pEnew->pData->pSV[1]->pP()->set(tan0);
+        pEnew->pData->pSV[2]->pP()->set(tan1);
+        tan0 = tan00;
 
         c0 = c0n;
     }

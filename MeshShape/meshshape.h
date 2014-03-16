@@ -24,9 +24,6 @@ protected:
 
     //void onOutdate();
 
-    Vertex_p                addMeshVertex(ShapeVertex_p sv =0);
-    Vertex_p                addMeshVertex(const Point&);
-
     friend class SpineShape;
     friend class MeshOperation;
     friend class MeshPrimitive;
@@ -39,6 +36,9 @@ public:
     void                    outdate(ShapeVertex_p sv);
 
     void                    set(Mesh_p);
+
+    Vertex_p                addMeshVertex(ShapeVertex_p sv =0);
+    Vertex_p                addMeshVertex(const Point&);
 
     void                    makeSmoothTangents(bool isskip = false, int ttype = 2, double tank =1.0);
     static void             makeSmoothTangents(Corner_p);

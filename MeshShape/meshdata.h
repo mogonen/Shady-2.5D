@@ -11,9 +11,9 @@ class Patch;
 struct EdgeData
 {
 
-   Bezier* pCurve;
-   ShapeVertex_p pSV[4];
-   Edge_p  pE;
+   Bezier*          pCurve;
+   Edge_p           pE;
+   ShapeVertex_p    pSV[4];
 
    EdgeData(Edge_p pe)
    {
@@ -21,6 +21,7 @@ struct EdgeData
        pCurve = 0;
    }
 
+  //this is realy messy
    void initCurve(ShapeVertex_p sv1, ShapeVertex_p sv2){
 
        if (!sv1 || !sv2){
@@ -31,8 +32,13 @@ struct EdgeData
            pL->pRef = (void*) pE;
        }else{
            pCurve = new Bezier(100);
+           pCurve->pRef = (void*) pE;
            pSV[1] = sv1;
            pSV[2] = sv2;
+           pCurve->insert(pE->C0()->V()->pData->pP());
+           pCurve->insert(pSV[1]->pP());
+           pCurve->insert(pSV[2]->pP());
+           pCurve->insert(pE->C0()->next()->V()->pData->pP());
        }
        relink(pE);
    }

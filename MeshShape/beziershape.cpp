@@ -37,7 +37,7 @@ void  MeshShape::outdate(ShapeVertex_p sv){
 }
 
 void updateCurve(Edge_p pE){
-    if (pE->pData->pCurve)
+    if (pE->pData && pE->pData->pCurve)
         pE->pData->pCurve->update();
 }
 
@@ -47,7 +47,7 @@ void updateSurface(Face_p pF){
 }
 
 void ensureUpToDateCurve(Edge_p pE){
-    if (pE->pData->pCurve)
+    if (pE->pData && pE->pData->pCurve)
         pE->pData->pCurve->ensureUpToDate();
 }
 

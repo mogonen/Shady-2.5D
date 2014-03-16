@@ -127,7 +127,7 @@ void ShapeControl::renderControls(Shape_p shape)
         ShapeVertex_p sv = *it;
 
         //FIX THIS!! MESHSHAPE SPESIFIC!!!
-        if (((dlfl::Element*)sv->pRef)->isDeleted())
+        if (sv->pRef && ((dlfl::Element*)sv->pRef)->isDeleted())
             continue;
 
         if (Session::isRender(NORMALS_ON) && sv->isNormalControl)
@@ -297,7 +297,7 @@ void renderEdge(Edge_p pE){
     }
 #endif
 
-    if (pE->pData->pCurve){
+    if (pE->pData && pE->pData->pCurve){
         pE->pData->pCurve->render();
         return;
     }

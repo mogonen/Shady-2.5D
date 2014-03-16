@@ -84,8 +84,8 @@ public:
 	
     Corner_p other(Corner_p c) const{return (c==_c0)?_c1:_c0;}
     bool      isC1(Corner_p c)  const{return (c==_c1);}
-    void set(Corner_p, int i=-1);
-	bool isBorder();
+    void       set(Corner_p, int i=-1);
+    bool  isBorder();
 
     EdgeData* pData;
 };
@@ -288,6 +288,8 @@ private:
         Edge_p      pE;
         Face_p      pF;
         Corner      c0, c1;
+
+        EdgeData*   pED;
         Type        type;
     };
 
