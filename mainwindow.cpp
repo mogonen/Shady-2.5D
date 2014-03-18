@@ -255,7 +255,8 @@ void MainWindow::createActions()
 
     previewAct = new QAction(tr("Preview"), this);
     previewAct->setShortcut(Qt::Key_F5);
-    connect(previewAct, SIGNAL(triggered()), this, SLOT(flipRender()));
+    previewAct->setCheckable(true);
+    connect(previewAct, SIGNAL(triggered()), this, SLOT(togglePreview()));
     //view Act
     shadingOnAct = new QAction(tr("&Shading On"), this);
     shadingOnAct->setShortcut('S');
@@ -621,8 +622,8 @@ void MainWindow::toggleShadow(){
 }
 
 void MainWindow::togglePreview(){
-    glWidget->setRender(PREVIEW_ON, previewOnAct->isChecked());
-    glWidget->updateGL();
+    glWidget->setRender(PREVIEW_ON, true);//previewAct->isChecked());//previewOnAct->isChecked());
+    //glWidget->updateGL();
 }
 
 void MainWindow::toggleLockShape(){

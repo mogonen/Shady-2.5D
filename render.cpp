@@ -46,14 +46,7 @@ void Selectable::render(int mode)
 }
 
 Selectable_p select(GLint hits, GLuint *buff){
-   //only one selectable object in the stack for now
    Selectable_p pSel = Session::get()->selectionMan()->get(buff[3]);
-   /*if ( name & ( 1 << UI_BIT ) )
-   {
-      pSel =Session::get()->controller();
-     Session::get()->controller()->startSelect(name);
-   }
-   else*/
    return pSel;
 }
 

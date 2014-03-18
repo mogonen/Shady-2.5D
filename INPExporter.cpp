@@ -14,10 +14,6 @@ int INPExporter::nodeIndex(GridPattern* patch, int i, int j){
     int ci = patch->cornerI(i, j);
     int ei = patch->edgeI(i, j);
 
-    if (i == 0 && j == 4){
-        int a =5 ;
-    }
-
     if (ci== -1 && ei == -1)
         return _nodeMap[patch->face()->id()*NODEPAGE + patch->ind(i,j) ];//_nodePage[patch->face()->id()] + patch->ind(i,j);
 
@@ -70,7 +66,6 @@ bool INPExporter::exportShape(Shape* pShape, const char *fname){
     mesh->enamurateVerts();
 
     FaceList faces = mesh->faces();
-
 
     //this is a caching for common nodes
     _edgeNodes = (void**) new void*[mesh->sizeE()];

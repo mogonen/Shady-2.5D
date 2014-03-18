@@ -1,8 +1,8 @@
 CONFIG +=
 
 #DEFINES += SHOW_DLFL
-DEFINES += MODELING_MODE
-#DEFINES += RENDERING_MODE
+#DEFINES += MODELING_MODE
+DEFINES += RENDERING_MODE
 
 HEADERS += glwidget.h \
     mainwindow.h \
@@ -101,7 +101,7 @@ SOURCES +=
 
 }
 
-Rweter{
+
 
     HEADERS +=  Renderer/shaderprogram.h \
     Renderer/shaderparameters.h \
@@ -114,7 +114,7 @@ Rweter{
     Renderer/imageshape.cpp \
     Renderer/shaderprogram.cpp \
     Renderer/shaderparameters.cpp \
-}
+
 
 RESOURCES += \
     Renderer/Shaders.qrc

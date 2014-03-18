@@ -76,13 +76,15 @@ GLWidget::GLWidget(Canvas * pCanvas, QWidget *parent)
     setRender(DRAG_ON, true);
 }
 
-void GLWidget::setRender(RenderSetting rs, bool set){
+void GLWidget::setRender(RenderSetting rs, bool set)
+{
     if (set)
         _renderFlags |= (1 << (int)rs);
     else
         _renderFlags &=~(1 << (int)rs);
-
+//bool isrender = isInRenderMode();
     updateGL();
+    //isrender = isInRenderMode();
 }
 
 void GLWidget::flipDragMode(){
@@ -148,7 +150,6 @@ void GLWidget::paintGL()
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     orthoView();
-
     setView();
 
     glPushMatrix();
@@ -297,7 +298,6 @@ void GLWidget::wheelEvent(QWheelEvent* e ){
 void GLWidget::keyPressEvent(QKeyEvent * event){
 
 #ifndef    MODELING_MODE
-
     switch(event->key())
     {
     case Qt::Key_Enter:
@@ -342,7 +342,7 @@ int GLWidget::selectGL(int x, int y){
 }
 
 void GLWidget::orthoView(){
-//    glOrtho(-1.0*_scale+_translate.x, 1.0*_scale+_translate.x, -1.0/_aspectR*_scale+_translate.y, 1.0/_aspectR*_scale+_translate.y, NEAR_P, FAR_P);
+    //glOrtho(-1.0*_scale+_translate.x, 1.0*_scale+_translate.x, -1.0/_aspectR*_scale+_translate.y, 1.0/_aspectR*_scale+_translate.y, NEAR_P, FAR_P);
     glOrtho(-1.0*_scale, 1.0*_scale, -1.0/_aspectR*_scale, 1.0/_aspectR*_scale, NEAR_P, FAR_P);
 }
 

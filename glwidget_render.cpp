@@ -19,13 +19,15 @@ void GLWidget::renderCanvas()
 #else
 void GLWidget::renderCanvas()
 {
+
     _pGLSLShader_R->release();
+
     if(isInRenderMode() && is(PREVIEW_ON))
     {
         glReadBuffer(GL_BACK);
         if(!_pGLSLShader_R->isInitialized())
         {
-            Session::get()->deactivate();
+            //Session::get()->deactivate();
             _pGLSLShader_R->SetInitialized(true);
             renderShapes(SM_MODE);
 
