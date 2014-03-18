@@ -360,7 +360,7 @@ Corner_p Mesh::splitEdge(Corner_p pC, Vertex_p pV){
     }
 
     addEdge(c0new, c1old);
-    addOperation(Operation::SPLIT_EDGE, c0new);
+    addOperation(Operation::SPLIT_EDGE, c0new, 0, c0new->prev()->E());
 
     if (_splitEdgeCB)
         _splitEdgeCB(c0new);
@@ -581,8 +581,8 @@ void Mesh::addOperation(Operation::Type t, Corner_p c0, Corner_p c1, Edge_p e, F
     if (c1)
         op.c1 = *c1;
     op.pE = e;
-    if (e)
-        op.pED = e->pData;
+    op.pED = e? e->pData : 0;
+
     op.pF = f;
     _stack.push_back(op);
 }
@@ -625,7 +625,9 @@ int Mesh::rollback(int opid){
         case Operation::SPLIT_EDGE:
         {
             Corner_p c = op.c0.V()->find(op.c0.F());
-            unsplitEdge(c);
+            c = unsplitEdge(c);
+            if (op.pED)
+                c->E()->pData = op.pED;
         }
             break;
 

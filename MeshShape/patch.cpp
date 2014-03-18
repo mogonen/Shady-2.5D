@@ -15,7 +15,7 @@ Patch::Patch(Face_p pF):Selectable(false){
     _pFace = pF;
     _pFace->pData = new FaceData();
     _pFace->pData->pSurface = this;
-    this->pRef = (void*)pF;
+    setRef(pF);
 }
 
 void Patch::propateNormals(){

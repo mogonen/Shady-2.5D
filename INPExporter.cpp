@@ -6,7 +6,7 @@
 #define NODEPAGE 10000
 
 int INPExporter::mapNodeId(GridPattern* patch, int i, int j, int node_id){
-    _nodeMap[ patch->face()->id() * NODEPAGE + patch->ind(i,j) ] = node_id;
+    _nodeMap[patch->face()->id() * NODEPAGE + patch->ind(i,j)] = node_id;
 }
 
 int INPExporter::nodeIndex(GridPattern* patch, int i, int j){
@@ -14,11 +14,15 @@ int INPExporter::nodeIndex(GridPattern* patch, int i, int j){
     int ci = patch->cornerI(i, j);
     int ei = patch->edgeI(i, j);
 
+    if (i == 0 && j == 4){
+        int a =5 ;
+    }
+
     if (ci== -1 && ei == -1)
-        return _nodeMap[ patch->face()->id()*NODEPAGE + patch->ind(i,j) ];//_nodePage[patch->face()->id()] + patch->ind(i,j);
+        return _nodeMap[patch->face()->id()*NODEPAGE + patch->ind(i,j) ];//_nodePage[patch->face()->id()] + patch->ind(i,j);
 
     if (ci!=-1){
-        int vid = patch->face()->C(ei)->V()->id();
+        int vid = patch->face()->C(ci)->V()->id();
         Corner_p pC = (Corner_p) _vertexNodes[vid];
 
         if (pC->F() == patch->face())
@@ -26,7 +30,7 @@ int INPExporter::nodeIndex(GridPattern* patch, int i, int j){
 
         //now return the node from the neigbor
         Patch* patch1 = (Patch*)pC->F()->pData->pSurface;
-        return  _nodeMap[ pC->F()->id()*NODEPAGE + patch1->edgeInd(pC->I(), 0)];
+        return  _nodeMap[pC->F()->id()*NODEPAGE + patch1->edgeInd(pC->I(), 0)];
     }
 
     int eid = patch->face()->C(ei)->E()->id();
@@ -63,6 +67,7 @@ bool INPExporter::exportShape(Shape* pShape, const char *fname){
 
     mesh->enamurateFaces();
     mesh->enamurateEdges();
+    mesh->enamurateVerts();
 
     FaceList faces = mesh->faces();
 
@@ -83,7 +88,7 @@ bool INPExporter::exportShape(Shape* pShape, const char *fname){
     FOR_ALL_ITEMS(FaceList, faces){
         Face_p pF = (*it);
 
-        if (!pF->pData || !pF->pData->pSurface)
+        if (!pF->pData || !pF->pData->pSurface || pF->isDeleted())
             continue;
 
         GridPattern* patch = dynamic_cast<GridPattern*>(pF->pData->pSurface);
@@ -142,7 +147,7 @@ bool INPExporter::exportShape(Shape* pShape, const char *fname){
     FOR_ALL_ITEMS(FaceList, faces){
         Face_p pF = (*it);
 
-        if (!pF->pData || !pF->pData->pSurface)
+        if (!pF->pData || !pF->pData->pSurface || pF->isDeleted())
             continue;
 
         GridPattern* patch = dynamic_cast<GridPattern*>(pF->pData->pSurface);

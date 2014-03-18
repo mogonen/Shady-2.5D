@@ -3,7 +3,7 @@
 #include <qDebug>
 Selectable::Selectable(bool isUI):Renderable(isUI){
     _isDraggable = false;
-    pRef = 0;
+    _pRef = 0;
     Session::get()->selectionMan()->insert(this);
 }
 

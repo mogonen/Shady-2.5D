@@ -12,7 +12,7 @@
 #define __Mesh_H__
 
 #include <list>
-
+#include "../ref.h"
 
 /*class Vec2;
 class Vec3;
@@ -45,20 +45,19 @@ typedef std::list<Vertex_p> VertexList;
 typedef std::list<Face_p>   FaceList;
 typedef std::list<Corner_p> CornerList;
 
-class Element{
+class Element:public Referable{
 
-    bool _isdeleted;
 	unsigned int _id;
     friend class Mesh;
     Mesh_p _mesh;
 
-    void markDeleted(){_isdeleted = true;}//{_isdeleted = DELETED;}
+    void markDeleted(){_isdeleted = true;}
 
     friend class FaceCache;
 
 public:
 
-    Element(){ _mesh = 0; pStore =0; _isdeleted = false;}
+    Element(){ _mesh = 0; pStore =0;}
 
     inline int id() const {return _id;}
     Mesh* mesh()const {return _mesh;}

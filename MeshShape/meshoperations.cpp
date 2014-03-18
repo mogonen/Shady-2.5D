@@ -10,57 +10,26 @@ Bezier* initCurve(Corner_p pC){
     if (!pE->pData)
         pE->pData = new EdgeData(pE);
 
-
-    Vertex_p v0 = pC->V();
-    Vertex_p v1 = pC->next()->V();
-
     if (pE->pData->pCurve)
-        return pE->pData->pCurve;
+        return pE->pData->pCurve; //???
 
 #if SHOW_DLFL
 
-    Line* pL = new Line();
+    return pE->pData->initCurve();
 
-    pE->pData->pCurve = pL;
-    pL->insert(v0->pData->pP());
-    pL->insert(v1->pData->pP());
-    pL->pRef = (void*) pE;
+#else
 
-    //pE->pData->pSV[0] = pC->V()->pData;
-    //pE->pData->pSV[1] = pC->next()->V()->pData;
-    return pL;
-
-#endif
-
-    Point p0 = v0->pData->P();
-    Point p1 = v1->pData->P();
-
-    Vec2 tan0 = p1 - p0;
-    Vec2 tan1 = p0 - p1;
+    Point p0 = pC->V()->pData->P();
+    Point p1 = pC->next()->V()->pData->P();
+    Vec2 tan = p1 - p0;
 
     MeshShape* shape = (MeshShape*) pE->mesh()->caller();
+    ShapeVertex_p sv0_t = shape->addVertex(p0 + tan/3.0, pC->V()->pData, true, false);
+    ShapeVertex_p sv1_t = shape->addVertex(p1 - tan/3.0, pC->next()->V()->pData, true, false);
 
-    ShapeVertex_p sv0_t = shape->addVertex(p0 + tan0/3.0, v0->pData, true, false);
-    ShapeVertex_p sv1_t = shape->addVertex(p1 + tan1/3.0, v1->pData, true, false);
+    return pE->pData->initCurve(sv0_t, sv1_t);
 
-    sv0_t->pRef = (void*)pE;
-    sv1_t->pRef = (void*)pE;
-
-    pE->pData->pSV[1] = sv0_t;
-    pE->pData->pSV[2] = sv1_t;
-
-    pE->pData->pSV[0] = pC->V()->pData;
-    pE->pData->pSV[3] = pC->next()->V()->pData;
-
-    Bezier* c = new Bezier(100);
-    pE->pData->pCurve = c;
-
-    c->insert(v0->pData->pP());
-    c->insert(sv0_t->pP());
-    c->insert(sv1_t->pP());
-    c->insert(v1->pData->pP());
-    c->pRef = (void*) pE;
-    return c;
+#endif
 }
 
 void onSplitEdge(Corner_p pC, double t)
@@ -83,25 +52,23 @@ void onSplitEdge(Corner_p pC, double t)
     if (e0->pData->pCurve->count() == 2 ){
         e0->pData->pCurve->set(pC->V()->pData->pP(),1);
         pC->V()->pData->pP()->set(pC->prev()->V()->pData->P()*0.5 + pC->next()->V()->pData->P()*0.5);
-        //pE->pData->pSV[1] = pC->V()->pData;
         return;
     }
 
-    ShapeVertex_p svtan = e0->pData->getTangentSV(pC->next());
-    svtan->_isDeleted = true;
-    //pC->V()->pData->adopt(svtan);
-
-    if (svtan->pair()){
-        svtan->pair()->setPair(pC->E()->pData->pSV[2]);
-    }
-
-    //parenting fixed
-    //now adjust control p's
-    Bezier* curve0 = e0->pData->pCurve;
+    bool haspair =  e0->pData->pSV[1]->pair() || e0->pData->pSV[2]->pair();
 
     Point newCP[7];
-    curve0->computeSubdivisionCV(isforward? t:(1-t), newCP);
-    curve0->set(pC->V()->pData->pP(), 3);
+    e0->pData->pCurve->computeSubdivisionCV(isforward? t:(1-t), newCP);
+
+    e0->pData->discardCurve();
+    e0->pData = new EdgeData(e0);
+    e0->pData->initCurve();
+
+    if (haspair)
+        e0->pData->pSV[2]->setPair(pC->E()->pData->pSV[1]);
+
+    //now assign new positions
+    Bezier* curve0 = e0->pData->pCurve;
 
     curve0->pCV(1)->set(newCP[1]);
     curve0->pCV(2)->set(newCP[2]);
@@ -115,22 +82,8 @@ void onSplitEdge(Corner_p pC, double t)
 }
 
 void onUnsplitEdge(Corner_p pC){
-
-    Edge_p e0 = pC->E();
-
-    if (e0->pData->pCurve->count() == 2 ){
-        e0->pData->pCurve->set(pC->next()->V()->pData->pP(),1);
-        return;
-    }
-
-    /*ShapeVertex_p svtan = e0->pData->pSV[2];
-    pC->next()->V()->pData->adopt(svtan);
-    if (svtan->pair()){
-        svtan->pair()->setPair(pC->E()->pData->pSV[2]);
-    }*/
-
+    pC->E()->pData->relink(pC->E());
 }
-
 
 Point computeVerticalTangent(double t, Edge_p pE, Face_p pF =0)
 {

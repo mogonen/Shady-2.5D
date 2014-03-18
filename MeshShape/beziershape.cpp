@@ -5,17 +5,20 @@
 
 void  MeshShape::outdate(ShapeVertex_p sv){
 
+    if (sv->ref()->isDeleted())
+        return;
+
     if (sv->parent()){ //if tagent
-        Edge_p e = (Edge_p)(sv->pRef);
+        Edge_p e = (Edge_p)sv->ref();
         if (!e)
             return;
         e->pData->pCurve->update();
-        e->C0()->F()->pData->pSurface->outdate();
+        e->C()->F()->pData->pSurface->outdate();
         if (!e->isBorder())
-            e->C1()->F()->pData->pSurface->outdate();
+            e->C()->other()->F()->pData->pSurface->outdate();
 
     }else{//this is vertex
-        Vertex_p v = (Vertex_p)(sv->pRef);
+        Vertex_p v = (Vertex_p)sv->ref();
         if (!v)
             return;
         Corner_p c = v->C();
@@ -171,23 +174,23 @@ void MeshShape::makeSmoothCorners(Corner_p pC, bool isskipsharp, int tangenttype
         Point p = P0(pC);
 
         if (tangenttype == 1)
-            sv_tan1->setTangent(tan/6.0*tan_k,((Edge_p)(sv_tan1->pRef))->isBorder(), true);//c0->E()->isBorder()
+            sv_tan1->setTangent(tan/6.0*tan_k,((Edge_p)(sv_tan1->ref()))->isBorder(), true);//c0->E()->isBorder()
         else{
             tan = tan.normalize();
             double a = (p-p0)*tan;
             double b = (p-p1)*tan;
             sv_tan0->setTangent(-tan*a/3.0*tan_k, false, false);
-            sv_tan1->setTangent(-tan*b/3.0*tan_k, ((Edge_p)(sv_tan1->pRef))->isBorder(), false);
+            sv_tan1->setTangent(-tan*b/3.0*tan_k, ((Edge_p)(sv_tan1->ref()))->isBorder(), false);
         }
     }
 }
 
 
 void onInsertEdge(Edge_p e){
-    if (e->pData)
+    /*if (e->pData)
         e->pData->relink(e);
-    else
-        initCurve(e->C0());
+    else*/
+    initCurve(e->C0());
 }
 
 void onAddFace(Face_p pF)

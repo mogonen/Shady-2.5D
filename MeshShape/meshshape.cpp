@@ -15,7 +15,7 @@ Vertex_p MeshShape::addMeshVertex(ShapeVertex_p sv){
     if (!sv)
         sv = addVertex();
     Vertex_p v = _control->addVertex(sv);
-    sv->pRef = v;
+    sv->setRef(v);
     return v;
 }
 

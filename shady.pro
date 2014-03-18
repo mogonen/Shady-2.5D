@@ -26,7 +26,8 @@ HEADERS += glwidget.h \
     meshshape/cmesh.h \
     meshshape/meshcommands.h \
     fileio.h \
-    commands.h
+    commands.h \
+    ref.h
 
 SOURCES += glwidget.cpp \
     main.cpp \

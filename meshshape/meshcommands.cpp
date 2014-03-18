@@ -81,17 +81,17 @@ bool MeshOperation::pickElement(){
     _pF  = 0;
     _pMS = 0;
     Selectable_p obj = Session::get()->selectionMan()->getLastSelected();
-    if (!obj || obj->isUI() || !obj->pRef)
+    if (!obj || obj->isUI() || !obj->ref())
         return false;
     //there might be a better way for this
     if (_operation == EXTRUDE_EDGE || _operation == INSERT_SEGMENT || _operation == ASSIGN_PATTERN || _operation == SET_FOLDS){
-         _pE = dynamic_cast<Edge_p>((Edge_p)obj->pRef);
+        _pE = dynamic_cast<Edge_p>((Edge_p)obj->ref());
          if (!_pE)
              return false;
          _pMS = ((MeshShape*)_pE->mesh()->caller());
          return true;
     }else if (_operation == EXTRUDE_FACE || _operation == DELETE_FACE){
-         _pF = dynamic_cast<Face_p>((Face_p)obj->pRef);
+        _pF = dynamic_cast<Face_p>((Face_p)obj->ref());
          if(!_pF)
              return false;
          _pMS = ((MeshShape*)_pF->mesh()->caller());

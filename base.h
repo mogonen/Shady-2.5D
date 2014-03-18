@@ -5,6 +5,7 @@
 #include <list>
 #include <set>
 #include "Vec/Matrix.h"
+#include "ref.h"
 
 
 #define TYPE_BIT 24
@@ -126,6 +127,8 @@ protected:
 
     inline void makeDraggable(){_isDraggable = true;}
 
+    Referable_p _pRef;
+
 public:
 
     Selectable(bool isUI);
@@ -139,7 +142,11 @@ public:
     bool isTheSelected() const;
     bool isInSelection() const;
 
-    Void_p pRef; //generic pointer to refering object
+    //need to extend it to multiple refs
+    Referable_p ref() const {return _pRef;}
+    void setRef(Referable_p ref){
+        _pRef =ref;
+    }
 
 };
 

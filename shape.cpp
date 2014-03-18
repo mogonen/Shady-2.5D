@@ -8,7 +8,6 @@ ShapeVertex::ShapeVertex(Shape_p pS, bool isP, bool isN):ControlPoint(&_P){
     _N.set(0,0,1);
     flag = 0x00;
      _pair = 0;
-    pRef = 0;
     isPositionControl = isP;
     isNormalControl = isN;
     if (isN){

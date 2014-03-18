@@ -3,11 +3,11 @@
 #include "../curve.h"
 
 
-int     PatternPatch::NU = 1;
-int     PatternPatch::NV = 1;
+int     PatternPatch::NU = 4;
+int     PatternPatch::NV = 4;
 //double  Patch::T;
 
-#define FOLD_W 4
+#define FOLD_W 12
 
 void PatternPatch::assignPattern(int uv, int off, int len, int * data)
 {
@@ -52,9 +52,13 @@ int GridPattern::getPattern(int i, int j) const{
 
     double margin_u = wu*0.25;
 
-    if ( uii >= margin_u && uii < (wu-margin_u) )
+    int result = -1;
+    if ( uii >= margin_u && uii < (wu-margin_u))
     {
-        return _pattern[ui];
+        if (_pattern[ui]>0)
+            return _pattern[ui];
+        else
+            result = _pattern[ui];
     }
 
     double  wv  =  _sampleVi*1.0 /_nV;
@@ -68,7 +72,7 @@ int GridPattern::getPattern(int i, int j) const{
         return _pattern[_nU + vj];
     }
 
-    return -1;
+    return result;
 }
 
 

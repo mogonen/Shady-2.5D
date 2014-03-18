@@ -127,7 +127,7 @@ void ShapeControl::renderControls(Shape_p shape)
         ShapeVertex_p sv = *it;
 
         //FIX THIS!! MESHSHAPE SPESIFIC!!!
-        if (sv->pRef && ((dlfl::Element*)sv->pRef)->isDeleted())
+        if (sv->ref() && sv->ref()->isDeleted())
             continue;
 
         if (Session::isRender(NORMALS_ON) && sv->isNormalControl)
