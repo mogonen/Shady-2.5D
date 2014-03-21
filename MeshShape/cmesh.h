@@ -19,20 +19,25 @@ class Vec3;
 class Bezier;
 class Patch;
 */
-struct ShapeVertex;
-struct EdgeData;
-struct FaceData;
+class  ShapeVertex;
+class  CurvedEdge;
+class  Patch;
+
+//struct EdgeData;
+//struct FaceData;
 
 namespace dlfl {
 
 typedef ShapeVertex VertexData;
+typedef CurvedEdge  EdgeData;
+typedef Patch       FaceData;
+
 
 class Corner;
 class Edge;
 class Vertex;
 class Face;
 class Mesh;
-class FaceCache;
 
 typedef Corner*     Corner_p;
 typedef Edge*       Edge_p;
@@ -52,8 +57,7 @@ class Element:public Referable{
     Mesh_p _mesh;
 
     void markDeleted(){_isdeleted = true;}
-
-    friend class FaceCache;
+    void markUndeleted(){_isdeleted = false;}
 
 public:
 
@@ -186,26 +190,6 @@ public:
 
 };
 
-class FaceCache{
-
-    Corner*         _corns;
-    int             _size;
-    Face_p          _pF;
-    unsigned int    _isC1;
-    unsigned int    _isBorder;
-
-    bool            _isRemove;
-
-public:
-    FaceCache(Face_p, bool isRemove = false);
-    void restore(Face_p pF = 0);
-
-    Face_p F() const {return _pF;}
-    bool   isRemove(){return _isRemove;}
-
-};
-
-
 class Mesh{
 
     EdgeList	_edges;
@@ -257,7 +241,8 @@ public:
     void enamurateEdges();
     void enamurateFaces();
     void buildEdges(bool isouterface = true);
-    void restore(FaceCache &face);
+    void cleanUp(bool isenamurate = true);
+
 
     //set callback functions
     void resetCB();

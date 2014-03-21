@@ -1,7 +1,7 @@
 #include "meshshape.h"
 #include "../curve.h"
 #include "Patch.h"
-#include "MeshData.h"
+//#include "MeshData.h"
 
 void  MeshShape::outdate(ShapeVertex_p sv){
 
@@ -10,12 +10,18 @@ void  MeshShape::outdate(ShapeVertex_p sv){
 
     if (sv->parent()){ //if tagent
         Edge_p e = (Edge_p)sv->ref();
-        if (!e)
+        if (!e || !e->pData)
             return;
-        e->pData->pCurve->update();
-        e->C()->F()->pData->pSurface->outdate();
-        if (!e->isBorder())
-            e->C()->other()->F()->pData->pSurface->outdate();
+
+        e->pData->outdate();
+        Face_p f0 = e->C()->F();
+        Face_p f1 = e->C()->other()->F();
+
+        if (f0->pData)
+            f0->pData->outdate();
+
+        if (!e->isBorder() && f1->pData)
+            f1->pData->outdate();
 
     }else{//this is vertex
         Vertex_p v = (Vertex_p)sv->ref();
@@ -26,10 +32,10 @@ void  MeshShape::outdate(ShapeVertex_p sv){
             return;
         Corner_p c0 = c;
         while(c){
-            if (c->F() && c->F()->pData && c->F()->pData->pSurface)
-                c->F()->pData->pSurface->outdate();
-            if (c->E() && c->E()->pData && c->E()->pData->pCurve)
-                c->E()->pData->pCurve->outdate();
+            if (c->F() && c->F()->pData)
+                c->F()->pData->outdate();
+            if (c->E() && c->E()->pData)
+                c->E()->pData->outdate();
             c = c->vNext();
             if (c==c0){
                 break;
@@ -40,23 +46,23 @@ void  MeshShape::outdate(ShapeVertex_p sv){
 }
 
 void updateCurve(Edge_p pE){
-    if (pE->pData && pE->pData->pCurve)
-        pE->pData->pCurve->update();
+    if (pE->pData)
+        pE->pData->update();
 }
 
 void updateSurface(Face_p pF){
-    if (pF->pData && pF->pData->pSurface && !pF->isBorder())
-        pF->pData->pSurface->update();
+    if (pF->pData && !pF->isBorder())
+        pF->pData->update();
 }
 
 void ensureUpToDateCurve(Edge_p pE){
-    if (pE->pData && pE->pData->pCurve)
-        pE->pData->pCurve->ensureUpToDate();
+    if (pE->pData)
+        pE->pData->ensureUpToDate();
 }
 
 void ensureUpToDateSurface(Face_p pF){
-    if (pF->pData && pF->pData->pSurface && !pF->isBorder())
-        pF->pData->pSurface->ensureUpToDate();
+    if (pF->pData && !pF->isBorder())
+        pF->pData->ensureUpToDate();
 }
 
 void MeshShape::onUpdate(){
@@ -198,14 +204,16 @@ void onAddFace(Face_p pF)
     if (pF->isBorder())
         return;
 
+    //pF->pData = new FaceData();
+
 #ifdef SHOW_DLFL
-    pF->pData->pSurface = (Patch*)new Rectangle(pF);
+    pF->pData  = (Patch*)new Rectangle(pF);
 #else
 
 #ifdef MODELING_MODE
-    pF->pData->pSurface = (Patch*)new GridPattern(pF);//UVPatternPatch(pF);
+    pF->pData = (Patch*)new GridPattern(pF);//UVPatternPatch(pF);
 #else
-    pF->pData->pSurface = (Patch*)new Patch4(pF);
+    pF->pData = (Patch*)new Patch4(pF);
 #endif
 
 #endif

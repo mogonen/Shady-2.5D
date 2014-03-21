@@ -8,13 +8,13 @@ int     Patch::NN;
 int     Patch::NN2;
 double  Patch::T;*/
 bool    Patch::isH = true;
+#define SAMPLES 10
 
 Patch::Patch(Face_p pF):Selectable(false){
     _ps = 0;
     _ns = 0;
     _pFace = pF;
-    _pFace->pData = new FaceData();
-    _pFace->pData->pSurface = this;
+    _pFace->pData = this;
     setRef(pF);
 }
 
@@ -50,7 +50,7 @@ void Patch::propateNormals(){
 }
 
 Patch4::Patch4(Face_p pF):Patch(pF){
-    //setSample(N,N);
+    setSample(SAMPLES,SAMPLES);
     _ps = new Point[_sampleUV];
     _ns = new Vec3[_sampleUV];
 }
@@ -95,7 +95,7 @@ void Patch4::onUpdate(){
             Point p;
             for(int bj = 0; bj<4; bj++)
                 for(int bi = 0; bi<4; bi++)
-                    p = p + cubicBernstein(bi, i*_Tu)*cubicBernstein(bj, j*-_Tv)*_K[bi+bj*4];
+                    p = p + cubicBernstein(bi, i*_Tu)*cubicBernstein(bj, j*_Tv)*_K[bi+bj*4];
             _ps[ind(i,j)] = p;
         }
 
@@ -214,7 +214,7 @@ Vec3 Patch::compose(const Vec3& v, const Vec3& nx){
 
 Point Patch::K(int ei, int i){   
     Corner* ci = C(ei);
-    Spline* c = ci->E()->pData->pCurve;
+    CurvedEdge* c = ci->E()->pData;
     /*if (!c)
         return (i<2)?(ci->P()*(1-i) + ci->next()->P()*i) : (ci->P()*(i-2) + ci->next()->P()*(1-t));*/
 
@@ -231,24 +231,23 @@ Normal Patch::computeN(Corner_p c){
     Vec3 n = c->V()->pData->N();
     return n.z>0 ? c->V()->pData->N() : Vec3(n.x, n.y, N_MIN_Z);
 }
-
+/*
 Normal Patch::computeN(Corner_p c0, double t)
 {
-    bool isforward = (c0->V()->pData->pP() == c0->E()->pData->pCurve->pCV(0));
+    bool isforward = (c0->V()->pData->pP() == c0->E()->pData->pCV(0));
     t = isforward? t :(1-t);
 
     Normal n0 = computeN(c0);
     Normal n1 = computeN(c0->next());
-    int i = c0->I();
 
-    Vec2 tan0 = c0->E()->pData->pCurve->evalT(0);//(_ps[edgeInd(i, 1)] - _ps[edgeInd(i, 0)]).normalize();
-    Vec2 tan1 = c0->E()->pData->pCurve->evalT(1);//(_ps[edgeInd(i, Ni)] - _ps[edgeInd(i, Ni-1)]).normalize();
+    Vec2 tan0 = c0->E()->pData->evalT(0);//(_ps[edgeInd(i, 1)] - _ps[edgeInd(i, 0)]).normalize();
+    Vec2 tan1 = c0->E()->pData->evalT(1);//(_ps[edgeInd(i, Ni)] - _ps[edgeInd(i, Ni-1)]).normalize();
 
     Vec3 n0_d = Patch::decompose(n0, Vec3(tan0));
     Vec3 n1_d = Patch::decompose(n1, Vec3(tan1));
 
     Vec3 n_d = n0_d*(1-t) + n1_d*(t);
-    Vec3 tan = c0->E()->pData->pCurve->evalT(t);
+    Vec3 tan = c0->E()->pData->evalT(t);
     return compose(n_d, tan);
 }
 

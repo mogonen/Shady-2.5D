@@ -182,6 +182,7 @@ void ShapeControl::renderControls(Shape_p shape)
 void SpineShape::render(int mode){
 
     if(isInRenderMode()){
+        glColor3f(0,0,0);
         glPointSize(5.0);
         glBegin(GL_POINTS);
             FOR_ALL_CONST_ITEMS(SVertexList, _verts)
@@ -195,6 +196,7 @@ void SpineShape::render(int mode){
     }
 
     glBegin(GL_LINES);
+        glColor3f(0,0,0);
         FOR_ALL_CONST_ITEMS(SVertexList, _verts)
         {
             if (!(*it)->pSV)
@@ -290,8 +292,8 @@ void renderEdge(Edge_p pE){
     }
 #endif
 
-    if (pE->pData && pE->pData->pCurve){
-        pE->pData->pCurve->render();
+    if (pE->pData){
+        pE->pData->render();
         return;
     }
 
@@ -307,7 +309,7 @@ void renderEdge(Edge_p pE){
 }
 
 void renderFace(Face_p pFace){
-    if (!pFace->pData || !pFace->pData->pSurface)
+    if (!pFace->pData)
         return;
 
    /* if(mode&BRIGHT_MODE)
@@ -318,7 +320,7 @@ void renderFace(Face_p pFace){
         glColor3f(diffuse.redF(),diffuse.greenF(),diffuse.blueF());
    */
 
-  pFace->pData->pSurface->render();
+  pFace->pData->render();
 }
 
 void MeshShape::render(int mode) {
@@ -383,6 +385,24 @@ void Curve::render(int mode) {
     glBegin(_isClosed? GL_LINE_LOOP : GL_LINE_STRIP);
     FOR_ALL_I(_size){
         Point p = this->P(i);
+        glVertex3f(p.x, p.y, 0);
+    }
+    glEnd();
+}
+
+
+void CurvedEdge::render(int mode) {
+
+    Selectable::render();
+    //glColor3f(1.0, 1.0, 1.0);
+    glColor3f(0, 0, 0);
+    selectionColor((Selectable_p)this);
+    if (isTheSelected())
+        glColor3f(1.0, 0, 0);
+
+    glBegin(GL_LINE_STRIP);
+    FOR_ALL_I(size()){
+        Point p = P(i);
         glVertex3f(p.x, p.y, 0);
     }
     glEnd();

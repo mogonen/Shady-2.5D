@@ -6,29 +6,6 @@
 
 using namespace dlfl;
 
-class MeshOperationCache{
-
-    list<FaceCache>     _cachedFaces;
-    list<Face_p>        _facesToDel;
-    list<SVCache>       _cachedSV;
-    list<Edge_p>        _edgesToDel;
-
-    int                 _rollback_id;
-
-    Mesh_p              _pMesh;
-
-public:
-    void addMesh(Mesh_p pM){
-        _pMesh = pM;
-        _rollback_id = _pMesh->getOperationID();
-    }
-    void restore();
-
-    void add(Face_p, bool isdel=false);
-    void add(ShapeVertex_p, bool isdel=false);
-    void add(Edge_p, bool isdel=false);
-};
-
 class MeshOperation: public Command
 {
 
@@ -36,7 +13,7 @@ class MeshOperation: public Command
     Edge_p      _pE;
     MeshShape*  _pMS;
 
-    MeshOperationCache _cache;
+    int         _rollbackId;
 
     bool        pickElement();
 
@@ -74,11 +51,11 @@ public:
     static bool             isKEEP_TOGETHER;
 
 
-    static void             insertSegment(Edge_p, const Point&, MeshOperationCache* pCache=0);
+    static void             insertSegment(Edge_p, const Point&);
     static void             diagonalDivide(Corner_p);
-    static Face_p           extrude(Face_p, double,  MeshOperationCache* pCache=0);
-    static Edge_p           extrude(Edge_p, double, bool isSmooth, VertexMap* vmap=0, MeshOperationCache* pCache=0);
-    static void             deleteFace(Face_p, MeshOperationCache* pCache=0);
+    static Face_p           extrude(Face_p, double);
+    static Edge_p           extrude(Edge_p, double, bool isSmooth, VertexMap* vmap=0);
+    static void             deleteFace(Face_p);
 
 private:
 
@@ -141,9 +118,10 @@ public:
     PatternOperation(OperationMode op):MeshOperation(op){}
 
 
-    static void             assignPattern(Edge_p, string pattern);
-    static void             setFolds(Edge_p, int, double w = 0);
+    static void             assignPattern(Edge_p, string pattern, bool iscontinious);
+    static void             setFolds(Edge_p, int, double w, bool iscontinious);
 
+    static bool             IS_CONT;
     static int              FOLD_N;
     static double           FOLD_W;
     static string           PATTERN;

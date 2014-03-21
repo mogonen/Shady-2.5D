@@ -15,8 +15,6 @@ bool        MeshOperation::isKEEP_TOGETHER  = false;
 bool        MeshOperation::EXEC_ONCLICK     = true;
 
 
-
-
 double      MeshPrimitive::GRID_N_LEN       = 0.2;
 double      MeshPrimitive::GRID_M_LEN       = 0.2;
 
@@ -42,31 +40,31 @@ void MeshOperation::execOP(){
         break;
 
     case EXTRUDE_EDGE:
-        extrude(_pE, EXTRUDE_T, MeshShape::isSMOOTH, isKEEP_TOGETHER?&vertexToCornerMap:0, &_cache);
+        extrude(_pE, EXTRUDE_T, MeshShape::isSMOOTH, isKEEP_TOGETHER?&vertexToCornerMap:0);
         break;
 
     case INSERT_SEGMENT:
-        insertSegment(_pE, (_click.P - _pMS->P()), &_cache);
+        insertSegment(_pE, (_click.P - _pMS->P()));
         break;
 
     case EXTRUDE_FACE:
-        extrude(_pF, EXTRUDE_T,  &_cache);
+        extrude(_pF, EXTRUDE_T);
         break;
 
     case DELETE_FACE:
-        deleteFace(_pF, &_cache);
+        deleteFace(_pF);
         break;
 
     //Pattern Operatioms here for now
     case ASSIGN_PATTERN:
     {
-       PatternOperation::assignPattern(_pE, PatternOperation::PATTERN);
+       PatternOperation::assignPattern(_pE, PatternOperation::PATTERN, PatternOperation::IS_CONT);
     }
         break;
 
     case SET_FOLDS:
     {
-        PatternOperation::setFolds(_pE, PatternOperation::FOLD_N, PatternOperation::FOLD_W);
+        PatternOperation::setFolds(_pE, PatternOperation::FOLD_N, PatternOperation::FOLD_W, PatternOperation::IS_CONT);
     }
         break;
 
@@ -101,14 +99,14 @@ bool MeshOperation::pickElement(){
 }
 
 Command_p MeshOperation::exec(){
-    _cache.addMesh(_pMS->mesh());
+    _rollbackId = _pMS->mesh()->getOperationID();
     execOP();
     _pMS->Renderable::update();
     return new MeshOperation(_operation); // keep it going
 }
 
 Command_p MeshOperation::unexec(){
-    _cache.restore();
+    _pMS->mesh()->rollback(_rollbackId);
     _pMS->update();
     return 0;
 }
@@ -121,44 +119,6 @@ void MeshOperation::onClick(const Click & click)
     bool ispick = pickElement();
     if (ispick)
         Session::get()->exec(); //this could be improved later
-}
-
-void MeshOperationCache::restore(){
-    _pMesh->rollback(_rollback_id);
-    /*
-    for(list<SVCache>::reverse_iterator it = _cachedSV.rbegin(); it!=_cachedSV.rend(); it++)
-    {
-        (*it).restore();
-    }*/
-}
-
-void MeshOperationCache::add(Face_p pF, bool isdel){
-    if (!pF)
-        return;
-    if (isdel)
-        _facesToDel.push_back(pF);
-    else{
-        _cachedFaces.push_back(FaceCache(pF));
-       /* for(int i=0; i<pF->size(); i++){
-            _cachedSV.push_back(SVCache(pF->C(i)->E()->pData->pSV[1]));
-            _cachedSV.push_back(SVCache(pF->C(i)->E()->pData->pSV[2]));
-            _cachedSV.push_back(SVCache(pF->C(i)->V()->pData));
-        }*/
-    }
-}
-
-void MeshOperationCache::add(ShapeVertex_p pSV, bool isdel){
-    if (!isdel)
-        _cachedSV.push_back(SVCache(pSV));
-}
-
-void MeshOperationCache::add(Edge_p pE, bool isdel){
-    if (isdel)
-        _edgesToDel.push_back(pE);
-    else{
-        /*for(int i=0; i<4; i++)
-            _cachedSV.push_back(SVCache(pE->pData->pSV[i]));*/
-    }
 }
 
 void MeshPrimitive::onClick(const Click & click){

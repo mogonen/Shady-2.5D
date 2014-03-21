@@ -3,7 +3,8 @@
 
 #include "../Base.h"
 #include "CMesh.h"
-#include "MeshData.h"
+#include "curvededge.h"
+//#include "MeshData.h"
 
 #define N_MIN_Z 0.35
 
@@ -15,15 +16,15 @@ protected:
    Point* _ps;
    Vec3*  _ns;
    Face_p _pFace;
-   Point _K[16]; //bezier surface
+   Point  _K[16]; //bezier surface
 
    Point   K(int ei, int i);
 
-   static Vec3 decompose(const Vec3& v, const Vec3& nx);
-   static Vec3 compose(const Vec3& v, const Vec3& nx);
+   static  Vec3 decompose(const Vec3& v, const Vec3& nx);
+   static  Vec3 compose(const Vec3& v, const Vec3& nx);
 
-   int      _sampleU, _sampleV, _sampleUi, _sampleVi, _sampleUV;
-   double   _Tu, _Tv;
+   int     _sampleU, _sampleV, _sampleUi, _sampleVi, _sampleUV;
+   double  _Tu, _Tv;
 
 public:
 
@@ -38,6 +39,7 @@ public:
 
     int edgeInd(int ei, int i);
     int edgeUInd(int ei, int i);
+    Point P(int i)const {return _ps[i];}
 
     int edgeI(int i,int j);
     int cornerI(int i, int j);

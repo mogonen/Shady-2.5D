@@ -3,8 +3,8 @@
 #include "../curve.h"
 
 
-int     PatternPatch::NU = 4;
-int     PatternPatch::NV = 4;
+int     PatternPatch::NU = 5;
+int     PatternPatch::NV = 5;
 //double  Patch::T;
 
 #define FOLD_W 12
@@ -252,6 +252,7 @@ void UVPatternPatch::onUpdate(){
     delete samples;
 }
 */
+
 void UVPatternPatch::onUpdate(){
 
     /*if (_nU != NU || _nV != NV)

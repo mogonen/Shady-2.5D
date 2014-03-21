@@ -5,7 +5,7 @@
 #include "shape.h"
 #include "MeshShape/cmesh.h"
 #include "MeshShape/meshshape.h"
-
+#include "MeshShape/curvededge.h"
 
 struct SVLoad{
     ShapeVertex* sv;
@@ -152,12 +152,12 @@ bool DefaultIO::load(const char *fname){
             Edge_p pE = pMesh->addEdge(0);
             pE->set(facemap[c0f]->C(c0i), 0);
             pE->set(facemap[c1f]->C(c1i), 1);
-            pE->pData = new EdgeData(pE);
+            pE->pData = new CurvedEdge(pE, 0);
 
             if (sv1 && sv2)
-                pE->pData->initCurve((ShapeVertex_p)_loadmap[sv1]->pObj, (ShapeVertex_p)_loadmap[sv2]->pObj);
+                pE->pData->init((ShapeVertex_p)_loadmap[sv1]->pObj, (ShapeVertex_p)_loadmap[sv2]->pObj);
             else
-                pE->pData->initCurve(0,0);
+                pE->pData->init(0,0);
 
         }
     }
@@ -360,10 +360,10 @@ bool DefaultIO::writeMeshShape(MeshShape * pMS, ofstream& outfile){
         SKIP_DELETED_ITEM
         Edge_p pE = (*it);
         //<<pE->C0()-F()-id()<<"/"<<pE->C0()->I()<<" "
-        if (pE->pData->pCurve->count()==2)
+        /*if (pE->pData->pCurve->count()==2)
             outfile<<"e "<<pE->C0()->F()->id()<<"/"<<pE->C0()->I()<<" "<<pE->C1()->F()->id()<<"/"<<pE->C1()->I()<<endl;
-        else
-            outfile<<"e "<<pE->C0()->F()->id()<<"/"<<pE->C0()->I()<<" "<<pE->C1()->F()->id()<<"/"<<pE->C1()->I()<<" "<<pE->pData->pSV[1]->id()<<" "<<pE->pData->pSV[2]->id()<<endl;
+        else*/
+            outfile<<"e "<<pE->C0()->F()->id()<<"/"<<pE->C0()->I()<<" "<<pE->C1()->F()->id()<<"/"<<pE->C1()->I()<<" "<<pE->pData->getTangentSV(0)->id()<<" "<<pE->pData->getTangentSV(1)->id()<<endl;
     }
 
     return true;

@@ -4,7 +4,8 @@
 #include <string>
 #include "../Shape.h"
 #include "CMesh.h"
-#include "MeshData.h"
+
+//#include "MeshData.h"
 
 using namespace dlfl;
 
@@ -53,8 +54,7 @@ public:
 void                        onInsertEdge(Edge_p);
 void                        onUnsplitEdge(Corner_p pC);
 void                        onAddFace(Face_p);
-Bezier*                     initCurve(Corner_p);
-
+void                        initCurve(Corner_p);
 
 //helper functions
 

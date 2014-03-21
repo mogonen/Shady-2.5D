@@ -2,8 +2,9 @@
 #include "patch.h"
 
 int         PatternOperation::FOLD_N           = 8;
-double      PatternOperation::FOLD_W          = 0;
+double      PatternOperation::FOLD_W           = 0;
 string      PatternOperation::PATTERN          = "1,2";
+bool        PatternOperation::IS_CONT          = true;
 
 
 int * parsePattern(string patternstr , int &len)
@@ -22,7 +23,7 @@ int * parsePattern(string patternstr , int &len)
     return pattern;
 }
 
-void  PatternOperation::assignPattern(Edge_p pE, string patternstr)
+void  PatternOperation::assignPattern(Edge_p pE, string patternstr, bool iscontinious)
 {
     if (!pE)
         return;
@@ -37,20 +38,21 @@ void  PatternOperation::assignPattern(Edge_p pE, string patternstr)
         if (c0->isBorder())
             break;
 
-        PatternPatch* patch = dynamic_cast<PatternPatch*>(c0->F()->pData->pSurface);
+        PatternPatch* patch = dynamic_cast<PatternPatch*>(c0->F()->pData);
         if (!patch)
             return;
 
-        int i = c0->I();
+        int i = c0->I()+1;
         patch->assignPattern(i%2, off, len, pattern);
+
         off+= (i%2) ? patch->U() : patch->V();
 
         c0 = c0->prev()->vPrev();
 
-    }while(c0 != pE->C0());
+    }while(c0 != pE->C0() && iscontinious);
 }
 
-void PatternOperation::setFolds(Edge_p pE, int n, double w)
+void PatternOperation::setFolds(Edge_p pE, int n, double w, bool iscontinious)
 {
     if (!pE )
         return;
@@ -61,7 +63,7 @@ void PatternOperation::setFolds(Edge_p pE, int n, double w)
         if (c0->isBorder())
             break;
 
-        PatternPatch* patch = dynamic_cast<PatternPatch*>(c0->F()->pData->pSurface);
+        PatternPatch* patch = dynamic_cast<PatternPatch*>(c0->F()->pData);
         if (!patch)
             return;
         int i = c0->I();
@@ -72,6 +74,8 @@ void PatternOperation::setFolds(Edge_p pE, int n, double w)
 
         c0 = c0->prev()->vPrev();
 
-    }while(c0 != pE->C0());
+
+
+    }while(c0 != pE->C0() && iscontinious);
 
 }

@@ -25,7 +25,7 @@ int INPExporter::nodeIndex(GridPattern* patch, int i, int j){
             return  _nodeMap[pC->F()->id()*NODEPAGE + patch->ind(i,j) ];
 
         //now return the node from the neigbor
-        Patch* patch1 = (Patch*)pC->F()->pData->pSurface;
+        Patch* patch1 = (Patch*)pC->F()->pData;
         return  _nodeMap[pC->F()->id()*NODEPAGE + patch1->edgeInd(pC->I(), 0)];
     }
 
@@ -37,7 +37,7 @@ int INPExporter::nodeIndex(GridPattern* patch, int i, int j){
         return  _nodeMap[pC->F()->id()*NODEPAGE + patch->ind(i,j)];
 
     //now return the node from the neigbor
-    Patch* patch1 = (Patch*)pC->F()->pData->pSurface;
+    Patch* patch1 = (Patch*)pC->F()->pData;
     return _nodeMap[pC->F()->id()*NODEPAGE + patch1->edgeUInd(pC->I(), (pC->I()%2)?j:i)];
 }
 
@@ -83,10 +83,10 @@ bool INPExporter::exportShape(Shape* pShape, const char *fname){
     FOR_ALL_ITEMS(FaceList, faces){
         Face_p pF = (*it);
 
-        if (!pF->pData || !pF->pData->pSurface || pF->isDeleted())
+        if (!pF->pData || pF->isDeleted())
             continue;
 
-        GridPattern* patch = dynamic_cast<GridPattern*>(pF->pData->pSurface);
+        GridPattern* patch = dynamic_cast<GridPattern*>(pF->pData);
         if (!patch)
             continue;
 
@@ -142,10 +142,10 @@ bool INPExporter::exportShape(Shape* pShape, const char *fname){
     FOR_ALL_ITEMS(FaceList, faces){
         Face_p pF = (*it);
 
-        if (!pF->pData || !pF->pData->pSurface || pF->isDeleted())
+        if (!pF->pData || pF->isDeleted())
             continue;
 
-        GridPattern* patch = dynamic_cast<GridPattern*>(pF->pData->pSurface);
+        GridPattern* patch = dynamic_cast<GridPattern*>(pF->pData);
         if (!patch)
             continue;
 

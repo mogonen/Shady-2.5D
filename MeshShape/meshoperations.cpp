@@ -1,21 +1,17 @@
 #include "meshcommands.h"
+#include "curvededge.h"
 
-Bezier* initCurve(Corner_p pC){
+void initCurve(Corner_p pC){
 
     if(!pC)
-        return 0;
+        return;
 
     Edge_p pE = pC->E();
-
-    if (!pE->pData)
-        pE->pData = new EdgeData(pE);
-
-    if (pE->pData->pCurve)
-        return pE->pData->pCurve; //???
+    pE->pData = new CurvedEdge(pE);
 
 #if SHOW_DLFL
 
-    return pE->pData->initCurve();
+    pE->pData->init();
 
 #else
 
@@ -27,62 +23,50 @@ Bezier* initCurve(Corner_p pC){
     ShapeVertex_p sv0_t = shape->addVertex(p0 + tan/3.0, pC->V()->pData, true, false);
     ShapeVertex_p sv1_t = shape->addVertex(p1 - tan/3.0, pC->next()->V()->pData, true, false);
 
-    return pE->pData->initCurve(sv0_t, sv1_t);
+    return pE->pData->init(sv0_t, sv1_t);
 
 #endif
 }
 
-void onSplitEdge(Corner_p pC, double t)
-{
-
-    bool isforward = true;
-    if (pC->isC1()){
-        pC = pC->vNext();
-        isforward = false;
-    }
+void computeSubdivisionCV(Corner_p pC, double t, Point newCP[]){
+    bool isforward = !pC->isC1();
+    pC = pC->E()->C0();
 
     if (pC->F())
         pC->F()->Face::update(true);
     if (pC->other()->F())
         pC->other()->F()->Face::update(true);
 
-    //clean up
+    pC->E()->pData->computeSubdivisionCV(isforward? t:(1-t), newCP);
+}
+
+void applySubdivision(Corner_p pC, Point newCP[], bool haspair)
+{
+    if (pC->isC1())
+        pC = pC->vNext();
+
     Edge_p e0 = pC->prev()->E();
 
-    if (e0->pData->pCurve->count() == 2 ){
-        e0->pData->pCurve->set(pC->V()->pData->pP(),1);
-        pC->V()->pData->pP()->set(pC->prev()->V()->pData->P()*0.5 + pC->next()->V()->pData->P()*0.5);
-        return;
-    }
-
-    bool haspair =  e0->pData->pSV[1]->pair() || e0->pData->pSV[2]->pair();
-
-    Point newCP[7];
-    e0->pData->pCurve->computeSubdivisionCV(isforward? t:(1-t), newCP);
-
-    e0->pData->discardCurve();
-    e0->pData = new EdgeData(e0);
-    e0->pData->initCurve();
+    e0->pData = new CurvedEdge(e0);
+    e0->pData->init();
 
     if (haspair)
-        e0->pData->pSV[2]->setPair(pC->E()->pData->pSV[1]);
+        e0->pData->getTangentSV(1)->setPair(pC->E()->pData->getTangentSV(0));
 
     //now assign new positions
-    Bezier* curve0 = e0->pData->pCurve;
-
+    CurvedEdge* curve0 = e0->pData;
     curve0->pCV(1)->set(newCP[1]);
     curve0->pCV(2)->set(newCP[2]);
     curve0->pCV(3)->set(newCP[3]);
 
-    Bezier* curve1 = pC->E()->pData->pCurve;
+    CurvedEdge* curve1 = pC->E()->pData;
 
     curve1->pCV(1)->set(newCP[4]);
     curve1->pCV(2)->set(newCP[5]);
-
 }
 
 void onUnsplitEdge(Corner_p pC){
-    pC->E()->pData->relink(pC->E());
+    pC->E()->pData->set(pC->E());
 }
 
 Point computeVerticalTangent(double t, Edge_p pE, Face_p pF =0)
@@ -90,10 +74,10 @@ Point computeVerticalTangent(double t, Edge_p pE, Face_p pF =0)
     bool isforward = (!pF) || (pF == pE->C0()->F());
 
     Point p[8];
-    p[0] = pE->pData->pCurve->CV(0);
-    p[1] = pE->pData->pCurve->CV(1);
-    p[2] = pE->pData->pCurve->CV(2);
-    p[3] = pE->pData->pCurve->CV(3);
+    p[0] = pE->pData->CV(0);
+    p[1] = pE->pData->CV(1);
+    p[2] = pE->pData->CV(2);
+    p[3] = pE->pData->CV(3);
 
     if (isforward){
 
@@ -119,54 +103,59 @@ Point computeVerticalTangent(double t, Edge_p pE, Face_p pF =0)
 }
 
 
-void MeshOperation::insertSegment(Edge_p e, const Point & p,  MeshOperationCache *pCache){
+void MeshOperation::insertSegment(Edge_p e, const Point & p){
 
     if (!e )
         return;
 
+    Point CV[7];
+
     Mesh_p pMesh = e->mesh();
     MeshShape* pMS = (MeshShape*)pMesh->caller();
 
-    double t;
-    e->pData->pCurve->computeDistance(p, t);
 
+    double t;
+    e->pData->computeDistance(p, t);
+
+    computeSubdivisionCV(e->C0(), t, CV);
     Point tan0 = computeVerticalTangent(t, e);
     Corner_p c0 = pMesh->splitEdge(e->C0(), pMS->addMeshVertex());
-    onSplitEdge(c0, t);
+    applySubdivision(c0, CV, 0);
 
     Corner_p c1 = c0->vNext();
     Face_p endf = (c1)?c1->F():0;
 
     while(!c0->isBorder() && c0->F()!=endf){
 
+        //need to find a better solution for all this
         Point tan1  = computeVerticalTangent((1-t), c0->next()->next()->E(), c0->F());
         Point tan00 = computeVerticalTangent(t, c0->next()->next()->E(), c0->next()->next()->vNext()->F());
+        computeSubdivisionCV(c0->next()->next(), 1-t, CV);
+
 
         Corner* c01 = pMesh->splitEdge(c0->next()->next(), pMS->addMeshVertex());
-        onSplitEdge(c01, 1-t);
-        Edge_p e_c01 = c01->E();
+
+        applySubdivision(c01, CV, 0);
 
         Corner* c0n = c01->vNext();
         Edge_p pEnew = pMesh->insertEdge(c0, c01);
-
-        pEnew->pData->pSV[1]->pP()->set(tan0);
-        pEnew->pData->pSV[2]->pP()->set(tan1);
+        pEnew->pData->getTangentSV(0)->pP()->set(tan0);
+        pEnew->pData->getTangentSV(1)->pP()->set(tan1);
         tan0 = tan00;
 
         c0 = c0n;
     }
 
     if (!c0->isBorder() && c0->F() == endf){ //looping
-        Edge_p pEnew = (pMesh->insertEdge(c0, c0->next()->next()->next()));
-         if (pCache)
-             pCache->add(pEnew, true);
+        pMesh->insertEdge(c0, c0->next()->next()->next());
     }else while(!c1->isBorder()){
+
+       computeSubdivisionCV(c1->next()->next(), t, CV);
         Corner* c11 = pMesh->splitEdge(c1->next()->next(), pMS->addMeshVertex());
-        onSplitEdge(c11, t);
-        Edge_p e_c11 = c11->E();
+        applySubdivision(c11, CV, 0);
 
         Corner* c1n = c11->vNext();
-        Edge_p pEnew = pMesh->insertEdge(c1, c11);
+        pMesh->insertEdge(c1, c11);
 
         c1 = c1n;
     }
@@ -180,7 +169,7 @@ void MeshOperation::diagonalDivide(Corner_p c){
     Edge_p e = pMesh->insertEdge(c, c->next()->next(), true);
 }
 
-Face_p MeshOperation::extrude(Face_p f0, double t, MeshOperationCache *pCache){
+Face_p MeshOperation::extrude(Face_p f0, double t){
 
     Mesh_p pMesh = f0->mesh();
     MeshShape* pMS = (MeshShape*)pMesh->caller();
@@ -213,7 +202,7 @@ Face_p MeshOperation::extrude(Face_p f0, double t, MeshOperationCache *pCache){
     return e->C0()->F();
 }
 
-Edge_p MeshOperation::extrude(Edge_p e0, double t, bool isSmooth, VertexMap *pVMap, MeshOperationCache *pCache){
+Edge_p MeshOperation::extrude(Edge_p e0, double t, bool isSmooth, VertexMap *pVMap){
 
     if (!e0 || !e0->isBorder())
         return 0;
@@ -244,18 +233,14 @@ Edge_p MeshOperation::extrude(Edge_p e0, double t, bool isSmooth, VertexMap *pVM
     return 0;
 }
 
-void MeshOperation::deleteFace(Face_p f, MeshOperationCache *pCache){
+void MeshOperation::deleteFace(Face_p f){
 
     if (!f)
         return;
 
-    if (pCache)
-        pCache->add(f);
-
     MeshShape* pMS = (MeshShape*)(f->mesh()->caller());
     pMS->mesh()->remove(f);
-   /*
-    if (mesh->sizeF()==0)u
+   /*if (mesh->sizeF()==0)u
     {
         //Session::get()->removeShape((Shape_p)mesh->caller());
     }*/

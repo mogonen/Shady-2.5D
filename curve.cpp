@@ -77,6 +77,8 @@ double Curve::computeDistance(const Point& p, double &t){
 }
 
 
+
+
 Point Bezier::evalP(double t) const{
     Point p;
     FOR_ALL_I(4) p = p + cubicBernstein(i, t)*CV(i);

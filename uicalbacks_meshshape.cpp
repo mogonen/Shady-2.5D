@@ -188,6 +188,7 @@ QWidget* createAssignPatternOptions()
 {
     CustomDialog * widget = new CustomDialog("Pattern Options",0, "Assign", executeMeshShapeOperations, &MeshOperation::EXEC_ONCLICK);
     widget->addLineEdit("pattern:",&PatternOperation::PATTERN);
+    widget->addCheckBox ("Continuous", &PatternOperation::IS_CONT,"");
     return widget;
 }
 

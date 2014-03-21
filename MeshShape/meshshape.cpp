@@ -27,9 +27,13 @@ Vertex_p MeshShape::addMeshVertex(const Point& p){
 
 void MeshShape::onDrag(ShapeVertex_p pSV, const Vec2& t){
 
+    /*if (Drag::TOOL == Drag::BREAK){
+
+    }
+
     if (Drag::TOOL != Drag::AUTO_BIND || !pSV->parent() || pSV->pair() )//|| !(((Edge_p)pSV->pRef)->isBorder()))
         return;
 
     Corner_p pC = EdgeData::StaticGetCornerByTangent(pSV, true);
-    makeSmoothCorners(pC, false, 0);
+    makeSmoothCorners(pC, false, 0);*/
 }
