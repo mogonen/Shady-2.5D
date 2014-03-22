@@ -46,6 +46,7 @@
 #include "meshshape/meshshape.h"
 #include "ellipseshape.h"
 #include "shapecontrol.h"
+#include "commands.h"
 
 #ifndef MODELING_MODE
 #include "Renderer/renderoptionspenal.h"
@@ -650,19 +651,19 @@ void MainWindow::groupShape(){
 }
 
 void MainWindow::moveShapeToFront(){
-    Session::get()->moveActiveUp();
+    Session::get()->exec(new ShapeOrder(ShapeOrder::MOVE_UP));
 }
 
 void MainWindow::moveShapeToBack(){
-    Session::get()->moveActiveDown();
+    Session::get()->exec(new ShapeOrder(ShapeOrder::MOVE_DOWN));
 }
 
 void MainWindow::sendShapeBack(){
-    Session::get()->sendActiveBack();
+    Session::get()->exec(new ShapeOrder(ShapeOrder::SEND_BACK));
 }
 
 void MainWindow::sendShapeFront(){
-    Session::get()->sendActiveFront();
+    Session::get()->exec(new ShapeOrder(ShapeOrder::SEND_FRONT));
 }
 
 void MainWindow::transformShape(){

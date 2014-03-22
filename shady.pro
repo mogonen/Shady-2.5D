@@ -44,6 +44,7 @@ SOURCES += glwidget.cpp \
     meshshape/spine.cpp \
     meshshape/meshshape.cpp \
     meshshape/cmesh.cpp \
+    meshshape/meshelement.cpp \
     meshshape/beziershape.cpp \
     meshshape/meshoperations.cpp \
     meshshape/meshprimitives.cpp \
@@ -60,6 +61,7 @@ SOURCES += glwidget.cpp \
     meshshape/pattern.cpp \
     INPExporter.cpp \
     meshshape/curvededge.cpp
+
 
 QT           += opengl widgets
 

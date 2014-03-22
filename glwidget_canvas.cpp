@@ -14,7 +14,7 @@ void Canvas::insert(Shape_p sp){
 void Canvas::remove(Shape_p sp){
 //  m_GLSLShader->RemoveParamSet(sp->getShaderParam());
     _shapes.remove(sp);
-    delete sp;
+    //delete sp;
     updateDepth();
 }
 

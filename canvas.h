@@ -45,8 +45,6 @@ class Canvas{
 
 public:
 
-
-
     void insert(Shape_p sp);
     void remove(Shape_p sp);
 
@@ -61,6 +59,8 @@ public:
     void clear();
 
     int getNumShapes(){return _shapes.size();}
+    ShapeList shapes(){return _shapes;}
+    void setShapeList(ShapeList& shapes){ _shapes = shapes;}
 
 	int saveTo(const char * fname);
 	int loadFrom(const char * fname);
@@ -76,6 +76,7 @@ public:
 private:
     Light_p         _lights[MAX_LIGHTS];
 #endif
+
 };
 
 #endif

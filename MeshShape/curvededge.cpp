@@ -9,6 +9,7 @@ CurvedEdge::CurvedEdge(Edge_p pE, int sz):Selectable(false)
     else
         _pts = 0;
     _pE = pE;
+    _pTanSV[0] = _pTanSV[1] =0;
     setRef(_pE);
 }
 
@@ -19,17 +20,28 @@ CurvedEdge::~CurvedEdge(){
 
 void  CurvedEdge::set(Edge_p pE){
     _pE = pE;
-    setRef(_pE);
-
-    if (_pTanSV[0])
+    _pE->pData = this;
+    if (_pTanSV[0]){
         _pTanSV[0]->setRef(_pE);
+        _pTanSV[0]->_isDeleted = false;
+    }
+
+    if (_pTanSV[1]){
+        _pTanSV[1]->setRef(_pE);
+        _pTanSV[1]->_isDeleted = false; //markUndeleted();
+    }
+}
+
+void CurvedEdge::discard(){
+    if (_pTanSV[0])
+        _pTanSV[0]->_isDeleted = true;
 
     if (_pTanSV[1])
-        _pTanSV[1]->setRef(_pE);
+        _pTanSV[1]->_isDeleted = true;
 }
 
 static const int FTABLE[] = {1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600};
-
+/*
 void CurvedEdge::onUpdate(){
     if (!_pts)
         return;
@@ -40,8 +52,18 @@ void CurvedEdge::onUpdate(){
         FOR_ALL_I(4) p = p + (6.0 / (FTABLE[3-i] * FTABLE[i]) * pow(1-t, 3-i) * pow(t,i))*CV[i];
         _pts[j] = p;
     }
-}
+}*/
 
+void CurvedEdge::setRef(Referable_p pRef){
+    if (ref()){
+        CurvedEdge* ce = ((Edge_p)ref())->pData;
+        if (ce)
+            ce->discard();
+    }
+    set((Edge_p)pRef);
+    Referrer::setRef(pRef);
+
+}
 
 void CurvedEdge::init(ShapeVertex_p sv0, ShapeVertex_p sv1){
 

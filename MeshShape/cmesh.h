@@ -8,8 +8,8 @@
 		Texas A&M University
 
 *********************************************************************/
-#ifndef __Mesh_H__
-#define __Mesh_H__
+#ifndef MESH_H
+#define MESH_H
 
 #include <list>
 #include "../ref.h"
@@ -56,9 +56,6 @@ class Element:public Referable{
     friend class Mesh;
     Mesh_p _mesh;
 
-    void markDeleted(){_isdeleted = true;}
-    void markUndeleted(){_isdeleted = false;}
-
 public:
 
     Element(){ _mesh = 0; pStore =0;}
@@ -85,7 +82,7 @@ public:
     inline Corner_p C0()const{return _c0;}//?_c0:_c1;}
     inline Corner_p C1()const{return _c1;}//?_c1:_c0;}
 	
-    Corner_p other(Corner_p c) const{return (c==_c0)?_c1:_c0;}
+    Corner_p other(Corner_p c)  const{return (c==_c0)?_c1:_c0;}
     bool      isC1(Corner_p c)  const{return (c==_c1);}
     void       set(Corner_p, int i=-1);
     bool  isBorder();
@@ -185,8 +182,8 @@ public:
 
     void setNext(Corner_p c);
 
-    inline bool isC1();
-    inline bool isBorder();
+    bool isC1();
+    bool isBorder();
 
 };
 

@@ -47,6 +47,7 @@ void applySubdivision(Corner_p pC, Point newCP[], bool haspair)
 
     Edge_p e0 = pC->prev()->E();
 
+    e0->pData->discard();
     e0->pData = new CurvedEdge(e0);
     e0->pData->init();
 
@@ -66,7 +67,7 @@ void applySubdivision(Corner_p pC, Point newCP[], bool haspair)
 }
 
 void onUnsplitEdge(Corner_p pC){
-    pC->E()->pData->set(pC->E());
+   // pC->E()->pData->set(pC->E());
 }
 
 Point computeVerticalTangent(double t, Edge_p pE, Face_p pF =0)

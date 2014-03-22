@@ -26,5 +26,29 @@ public:
 };
 
 
+class ShapeOrder:public Command{
+
+    ShapeList   _shapes;
+    Shape_p     _pShape;
+
+public:
+
+    enum Operation {MOVE_UP, MOVE_DOWN, SEND_BACK, SEND_FRONT, INSERT_SHAPE, DELETE_SHAPE};
+
+    Command_p exec();
+    Command_p unexec();
+
+    CommandType  type() const {return SHAPE_ORDER;}
+
+
+    ShapeOrder(Operation op, Shape_p pShape=0);
+
+private:
+
+    Operation _operation;
+
+};
+
+
 
 #endif // COMMANDS_H

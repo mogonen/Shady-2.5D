@@ -3,7 +3,6 @@
 #include <qDebug>
 Selectable::Selectable(bool isUI):Renderable(isUI){
     _isDraggable = false;
-    _pRef = 0;
     Session::get()->selectionMan()->insert(this);
 }
 

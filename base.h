@@ -113,7 +113,7 @@ struct Click
 
 };
 
-class Selectable:public Renderable{
+class Selectable:public Renderable, public Referrer{
 
     int _name;
     bool _isDraggable;
@@ -127,8 +127,6 @@ protected:
 
     inline void makeDraggable(){_isDraggable = true;}
 
-    Referable_p _pRef;
-
 public:
 
     Selectable(bool isUI);
@@ -141,12 +139,6 @@ public:
     int name() const{return _name;}
     bool isTheSelected() const;
     bool isInSelection() const;
-
-    //need to extend it to multiple refs
-    Referable_p ref() const {return _pRef;}
-    void setRef(Referable_p ref){
-        _pRef =ref;
-    }
 
 };
 
@@ -274,7 +266,7 @@ protected:
 
 public:
 
-    enum CommandType {NONE, MESH_OPERATION, MESH_PRIMITIVE, DRAG};//needed?
+    enum CommandType {NONE, MESH_OPERATION, MESH_PRIMITIVE, DRAG, SHAPE_ORDER};//needed?
 
     //enum ExecMode    {NONE, ON_SELECT, ON_UP, ON_DOWN, ON_};
 

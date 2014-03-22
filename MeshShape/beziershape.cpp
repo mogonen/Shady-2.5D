@@ -193,10 +193,10 @@ void MeshShape::makeSmoothCorners(Corner_p pC, bool isskipsharp, int tangenttype
 
 
 void onInsertEdge(Edge_p e){
-    /*if (e->pData)
-        e->pData->relink(e);
-    else*/
-    initCurve(e->C0());
+    if (e->pData)
+        e->pData->setRef(e);
+    else
+        initCurve(e->C0());
 }
 
 void onAddFace(Face_p pF)

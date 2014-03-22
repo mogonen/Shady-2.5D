@@ -2,9 +2,8 @@
 #define PATCH_H
 
 #include "../Base.h"
-#include "CMesh.h"
+#include "cmesh.h"
 #include "curvededge.h"
-//#include "MeshData.h"
 
 #define N_MIN_Z 0.35
 

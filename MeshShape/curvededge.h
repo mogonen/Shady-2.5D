@@ -4,6 +4,7 @@
 #include "../shape.h"
 #include "cmesh.h"
 
+
 using namespace dlfl;
 
 inline Point P0(Corner_p pC) {return pC->V()->pData->P();}
@@ -23,7 +24,7 @@ class CurvedEdge:public Selectable{
 
 protected:
 
-    void onUpdate();
+    //void onUpdate();
 
 public:
 
@@ -34,15 +35,16 @@ public:
 
     void init(ShapeVertex_p sv0=0, ShapeVertex_p sv1=0);
     void set(Edge_p);
+    void discard();
+    void setRef(Referable_p pRef);
 
     ShapeVertex_p getTangentSV(int i) const {return _pTanSV[i];}
     ShapeVertex_p getTangentSV(ShapeVertex_p sv);
     ShapeVertex_p getTangentSV(Corner_p pC);
 
-    double computeDistance(const Point&, double &);
-    void computeSubdivisionCV(double t, Point[]);
-
-    void render(int mode = 0);
+    double  computeDistance(const Point&, double &);
+    void    computeSubdivisionCV(double t, Point[]);
+    void    render(int mode = 0);
 
     Point CV(int i);
     Point_p pCV(int i);

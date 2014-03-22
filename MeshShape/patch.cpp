@@ -1,6 +1,4 @@
  #include "Patch.h"
-#include "../curve.h"
-#include <QDebug>
 
 /*int     Patch::N;
 int     Patch::Ni;
@@ -9,6 +7,12 @@ int     Patch::NN2;
 double  Patch::T;*/
 bool    Patch::isH = true;
 #define SAMPLES 10
+
+static const int FTABLE[] = {1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600};
+inline double cubicBernstein(int i, double t){
+    return 6.0 / (FTABLE[3-i] * FTABLE[i]) * pow(1-t, 3-i) * pow(t,i);
+}
+
 
 Patch::Patch(Face_p pF):Selectable(false){
     _ps = 0;
@@ -214,12 +218,9 @@ Vec3 Patch::compose(const Vec3& v, const Vec3& nx){
 
 Point Patch::K(int ei, int i){   
     Corner* ci = C(ei);
+    bool isforward = !ci->isC1();
     CurvedEdge* c = ci->E()->pData;
-    /*if (!c)
-        return (i<2)?(ci->P()*(1-i) + ci->next()->P()*i) : (ci->P()*(i-2) + ci->next()->P()*(1-t));*/
-
-    bool curvedir = (ci->V()->pData->pP() == c->pCV(0));
-    bool rev = ((ei>1) && curvedir) || ( (ei<2) && !curvedir);
+    bool rev = ((ei>1) && isforward) || ( (ei<2) && !isforward);
     return (rev)?c->CV(3-i):c->CV(i);
 }
 
