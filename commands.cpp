@@ -34,9 +34,9 @@ Command_p Drag::unexec(){
     return 0;
 }
 
-ShapeOrder::ShapeOrder(Operation op, Shape_p pShape){
-    _pShape = pShape;
+ShapeOrder::ShapeOrder(Operation op){
     _operation = op;
+    _pShape = 0;
 }
 
 Command_p ShapeOrder::exec(){
@@ -78,7 +78,7 @@ switch(_operation){
     return 0;
 }
 
-Command_p ShapeOrder::unexec(){
+Command_p ShapeOrder::unexec(){        
     Session::get()->canvas()->setShapeList(_shapes);
     return 0;
 }

@@ -675,11 +675,13 @@ void MainWindow::transformShape(){
 }
 
 void MainWindow::deleteShape(){
-   Session::get()->removeShape(Session::get()->theShape());
+    Session::get()->exec(new ShapeOrder(ShapeOrder::DELETE_SHAPE));
 }
 
 void MainWindow::insertEllipse(){
-    Session::get()->insertShape(new EllipseShape());
+    ShapeOrder* so = new ShapeOrder(ShapeOrder::INSERT_SHAPE);
+    so->setShape(new EllipseShape());
+    Session::get()->exec(so);
 }
 
 #ifndef MODELING_MODE

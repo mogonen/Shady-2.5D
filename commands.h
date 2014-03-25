@@ -41,14 +41,14 @@ public:
     CommandType  type() const {return SHAPE_ORDER;}
 
 
-    ShapeOrder(Operation op, Shape_p pShape=0);
+    ShapeOrder(Operation op);
+    void setShape(Shape_p pShape){_pShape = pShape;}
 
 private:
 
     Operation _operation;
 
 };
-
 
 
 #endif // COMMANDS_H
