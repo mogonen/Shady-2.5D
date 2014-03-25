@@ -170,7 +170,7 @@ QWidget* createTorusOptions()
     widget->addSpinBox("Sides:", 2, 24, &MeshPrimitive::TORUS_N, 1, "Sides of Torus");
     widget->addSpinBox("V Segments:", 1, 8, &MeshPrimitive::TORUS_V, 1, "Vertical Segments of The Torus");
     widget->addCheckBox ("Keep Tangents Smooth", &MeshShape::isSMOOTH,"");
-    widget->addDblSpinBoxF("Radius:", 0.01, 0.75, &MeshPrimitive::TORUS_RAD, 2, 0.01, "");
+    widget->addDblSpinBoxF("Radius:", 0.01, 1.0, &MeshPrimitive::TORUS_RAD, 2, 0.01, "");
     widget->addDblSpinBoxF("Width%:", 0.01, 0.99, &MeshPrimitive::TORUS_W, 2, 0.01, "");
     widget->addDblSpinBoxF("Arc:", 0., 1.0, &MeshPrimitive::TORUS_ARC, 2, 0.01, "");
     return widget;

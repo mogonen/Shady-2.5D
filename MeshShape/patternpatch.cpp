@@ -2,7 +2,6 @@
 #include "Patch.h"
 #include "../curve.h"
 
-
 int     PatternPatch::NU = 2;
 int     PatternPatch::NV = 2;
 //double  Patch::T;
@@ -17,7 +16,6 @@ void PatternPatch::assignPattern(int uv, int off, int len, int * data)
         _pattern[i + uv*_nU] = p;
     }
 }
-
 
 GridPattern::GridPattern(Face_p pF):PatternPatch(pF){
     init(PatternPatch::NU, PatternPatch::NV);
