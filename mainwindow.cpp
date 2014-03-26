@@ -623,7 +623,8 @@ void MainWindow::toggleShadow(){
 }
 
 void MainWindow::togglePreview(){
-    glWidget->setRender(PREVIEW_ON, true);//previewAct->isChecked());//previewOnAct->isChecked());
+    glWidget->setRender(PREVIEW_ON, previewAct->isChecked());
+    //previewOnAct->isChecked());
     //glWidget->updateGL();
 }
 

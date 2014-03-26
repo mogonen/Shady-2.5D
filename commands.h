@@ -15,16 +15,15 @@ public:
     Drag(SelectionSet set, const Vec2& t);
 
     enum DragTool {NONE, AUTO_BIND, MANUAL_BIND, BREAK};
-    enum Continuity {C0, C1, C2};
+    enum Continuity {C0, C1, G1};
 
-    Command_p exec();
-    Command_p unexec();
-    CommandType  type() const {return DRAG;}
+    Command_p       exec();
+    Command_p       unexec();
+    CommandType     type() const {return DRAG;}
 
     static DragTool     TOOL;
     static Continuity   CONT;
 };
-
 
 class ShapeOrder:public Command{
 

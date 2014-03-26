@@ -209,11 +209,11 @@ public:
 
     EdgeList	edges(){return _edges;}
     VertexList	verts(){return _verts;}
-    FaceList	faces(){return _faces;}
+    FaceList    faces(){return _faces;}
 
-    inline int sizeE()const	{return _edges.size();}
-    inline int sizeF()const {return _faces.size();}
-    inline int size() const	{return _verts.size();}
+    inline int  sizeE()const	{return _edges.size();}
+    inline int  sizeF()const {return _faces.size();}
+    inline int  size() const	{return _verts.size();}
 
     Vertex_p    addVertex(VertexData* pData=0);
 
@@ -233,23 +233,23 @@ public:
     // non atomic oeprations
     void        remove(Face_p f, bool lazydel = true);
 
-    void updateF();
-    void enamurateVerts();
-    void enamurateEdges();
-    void enamurateFaces();
-    void buildEdges(bool isouterface = true);
-    void cleanUp(bool isenamurate = true);
+    void        updateF();
+    void        enamurateVerts();
+    void        enamurateEdges();
+    void        enamurateFaces();
+    void        buildEdges(bool isouterface = true);
+    void        cleanUp(bool isenamurate = true);
 
 
     //set callback functions
-    void resetCB();
-    void setInsertEdgeCB(void (*handler)(Edge_p)){_insertEdgeCB = handler;}
-    void setSplitEdgeCB(void (*handler)(Corner_p)){_splitEdgeCB = handler;}
-    void setUnsplitEdgeCB(void (*handler)(Corner_p)){_unsplitEdgeCB = handler;}
-    void setRemoveEdgeCB(void (*handler)(Edge_p)){_removeEdgeCB = handler;}
-    void setAddFaceCB(void (*handler)(Face_p)){	_addFaceCB = handler;}
-    void setRemoveFaceCB(void (*handler)(Face_p)){_removeFaceCB = handler;}
-    void setCaller(void* caller){ _caller = caller;}
+    void        resetCB();
+    void        setInsertEdgeCB(void (*handler)(Edge_p)){_insertEdgeCB = handler;}
+    void        setSplitEdgeCB(void (*handler)(Corner_p)){_splitEdgeCB = handler;}
+    void        setUnsplitEdgeCB(void (*handler)(Corner_p)){_unsplitEdgeCB = handler;}
+    void        setRemoveEdgeCB(void (*handler)(Edge_p)){_removeEdgeCB = handler;}
+    void        setAddFaceCB(void (*handler)(Face_p)){	_addFaceCB = handler;}
+    void        setRemoveFaceCB(void (*handler)(Face_p)){_removeFaceCB = handler;}
+    void        setCaller(void* caller){ _caller = caller;}
 
     inline void* caller() const {return _caller;}
 

@@ -1,6 +1,7 @@
 #include "meshshape.h"
 #include "../curve.h"
 #include "../commands.h"
+#include "curvededge.h"
 
 MeshShape::MeshShape()
 {
@@ -27,13 +28,13 @@ Vertex_p MeshShape::addMeshVertex(const Point& p){
 
 void MeshShape::onDrag(ShapeVertex_p pSV, const Vec2& t){
 
-    /*if (Drag::TOOL == Drag::BREAK){
-
+    if (Drag::TOOL == Drag::BREAK){
+        pSV->unpair();
     }
 
-    if (Drag::TOOL != Drag::AUTO_BIND || !pSV->parent() || pSV->pair() )//|| !(((Edge_p)pSV->pRef)->isBorder()))
-        return;
-
-    Corner_p pC = EdgeData::StaticGetCornerByTangent(pSV, true);
-    makeSmoothCorners(pC, false, 0);*/
+    if (Drag::TOOL == Drag::AUTO_BIND && pSV->parent() && !pSV->pair())
+    {
+        Corner_p pC = ((Edge_p)pSV->ref())->pData->getCornerByTan(pSV);
+        makeSmoothCorners(pC, false, 0);
+    }
 }

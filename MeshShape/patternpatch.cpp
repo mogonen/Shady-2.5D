@@ -6,7 +6,7 @@ int     PatternPatch::NU = 2;
 int     PatternPatch::NV = 2;
 //double  Patch::T;
 
-#define FOLD_W 24
+#define FOLD_W 16
 
 void PatternPatch::assignPattern(int uv, int off, int len, int * data)
 {
@@ -48,7 +48,7 @@ int GridPattern::getPattern(int i, int j) const{
     int ui  = i / wu;
     int uii = i -  (wu * ui);
 
-    double margin_u = 8;//wu*0.1;
+    double margin_u = 5;//wu*0.1;
 
     int result = -1;
     if ( uii >= margin_u && uii < (wu-margin_u))
@@ -63,7 +63,7 @@ int GridPattern::getPattern(int i, int j) const{
     int vj  = j / wv;
     int vjj = j -  (wv * vj);
 
-    int margin_v = 8;//wv*0.25;
+    int margin_v = 5;//wv*0.25;
 
     if ( (vjj >= margin_v) && (vjj < (wv-margin_v)) )
     {

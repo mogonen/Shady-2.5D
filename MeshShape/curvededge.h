@@ -14,8 +14,8 @@ inline Point P1(Edge_p pE)   {return pE->C0()->next()->V()->pData->P();}
 
 class CurvedEdge:public Selectable{
 
-    int         _size;
-    Point_p     _pts;
+    int             _size;
+    Point_p         _pts;
 
     inline int I(int i) const {CLAMP(i, 0, _size);}
 
@@ -42,9 +42,11 @@ public:
     ShapeVertex_p getTangentSV(ShapeVertex_p sv);
     ShapeVertex_p getTangentSV(Corner_p pC);
 
-    double  computeDistance(const Point&, double &);
-    void    computeSubdivisionCV(double t, Point[]);
-    void    render(int mode = 0);
+    Corner_p      getCornerByTan(ShapeVertex_p pC);
+
+    double        computeDistance(const Point&, double &);
+    void          computeSubdivisionCV(double t, Point[]);
+    void          render(int mode = 0);
 
     Point CV(int i);
     Point_p pCV(int i);

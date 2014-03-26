@@ -4,6 +4,7 @@
 #include <sstream>
 
 #define NODEPAGE 10000
+#define EPS 0.00001
 
 int INPExporter::mapNodeId(GridPattern* patch, int i, int j, int node_id){
     _nodeMap[patch->face()->id() * NODEPAGE + patch->ind(i,j)] = node_id;
@@ -119,7 +120,10 @@ bool INPExporter::exportShape(Shape* pShape, const char *fname){
 
                 Point p = patch->P(i, j);
                 allnodes.push_back(node_id);
-                outfile<<node_id<<", "<<p.x<<", "<<p.y<<", "<<", 0." <<endl;
+                float x = fabs(p.x) > EPS ? (float)p.x : 0;
+                float y = fabs(p.y) > EPS ? (float)p.y : 0;
+
+                outfile<<node_id<<", "<<p.x<<", "<<p.y<<", "<<" 0." <<endl;
                 mapNodeId(patch, i, j, node_id);
                 node_id++;
             }

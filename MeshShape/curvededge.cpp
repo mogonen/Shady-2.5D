@@ -106,6 +106,17 @@ int CurvedEdge::size(){
     return _size?_size:(_pE->C()->I()?_pE->C()->F()->pData->VSamples() : _pE->C()->F()->pData->USamples() );
 }
 
+Corner_p CurvedEdge::getCornerByTan(ShapeVertex_p pSV){
+
+    if (pSV == _pTanSV[0])
+        return _pE->C0();
+
+    if (pSV == _pTanSV[1])
+        return _pE->C1();
+
+    return 0;
+}
+
 /*
 Vec2 CurvedEdge::evalT(double t) const{
 
