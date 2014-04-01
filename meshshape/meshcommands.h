@@ -89,7 +89,7 @@ public:
 
     static MeshShape*       insertGrid(const Point& p, double nlen, double mlen, int n, int m, MeshShape* pMS = 0);
     static MeshShape*       insertNGon(const Point& p, int n, int segv, double rad, MeshShape* pMS = 0);
-    static MeshShape*       insertTorus(const Point& p, int n, int v, double rad, double w, double arc, MeshShape* pMS = 0);
+    static MeshShape*       insertTorus(const Point& p, int n, int v, double rad_x, double rad_y, double w, double arc, MeshShape* pMS = 0);
 
     static double           GRID_N_LEN;
     static double           GRID_M_LEN;
@@ -102,7 +102,9 @@ public:
 
     static int              TORUS_N;
     static int              TORUS_V;
-    static double           TORUS_RAD;
+    static double           TORUS_RAD_X;
+    static double           TORUS_RAD_Y;
+
     static double           TORUS_W;
     static double           TORUS_ARC;
 

@@ -75,7 +75,7 @@ MeshShape* MeshPrimitive::insertNGon(const Point& p, int n, int segv, double rad
 
 }
 
-MeshShape* MeshPrimitive::insertTorus(const Point& p, int n, int v, double rad, double w, double arc, MeshShape* pMS)
+MeshShape* MeshPrimitive::insertTorus(const Point& p, int n, int v, double rad_x, double rad_y, double w, double arc, MeshShape* pMS)
 {
 
     if (!pMS)
@@ -93,7 +93,7 @@ MeshShape* MeshPrimitive::insertTorus(const Point& p, int n, int v, double rad, 
     FOR_ALL_J(nV){
         FOR_ALL_I(nU){
             double ang_u = -step_u * i;
-            Point p(cos(ang_u)*rad, sin(ang_u)*rad);
+            Point p(cos(ang_u)*rad_x, sin(ang_u)*rad_y);
             vs[i+j*nU] = pMS->addMeshVertex(p*(1.0 - w/(nV-1)*j ) );
         }
     }
@@ -111,6 +111,7 @@ MeshShape* MeshPrimitive::insertTorus(const Point& p, int n, int v, double rad, 
         double k =  8.0/segU;
         pMS->makeSmoothTangents(false, 1, pow(k,k/3.0));
     }
+
     pMS->Renderable::update();
     return pMS;
 }

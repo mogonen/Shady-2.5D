@@ -26,7 +26,9 @@ double      MeshPrimitive::NGON_RAD         = 0.2;
 
 int         MeshPrimitive::TORUS_N          = 8;
 int         MeshPrimitive::TORUS_V          = 1;
-double      MeshPrimitive::TORUS_RAD        = 0.2;
+double      MeshPrimitive::TORUS_RAD_X      = 0.2;
+double      MeshPrimitive::TORUS_RAD_Y      = 0.2;
+
 double      MeshPrimitive::TORUS_W          = 0.5;
 double      MeshPrimitive::TORUS_ARC        = 1.0;
 
@@ -141,7 +143,7 @@ Command_p MeshPrimitive::exec(){
     break;
 
     case TORUS:
-        _pShape = insertTorus(Point(), TORUS_N, TORUS_V, TORUS_RAD, TORUS_W, TORUS_ARC);
+        _pShape = insertTorus(Point(), TORUS_N, TORUS_V, TORUS_RAD_X, TORUS_RAD_Y, TORUS_W, TORUS_ARC);
     break;
 
     case SPINE:
