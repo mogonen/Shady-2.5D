@@ -160,11 +160,11 @@ private:
     QMenu           *viewMenu;
     QMenu           *displayMenu;
     QMenu           *channelsMenu;
+    QMenu           *previewMenu;
     QMenu           *shapeMenu;
     QMenu           *toolsMenu;
     QMenu           *selectMenu;
     QMenu           *constructMenu;
-    QMenu           *previewMenu;
     QMenu           *windowMenu;
     QMenu           *helpMenu;
 

@@ -12,6 +12,10 @@
 //#include "FacialShape/facialshape.h"
 #endif
 
+void exec(){
+    Session::get()->exec();
+}
+
 QWidget* createAttrWidget(Shape_p pShape)
 {    
     //widget->addSpinBox("test:", 1, 8, &MeshShape::GRID_N, 1, "Rows");
@@ -151,9 +155,12 @@ QWidget* createDragOptions()
 }
 
 
+
 QWidget* createSetColorOptions()
 {
-    CustomDialog * widget = new CustomDialog("Set Color Tool Options",0);
+    CustomDialog * widget = new CustomDialog("Set Color Tool Options",0,"Assign",exec, &SetColor::EXEC_ONCLICK);
+    widget->addColorSel("Color",&SetColor::COLOR);
+    widget->addCheckBox ("Bring Dialog", &SetColor::IS_DIALOG);
     //widget->addRadioGrp("Channel:","Dark|Bright|Depth", (int*)(&SetColor::CHANNEL));
     return widget;
 }
@@ -251,7 +258,7 @@ QWidget* createImageShapeAttrWidget(ImageShape* ImgShape){
 }
 
 void createShapeImage(){
-//    MeshShape* pMS =ImageShape::insertGrid(Point(), MeshShape::GRID_LEN, MeshShape::GRID_M, MeshShape::GRID_N);
+    //MeshShape* pMS =ImageShape::insertGrid(Point(), MeshShape::GRID_LEN, MeshShape::GRID_M, MeshShape::GRID_N);
     ImageShape* pIS = new ImageShape(1.0,1.0);
     Session::get()->mainWindow()->addAttrWidget(createImageShapeAttrWidget(pIS ), (void*)pIS);
 

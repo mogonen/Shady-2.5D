@@ -100,7 +100,8 @@ void  Session::setCommand(Command_p pCommand){
         delete _pTheCommand;
     }
     _pTheCommand = pCommand;
-    _pTheCommand->select();
+    if (_pTheCommand)
+        _pTheCommand->select();
 }
 
 void  Session::exec(Command_p pCommand){

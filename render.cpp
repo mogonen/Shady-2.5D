@@ -103,7 +103,7 @@ void ControlPoint::render(int mode){
 
 void Shape::render(int mode)
 {
-    if(Session::isRender(DRAG_ON) && this == theSHAPE)
+    if(Session::isRender(DRAG_ON) && this == theSHAPE && !Session::isRender(PREVIEW_ON))
        Session::get()->controller()->renderControls((Shape_p)this);
 
     Selectable::render(mode);
@@ -114,6 +114,8 @@ void ShapeControl::renderControls(Shape_p shape)
 {
     if (_theHandler->isActive())
             return;
+
+    shape->_NormalControl->render();
 
     SVList verts = shape->getVertices();
     FOR_ALL_CONST_ITEMS(SVList, verts){
@@ -421,29 +423,20 @@ void Patch4::render(int mode){
             }
 
             bool isGLShading = (Session::channel() == GL_SHADING) && !Session::isRender(PREVIEW_ON);
+            bool isNormalChannel =  (Session::channel() == NORMAL_CHANNEL && !mode) || (mode&SM_MODE);
+
             if (isGLShading)
                     glEnable(GL_LIGHTING);
-
-            RGBA col[4];
-            if (mode&DARK_MODE || mode&BRIGHT_MODE)
-            {
-                int channel = mode&DARK_MODE ? DARK_CHANNEL:BRIGHT_CHANNEL; //stupid
-                col[0] = _maps[channel][ind(i, j)];
-                col[1] = _maps[channel][ind(i+1, j)];
-                col[2] = _maps[channel][ind(i+1, j+1)];
-                col[3] = _maps[channel][ind(i, j+1)];
-            }else if (mode&LABELDEPTH_MODE){
-                col[0].set(1.0, 1.0, 1.0);
-                col[1].set(1.0, 1.0, 1.0);
-                col[2].set(1.0, 1.0, 1.0);
-                col[3].set(1.0, 1.0, 1.0);
-            }
 
             glBegin(GL_POLYGON);            
             for(int k = 0; k < 4; k++)
             {
                 int index = ind(i + (k==1 || k==2), j + (k>1));
-                RGB val = _maps[Session::channel()][index];
+                int channel = Session::channel();
+                channel = mode&DARK_MODE ? DARK_CHANNEL : (mode&BRIGHT_MODE? BRIGHT_CHANNEL : (mode&SM_MODE ? NORMAL_CHANNEL : ((mode&LABELDEPTH_MODE)?DEPTH_CHANNEL:channel)) );
+
+
+                RGB val = _maps[(channel<ACTIVE_CHANNELS)?channel:(ACTIVE_CHANNELS-1)][index];
 
                 if (isGLShading)
                 {
@@ -458,11 +451,11 @@ void Patch4::render(int mode){
                     Vec3 n =  _maps[NORMAL_CHANNEL][index];
                     glNormal3f(n.x, n.y, n.z );
                 }
-                else if ( (Session::channel() == NORMAL_CHANNEL) || (mode&SM_MODE))
+                else if (isNormalChannel)
                 {                    
                     glColor4f((val.x+1)/2, (val.y+1)/2, 1.0, 1.0);
                 }else{
-                    glColor4f(val.x, val.y, val.z, 1.0);// col[k].w);
+                    glColor4f(val.x, val.y, val.z, 1.0); //col[k].w);
                 }
 
                 glVertex2f(p[k].x, p[k].y);
@@ -578,7 +571,10 @@ void Rectangle::render(int mode){
 
 void EllipseShape::render(int mode){
 
-    if (Session::isRender(SHADING_ON))
+    bool isGLShading = (Session::channel() == GL_SHADING) && !Session::isRender(PREVIEW_ON);
+    //bool isNormalChannel =  (Session::channel() == NORMAL_CHANNEL && !mode) || (mode&SM_MODE);
+
+    if (isGLShading)
     {
         GLfloat mat_diff[] = { diffuse.redF(), diffuse.greenF(), diffuse.blueF(), 1.0 };
         glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diff);
@@ -635,7 +631,7 @@ void EllipseShape::render(int mode){
 
             }
 
-            if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON))
+            if (isGLShading)
             {
                 glEnable(GL_LIGHTING);
             }
@@ -643,12 +639,13 @@ void EllipseShape::render(int mode){
             glBegin(GL_POLYGON);
             for(int k = 0; k < size; k++)
             {
-                if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON))
+                if (isGLShading)
                 {
                     glNormal3f(n[k].x, n[k].y, n[k].z );
                 }
                 else
                 {
+                    //fix this!!
                     if (mode&DARK_MODE)
                         glColor3f(0.1, 0.1, 0.1);
                     else if (mode&BRIGHT_MODE)
@@ -663,7 +660,7 @@ void EllipseShape::render(int mode){
             }
             glEnd();
 
-            if (Session::isRender(SHADING_ON))
+            if (isGLShading)
                     glDisable(GL_LIGHTING);
 
         }

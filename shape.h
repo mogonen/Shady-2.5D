@@ -87,7 +87,7 @@ public:
     bool                _isDeleted; //public for now
 
     //these should move to a shader later on
-    RGB                 data[NUM_CHANNELS];
+    RGB                 data[ACTIVE_CHANNELS];
 
 private:
 

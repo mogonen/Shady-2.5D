@@ -241,16 +241,17 @@ void GLWidget::renderCanvas()
         //_pGLSLShader_R->release();
         //_pGLSLShader_R->ReleaseAllFBO();
         _pGLSLShader_R->SetSMInitialized(false);
-        if (is(DRAG_ON) && (is(SHADING_ON) || is(PREVIEW_ON)))
-        {
-            _pCanvas->_lights[0]->render(DRAG_MODE);
-        }
 
-        if (is(SHADING_ON))
+        if (Session::channel() == GL_SHADING || is(PREVIEW_ON) )
         {
-            Point light0_p      = Session::get()->canvas()->lightPos(0);
-            GLfloat light0_pf[] = {light0_p.x, light0_p.y, 2, 1.0 };
-            glLightfv(GL_LIGHT0, GL_POSITION, light0_pf);
+            if (is(DRAG_ON))
+                _pCanvas->_lights[0]->render(DRAG_MODE);
+
+            if (isInRenderMode()){
+                Point light0_p      = Session::get()->canvas()->lightPos(0);
+                GLfloat light0_pf[] = {light0_p.x, light0_p.y, 2, 1.0 };
+                glLightfv(GL_LIGHT0, GL_POSITION, light0_pf);
+            }
         }
 
         FOR_ALL_CONST_ITEMS(ShapeList,_pCanvas->_shapes)

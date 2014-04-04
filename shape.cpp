@@ -6,9 +6,13 @@
 
 ShapeVertex::ShapeVertex(Shape_p pS, bool isP, bool isN):ControlPoint(&_P){
     _pShape = pS;
+
+    //init channels
     data[NORMAL_CHANNEL].set(0,0,1);
     data[BRIGHT_CHANNEL].set(1,1,1);
     data[DARK_CHANNEL].set(0,0,0);
+    data[DEPTH_CHANNEL].set(0.5, 0.5, 0.5);
+    //data[ALPHA_CHANNEL].set(1.0,1.0,1.0);
 
     flag = 0x00;
      _pair = 0;

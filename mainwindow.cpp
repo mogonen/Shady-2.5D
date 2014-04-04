@@ -103,12 +103,13 @@ void MainWindow::initTools()
     menu->addAction(normalChannelAct);
     menu->addAction(darkChannelAct);
     menu->addAction(brightChannelAct);
+    menu->addAction(depthChannelAct);
+    menu->addAction(alphaChannelAct);
+    menu->addAction(glChannelAct);
 
     toolbar->addAction(menu->menuAction());
     toolbar->addAction(previewAct);
 
-    toolbar->addSeparator();
-    toolbar->addAction(dragAct);
     toolbar->addSeparator();
 
     toolbar->addAction(shapeInsertEllipseAct);
@@ -119,13 +120,12 @@ void MainWindow::initTools()
     toolbar->addAction(shapeInsertImageShapeAct);
 
     toolbar->addSeparator();
-
+    toolbar->addAction(dragAct);
+    toolbar->addSeparator();
     toolbar->addAction(extrudeEdgeAct);
     toolbar->addAction(extrudeFaceAct);
     toolbar->addAction(insertSegmentAct);
     toolbar->addAction(deleteFaceAct);
-
-    toolbar->addSeparator();
 
     toolbar->addSeparator();
     toolbar->addAction(assignPatternAct);
@@ -148,7 +148,7 @@ void MainWindow::initTools()
     this->setDockOptions(!QMainWindow::AllowTabbedDocks);
 
 #ifndef MODELING_MODE
-    rendererDockWidget = new QDockWidget(QString("Render"), this);
+    rendererDockWidget = new QDockWidget(QString("Preview"), this);
     rendererDockWidget->setWidget(new RenderOptionsPenal(this, glWidget));
     this->addDockWidget(Qt::LeftDockWidgetArea, rendererDockWidget);
 #endif
@@ -256,13 +256,18 @@ void MainWindow::createActions()
 
     dragAct = new QAction(tr("Drag"), this);
     dragAct->setShortcut(Qt::Key_Space);
+    dragAct->setCheckable(true);
+    dragAct->setChecked(true);
     connect(dragAct, SIGNAL(triggered()), this, SLOT(flipDrag()));
 
 
     previewAct = new QAction(tr("Preview"), this);
     previewAct->setShortcut(Qt::Key_F5);
+    previewAct->setCheckable(true); 
     previewAct->setCheckable(true);
+    previewAct->setChecked(false);
     connect(previewAct, SIGNAL(triggered()), this, SLOT(togglePreview()));
+
     //view Act
     shadingOnAct = new QAction(tr("&Shading On"), this);
     shadingOnAct->setShortcut('S');
@@ -271,32 +276,37 @@ void MainWindow::createActions()
 
     previewOnAct = new QAction(tr("Preview On"), this);
     previewOnAct->setCheckable(true);
-   // connect(previewOnAct, SIGNAL(triggered()), this, SLOT(flipRender()));
 
 
-    //channels
-    darkChannelAct = new QAction(tr("Dark"), this);
-    darkChannelAct->setCheckable(true);
-    connect(darkChannelAct, SIGNAL(triggered()), this, SLOT(flipChannel()));
-
-    brightChannelAct = new QAction(tr("Bright"), this);
-    brightChannelAct->setCheckable(true);
-    connect(brightChannelAct, SIGNAL(triggered()), this, SLOT(flipChannel()));
-
+    //====CHANNELS============================================================
     normalChannelAct = new QAction(tr("Normal"), this);
+    normalChannelAct->setShortcut(Qt::Key_1);
     normalChannelAct->setCheckable(true);
     normalChannelAct->setChecked(true);
     connect(normalChannelAct, SIGNAL(triggered()), this, SLOT(flipChannel()));
 
-    alphaChannelAct = new QAction(tr("Alpha"), this);
-    alphaChannelAct->setCheckable(true);
-    connect(alphaChannelAct, SIGNAL(triggered()), this, SLOT(flipChannel()));
+    darkChannelAct = new QAction(tr("Dark"), this);
+    darkChannelAct->setShortcut(Qt::Key_2);
+    darkChannelAct->setCheckable(true);
+    connect(darkChannelAct, SIGNAL(triggered()), this, SLOT(flipChannel()));
+
+    brightChannelAct = new QAction(tr("Bright"), this);
+    brightChannelAct->setShortcut(Qt::Key_3);
+    brightChannelAct->setCheckable(true);
+    connect(brightChannelAct, SIGNAL(triggered()), this, SLOT(flipChannel()));
 
     depthChannelAct = new QAction(tr("Depth"), this);
+    depthChannelAct->setShortcut(Qt::Key_4);
     depthChannelAct->setCheckable(true);
     connect(depthChannelAct, SIGNAL(triggered()), this, SLOT(flipChannel()));
 
+    alphaChannelAct = new QAction(tr("Alpha"), this);
+    alphaChannelAct->setShortcut(Qt::Key_5);
+    alphaChannelAct->setCheckable(true);
+    connect(alphaChannelAct, SIGNAL(triggered()), this, SLOT(flipChannel()));
+
     glChannelAct = new QAction(tr("GL Shading"), this);
+    glChannelAct->setShortcut(Qt::Key_0);
     glChannelAct->setCheckable(true);
     connect(glChannelAct, SIGNAL(triggered()), this, SLOT(flipChannel()));
 
@@ -308,6 +318,8 @@ void MainWindow::createActions()
     depthChannelAct->setActionGroup(channels);
     glChannelAct->setActionGroup(channels);
 
+
+    //====PREVIEW OPTIONS=======================================================
     ambientOnAct = new QAction(tr("&Ambient On"), this);
     ambientOnAct->setShortcut('A');
     ambientOnAct->setCheckable(true);
@@ -328,7 +340,7 @@ void MainWindow::createActions()
     patchesOnAct->setCheckable(true);
     connect(patchesOnAct, SIGNAL(triggered()), this, SLOT(togglePathces()));
 
-    //Mesh Shape Actions
+    //====MESH OPERATIONS=======================================================
     extrudeEdgeAct = new QAction(tr("&Extrude Edge"), this);
     extrudeEdgeAct->setShortcut(tr("Ctrl+E"));
     connect(extrudeEdgeAct, SIGNAL(triggered()), this, SLOT(selectExtrudeEdge()));
@@ -361,12 +373,6 @@ void MainWindow::createActions()
 
     QActionGroup* toolset = new QActionGroup(this);
 
-    dragAct->setCheckable(true);
-    dragAct->setChecked(true);
-
-    previewAct->setCheckable(true);
-    previewAct->setChecked(false);
-
     extrudeEdgeAct->setCheckable(true);
     extrudeFaceAct->setCheckable(true);
     insertSegmentAct->setCheckable(true);
@@ -376,6 +382,7 @@ void MainWindow::createActions()
     setFoldsAct->setCheckable(true);
     assignPatternAct->setCheckable(true);
 
+    dragAct->setActionGroup(toolset);
     extrudeEdgeAct->setActionGroup(toolset);
     extrudeFaceAct->setActionGroup(toolset);
     insertSegmentAct->setActionGroup(toolset);
@@ -385,7 +392,7 @@ void MainWindow::createActions()
     setColorToolAct->setActionGroup(toolset);
 
 
-    //SHAPE ACTIONS
+    //====SHAPE ACTIONS=============================================================
     shapeInsertTorusAct = new QAction(tr("Torus"), this);
     connect(shapeInsertTorusAct, SIGNAL(triggered()), this, SLOT(newTorus()));
 
@@ -463,12 +470,17 @@ void MainWindow::createMenus()
 
     displayMenu  = menuBar()->addMenu(tr("Display"));
     channelsMenu = displayMenu->addMenu(tr("Channels"));
+    previewMenu  = displayMenu->addMenu(tr("Preview"));
+
     displayMenu->addAction(normalsOnAct);
     displayMenu->addAction(patchesOnAct);
-    displayMenu->addAction(shadingOnAct);
-    displayMenu->addAction(ambientOnAct);
-    displayMenu->addAction(shadowOnAct);
-    displayMenu->addAction(previewOnAct);
+
+    previewMenu->addAction(previewAct);
+    previewMenu->addSeparator();
+    previewMenu->addAction(shadingOnAct);
+    previewMenu->addAction(ambientOnAct);
+    previewMenu->addAction(shadowOnAct);
+
 
     channelsMenu->addAction(darkChannelAct);
     channelsMenu->addAction(brightChannelAct);
@@ -635,8 +647,10 @@ void MainWindow::about()
 void MainWindow::flipDrag()
 {
      glWidget->setRender(DRAG_ON, dragAct->isChecked());
-     if (dragAct->isChecked())
+     if (dragAct->isChecked()){
          setOptionsWidget(Options::DRAG);
+         Session::get()->setCommand(0);
+     }
 }
 
 

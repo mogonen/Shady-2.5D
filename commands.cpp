@@ -2,6 +2,11 @@
 #include "commands.h"
 #include "canvas.h"
 
+QColor SetColor::COLOR;
+bool  SetColor::IS_DIALOG = true;
+bool  SetColor::EXEC_ONCLICK = true;
+
+
 Drag::DragTool     Drag::TOOL = Drag::NONE;
 Drag::Continuity   Drag::CONT = Drag::C1;
 
@@ -85,7 +90,15 @@ Command_p ShapeOrder::unexec(){
 }
 
 //this shoud prefebly on select
-void SetColor::onClick(const Click& click){
+void SetColor::onClick(const Click& click)
+{
+    if (!EXEC_ONCLICK)
+        return;
+
+    Channel channel = Session::channel();
+    if (!(channel==DARK_CHANNEL || channel==BRIGHT_CHANNEL || channel==DEPTH_CHANNEL || channel==ALPHA_CHANNEL))
+        return;
+
     if (!click.is(Click::UP))
         return;
 
@@ -96,11 +109,37 @@ void SetColor::onClick(const Click& click){
 
 Command_p SetColor::exec()
 {
-    _channel    = Session::channel();
-    _col        = _pSV->data[(int)_channel];
-    QColor color = QColorDialog::getColor(Qt::black, (QWidget*)Session::get()->glWidget(), "Text Color",  QColorDialog::DontUseNativeDialog);
-    _pSV->data[(int)_channel] = RGB(color.redF(), color.greenF(), color.blueF());
-    _pSV->outdate();
+    if (!_pSV && !Session::get()->selectionMan()->selectionSize())
+        return new SetColor();
+
+    _channel     = Session::channel();
+    QColor color = COLOR;
+
+    if (_pSV){
+        _col = _pSV->data[(int)_channel];
+    }
+
+    if (IS_DIALOG)
+    {
+        RGBA col = _col*255;
+        color = QColorDialog::getColor(QColor(col.x, col.y, col.z), (QWidget*)Session::get()->glWidget(), "Vertex Color",  QColorDialog::DontUseNativeDialog);
+    }
+
+    if (_pSV){
+        _pSV->data[(int)_channel] = RGB(color.redF(), color.greenF(), color.blueF());
+        _pSV->outdate();
+    }
+
+    SelectionSet selection = Session::get()->selectionMan()->getSelection();
+    FOR_ALL_ITEMS(SelectionSet, selection)
+    {
+        ShapeVertex_p sv = dynamic_cast<ShapeVertex_p>(*it);
+        if (sv){
+            sv->data[(int)_channel] = RGB(color.redF(), color.greenF(), color.blueF());
+            sv->outdate();
+        }
+    }
+
     return new SetColor();
 }
 

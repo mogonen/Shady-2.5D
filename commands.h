@@ -57,18 +57,24 @@ protected:
 
 public:
 
-    SetColor(){}
+    SetColor(){
+        _pSV = 0;
+    }
 
-    Command_p       exec();
-    Command_p       unexec();
+    Command_p           exec();
+    Command_p           unexec();
 
-    CommandType     type() const {return SET_COLOR;}
-    SelectionMode   selectMode() const{return SELECT_VERTEX;}
+    CommandType         type()       const{return SET_COLOR;}
+    SelectionMode       selectMode() const{return SELECT_VERTEX;}
 
+    static QColor       COLOR;
+    static bool         IS_DIALOG;
+    static bool         EXEC_ONCLICK;
 
 private:
 
     ShapeVertex_p       _pSV;
+    SVList              _selection;
     RGB                 _col;
     Channel             _channel;
 };

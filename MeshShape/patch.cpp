@@ -83,7 +83,7 @@ Patch4::Patch4(Face_p pF):Patch(pF){
     setSample(SAMPLES,SAMPLES);
     _ps = new Point[_sampleUV];
 
-    for(int i=0; i<NUM_CHANNELS; i++){
+    for(int i=0; i<ACTIVE_CHANNELS; i++){
         Map map = new RGB[_sampleUV];
         _maps.push_back(map);
     }
@@ -136,7 +136,7 @@ void Patch4::onUpdate(){
         }
 
     //needs to be optimized
-    for(int i =0; i< NUM_CHANNELS; i++)
+    for(int i =0; i< ACTIVE_CHANNELS; i++)
         interpolateMap(i);
     //}
 }
