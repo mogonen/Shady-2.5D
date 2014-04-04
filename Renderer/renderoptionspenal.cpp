@@ -29,8 +29,8 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
     connect(m_ButtonSetBG, SIGNAL(clicked()), this, SLOT(GetBG()));
 //    m_ButtonSetLense = new QPushButton("Set Shape m_ap");
 //    connect(m_ButtonSetLense, SIGNAL(clicked()), this, SLOT(GetLense()));
-//    m_ButtonSetEnv = new QPushButton("Set Enviroment m_ap");
-//    connect(m_ButtonSetEnv, SIGNAL(clicked()), this, SLOT(GetEnv()));
+    m_ButtonSetEnv = new QPushButton("Set Enviroment");
+    connect(m_ButtonSetEnv, SIGNAL(clicked()), this, SLOT(GetEnv()));
 //    m_ButtonSetDIDark = new QPushButton("Set Diffusion(Dark)");
 //    connect(m_ButtonSetDIDark, SIGNAL(clicked()), this, SLOT(GetDIDark()));
 //    m_ButtonSetDIBright = new QPushButton("Set Diffusion(Bright)");
@@ -47,8 +47,9 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
 //    connect(m_ButtonLoadProj, SIGNAL(clicked()), this, SLOT(LoadProject()));
 //    m_ButtonSaveProj = new QPushButton("Save Project");
 //    connect(m_ButtonSaveProj, SIGNAL(clicked()), this, SLOT(SaveProject()));
-//    m_ButtonSave = new QPushButton("Save Image");
-//    connect(m_ButtonSave, SIGNAL(clicked()), this, SLOT(SaveImage()));
+    m_ButtonSave = new QPushButton("Save Image");
+    connect(m_ButtonSave, SIGNAL(clicked()), this, SLOT(SaveImage()));
+
     m_ReloadShader = new QPushButton("Reload Shader");
     connect(m_ReloadShader, SIGNAL(clicked()), this, SLOT(ReloadShader()));
 //    m_ButtonAbout = new QPushButton("About");
@@ -103,7 +104,7 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
 
     m_SurfDispSpinbox = new QSliderSpinBox();
     m_SurfDispSpinbox->SetRatio(1000);
-    m_SurfDispSpinbox->SetChangeRange(-250, 250);
+    m_SurfDispSpinbox->SetChangeRange(-500, 500);
     m_SurfDispSpinbox->SetChangeStep(0.01);
     m_SurfDispValue = new QLabel("Surface");
     ///attach to widget
@@ -124,11 +125,11 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
 //    mainLayout->addWidget(m_ButtonLoadProj,2,3,1,3);
 //    mainLayout->addWidget(m_ButtonSaveProj,3,3,1,3);
 
-//    mainLayout->addWidget(m_ButtonSave,4,3,1,3);
+    mainLayout->addWidget(m_ButtonSave,9,3,1,3);
 
 
 //    mainLayout->addWidget(m_ButtonAbout,5,3,1,3);
-    mainLayout->addWidget(m_ReloadShader,7,3,1,3);
+    mainLayout->addWidget(m_ReloadShader,8,3,1,3);
     int SliderStart_pos = 0;
 
     mainLayout->addWidget(m_DepthSliderSpinbox->m_Slider,SliderStart_pos,0,1,1);
@@ -214,9 +215,11 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
     mainLayout->addWidget(m_ButtonSetBG,SliderStart_pos+6,3,1,2);
     mainLayout->setAlignment(Qt::AlignTop);
 
+    mainLayout->addWidget(m_ButtonSetEnv,SliderStart_pos+7,3,1,2);
+    mainLayout->setAlignment(Qt::AlignTop);
 
     m_ShowTex = new QComboBox();
-    m_ShowTex->addItems(QString("None|ShapeMap|Dark|Bright|Background|Label|Depth|Enviroment").split("|", QString::SkipEmptyParts));
+    m_ShowTex->addItems(QString("None|ShapeMap|Dark|Bright|Background|Label|Depth|Enviroment|Displacement").split("|", QString::SkipEmptyParts));
     mainLayout->addWidget(m_ShowTex,SliderStart_pos+8,0,1,1, Qt::AlignRight);
     mainLayout->addWidget(new QLabel("Current Tex"),SliderStart_pos+8,1,1,2);
     connect(m_ShowTex,SIGNAL(currentIndexChanged(int)), this, SLOT(SetCurTex(int)));
@@ -243,7 +246,7 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
     m_LODSliderSpinbox->setValue(0);
     m_SMQualitySpinbox->setValue(0.5);
     m_CartoonShaSpinbox->setValue(0.1);
-    m_SurfDispSpinbox->setValue(0.01);
+    m_SurfDispSpinbox->setValue(0.1);
 
     m_FileDir = NULL;
 
@@ -297,7 +300,7 @@ void RenderOptionsPenal::GetBG()
 //    if(!img.isNull())
 //        emit SetBG(img);
     QString fileName = QFileDialog::getOpenFileName(this,
-        QPushButton::tr("Open Image"), "/home/jana", QPushButton::tr("Image Files (*.png *.jpg *.bmp)"));
+    QPushButton::tr("Open Image"), "/home/jana", QPushButton::tr("Image Files (*.png *.jpg *.bmp)"));
     QImage LoadedImage;
     if(LoadedImage.load(fileName))
     {
@@ -307,6 +310,24 @@ void RenderOptionsPenal::GetBG()
         {
             ShaderP->bind();
             ShaderP->LoadBGImage(GLImage.bits(),GLImage.width(),GLImage.height());
+        }
+        m_RenderWindow->updateGL();
+    }
+}
+
+void RenderOptionsPenal::GetEnv()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+    QPushButton::tr("Open Image"), "/home/jana", QPushButton::tr("Image Files (*.png *.jpg *.bmp)"));
+    QImage LoadedImage;
+    if(LoadedImage.load(fileName))
+    {
+        ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+        QImage GLImage = m_RenderWindow->convertToGLFormat(LoadedImage);
+        if(ShaderP&&ShaderP->isInitialized())
+        {
+            ShaderP->bind();
+            ShaderP->LoadEnvImage(GLImage.bits(),GLImage.width(),GLImage.height());
         }
         m_RenderWindow->updateGL();
     }
@@ -688,18 +709,18 @@ void RenderOptionsPenal::SetDisplayImage(int)
 
 void RenderOptionsPenal::SaveImage()
 {
-//    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"),
-//                               "/home/untitled.png",
-//                               tr("Images (*.png *.jpg *.gif *.bmp *.jpeg *.pbm *.pgm *.ppm)"));
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"),
+                               "/home/untitled.png",
+                               tr("Images (*.png *.jpg *.gif *.bmp *.jpeg *.pbm *.pgm *.ppm)"));
 
-//    if(!fileName.isNull())
-//    {
-//        QImage image = (m_RenderWindow->grabFrameBuffer());
-//        if( !image.save(fileName))
-//        {
-//           QMessageBox::warning( this, "Save Image", "Error saving image." );
-//        }
-//    }
+    if(!fileName.isNull())
+    {
+        QImage image = (m_RenderWindow->grabFrameBuffer());
+        if( !image.save(fileName))
+        {
+           QMessageBox::warning( this, "Save Image", "Error saving image." );
+        }
+    }
 }
 
 void RenderOptionsPenal::About()
@@ -771,7 +792,7 @@ void RenderOptionsPenal::closeEvent( QCloseEvent * event)
 
 void RenderOptionsPenal::SetDepthValue(double dep)
 {
-    ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+    ShaderProgram *ShaderP = m_RenderWindow->getCShader();
     if(ShaderP&&ShaderP->isInitialized())
     {
         ShaderP->bind();
@@ -781,7 +802,7 @@ void RenderOptionsPenal::SetDepthValue(double dep)
 }
 void RenderOptionsPenal::SetAlphaValue(double alp)
 {
-    ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+    ShaderProgram *ShaderP = m_RenderWindow->getCShader();
     if(ShaderP&&ShaderP->isInitialized())
     {
         ShaderP->bind();
@@ -916,7 +937,7 @@ void RenderOptionsPenal::TogglePoint(bool info)
 
 void RenderOptionsPenal::SetCurTex(int index)
 {
-    ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+    ShaderProgram *ShaderP = m_RenderWindow->getCShader();
     if(ShaderP&&ShaderP->isInitialized())
     {
         ShaderP->bind();
@@ -930,3 +951,5 @@ void RenderOptionsPenal::ReloadShader()
     m_RenderWindow->reloadShader();
     m_RenderWindow->updateGL();
 }
+
+

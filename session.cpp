@@ -25,6 +25,7 @@ void Session::init(MainWindow * pMW){
     _pSession->_filename        = 0;
     _pSession->_pTheCommand     = 0;
     _pSession->_pTheShape       = 0;
+    _pSession->_channel         = NORMAL_CHANNEL;
 
     _pSession->_pExporters[0]   = new INPExporter();
 }
@@ -127,6 +128,15 @@ int   Session::undo(){
     return _commands.size()+1;
 }
 
+SelectionMode Session::selectMode(){
+    return _pSession->_pTheCommand ? _pSession->_pTheCommand->selectMode() : NOSELECT;
+}
+
+
+Channel Session::channel(){
+    return _pSession->_channel;
+}
+
 int   Session::redo(){
     //not for now
 }
@@ -163,6 +173,11 @@ void  Session::sendActiveBack(){
 
 void  Session::sendActiveFront(){
     _pCanvas->sendToFront(_pTheShape);
+    _pGlWidget->updateGL();
+}
+
+void  Session::setChannel(Channel channel){
+    _channel = channel;
     _pGlWidget->updateGL();
 }
 

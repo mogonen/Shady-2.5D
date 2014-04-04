@@ -83,7 +83,7 @@ public slots:
 //    void GetDIDark();
 //    void GetDIBright();
 //    void GetFG();
-//    void GetEnv();
+    void GetEnv();
 
     void LoadProject();
     void SaveProject();

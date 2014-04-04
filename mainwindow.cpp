@@ -55,7 +55,6 @@
 double                  EllipseShape::Radius = 0.2;
 ControlPoint_p          ControlPoint::_pTheActive = 0;
 
-
 MainWindow::MainWindow()
 {
 
@@ -100,9 +99,16 @@ void MainWindow::initTools()
 
     QToolBar *toolbar = addToolBar("main toolbar");
 
-    toolbar->addAction(dragAct);
+    QMenu *menu = new QMenu(tr("Channels"));
+    menu->addAction(normalChannelAct);
+    menu->addAction(darkChannelAct);
+    menu->addAction(brightChannelAct);
+
+    toolbar->addAction(menu->menuAction());
     toolbar->addAction(previewAct);
 
+    toolbar->addSeparator();
+    toolbar->addAction(dragAct);
     toolbar->addSeparator();
 
     toolbar->addAction(shapeInsertEllipseAct);
@@ -124,6 +130,7 @@ void MainWindow::initTools()
     toolbar->addSeparator();
     toolbar->addAction(assignPatternAct);
     toolbar->addAction(setFoldsAct);
+    toolbar->addAction(setColorToolAct);
 
     //init tool options dock
     optionsDockWidget = new QDockWidget(QString("Options"), this);
@@ -145,7 +152,6 @@ void MainWindow::initTools()
     rendererDockWidget->setWidget(new RenderOptionsPenal(this, glWidget));
     this->addDockWidget(Qt::LeftDockWidgetArea, rendererDockWidget);
 #endif
-
 
     addAttrWidget(new QWidget, 0);//default widget
     createAllOptionsWidgets();
@@ -226,7 +232,6 @@ void MainWindow::createActions()
     fileExportINPAct = new QAction(tr("Export INP"), this);
     connect(fileExportINPAct, SIGNAL(triggered()), this, SLOT(exportINP()));
 
-
     editUndoAct = new QAction(tr("Undo"), this);
     editUndoAct->setShortcuts(QKeySequence::Undo);
     connect(editUndoAct, SIGNAL(triggered()), this, SLOT(undo()));
@@ -267,6 +272,41 @@ void MainWindow::createActions()
     previewOnAct = new QAction(tr("Preview On"), this);
     previewOnAct->setCheckable(true);
    // connect(previewOnAct, SIGNAL(triggered()), this, SLOT(flipRender()));
+
+
+    //channels
+    darkChannelAct = new QAction(tr("Dark"), this);
+    darkChannelAct->setCheckable(true);
+    connect(darkChannelAct, SIGNAL(triggered()), this, SLOT(flipChannel()));
+
+    brightChannelAct = new QAction(tr("Bright"), this);
+    brightChannelAct->setCheckable(true);
+    connect(brightChannelAct, SIGNAL(triggered()), this, SLOT(flipChannel()));
+
+    normalChannelAct = new QAction(tr("Normal"), this);
+    normalChannelAct->setCheckable(true);
+    normalChannelAct->setChecked(true);
+    connect(normalChannelAct, SIGNAL(triggered()), this, SLOT(flipChannel()));
+
+    alphaChannelAct = new QAction(tr("Alpha"), this);
+    alphaChannelAct->setCheckable(true);
+    connect(alphaChannelAct, SIGNAL(triggered()), this, SLOT(flipChannel()));
+
+    depthChannelAct = new QAction(tr("Depth"), this);
+    depthChannelAct->setCheckable(true);
+    connect(depthChannelAct, SIGNAL(triggered()), this, SLOT(flipChannel()));
+
+    glChannelAct = new QAction(tr("GL Shading"), this);
+    glChannelAct->setCheckable(true);
+    connect(glChannelAct, SIGNAL(triggered()), this, SLOT(flipChannel()));
+
+    QActionGroup* channels = new QActionGroup(this);
+    darkChannelAct->setActionGroup(channels);
+    brightChannelAct->setActionGroup(channels);
+    normalChannelAct->setActionGroup(channels);
+    alphaChannelAct->setActionGroup(channels);
+    depthChannelAct->setActionGroup(channels);
+    glChannelAct->setActionGroup(channels);
 
     ambientOnAct = new QAction(tr("&Ambient On"), this);
     ambientOnAct->setShortcut('A');
@@ -314,6 +354,11 @@ void MainWindow::createActions()
     setFoldsAct->setShortcut(tr("Ctrl+P"));
     connect(setFoldsAct, SIGNAL(triggered()), this, SLOT(selectSetFoldsTool()));
 
+
+    setColorToolAct = new QAction(tr("Set Color"), this);
+    //shapeTransformAct->setShortcut(tr("Ctrl+T"));
+    connect(setColorToolAct, SIGNAL(triggered()), this, SLOT(selectSetColorTool()));
+
     QActionGroup* toolset = new QActionGroup(this);
 
     dragAct->setCheckable(true);
@@ -326,11 +371,18 @@ void MainWindow::createActions()
     extrudeFaceAct->setCheckable(true);
     insertSegmentAct->setCheckable(true);
     deleteFaceAct->setCheckable(true);
+    setColorToolAct->setCheckable(true);
+
+    setFoldsAct->setCheckable(true);
+    assignPatternAct->setCheckable(true);
 
     extrudeEdgeAct->setActionGroup(toolset);
     extrudeFaceAct->setActionGroup(toolset);
     insertSegmentAct->setActionGroup(toolset);
     deleteFaceAct->setActionGroup(toolset);
+    assignPatternAct->setActionGroup(toolset);
+    setFoldsAct->setActionGroup(toolset);
+    setColorToolAct->setActionGroup(toolset);
 
 
     //SHAPE ACTIONS
@@ -383,6 +435,7 @@ void MainWindow::createActions()
     shapeTransformAct->setShortcut(tr("Ctrl+T"));
     connect(shapeTransformAct, SIGNAL(triggered()), this, SLOT(transformShape()));
 
+
 }
 
 void MainWindow::createMenus()
@@ -409,12 +462,21 @@ void MainWindow::createMenus()
     viewMenu->addAction(viewAttrAct);
 
     displayMenu  = menuBar()->addMenu(tr("Display"));
+    channelsMenu = displayMenu->addMenu(tr("Channels"));
     displayMenu->addAction(normalsOnAct);
     displayMenu->addAction(patchesOnAct);
     displayMenu->addAction(shadingOnAct);
     displayMenu->addAction(ambientOnAct);
     displayMenu->addAction(shadowOnAct);
     displayMenu->addAction(previewOnAct);
+
+    channelsMenu->addAction(darkChannelAct);
+    channelsMenu->addAction(brightChannelAct);
+    channelsMenu->addAction(normalChannelAct);
+    channelsMenu->addAction(alphaChannelAct);
+    channelsMenu->addAction(depthChannelAct);
+    channelsMenu->addAction(glChannelAct);
+
 
     insertMenu = menuBar()->addMenu("Create");
     insertMenu->addAction(shapeInsertEllipseAct);
@@ -461,14 +523,12 @@ void MainWindow::createMenus()
     selectMenu->addAction("Grow Selection");
     selectMenu->addAction("Clear Selection");
 
-
     previewMenu = menuBar()->addMenu(tr("Render"));
     previewMenu->addAction("Filter Size");
     previewMenu->addAction("Toggle Point Light");
     previewMenu->addAction("Enviroment Map");
 
     windowMenu  = menuBar()->addMenu(tr("Window"));
-
     helpMenu    = menuBar()->addMenu(tr("Help"));
     helpMenu->addAction(aboutAct);
 }
@@ -511,7 +571,6 @@ void MainWindow::keyPressEvent(QKeyEvent *event){
         Session::get()->controller()->cancel();
         Session::get()->deactivate();
     }
-
 
     if (key == Qt::Key_Return){
         Session::get()->controller()->apply();
@@ -595,7 +654,6 @@ void MainWindow::flipRender()
 }
 
 
-
 void MainWindow::unselectDrag()
 {
     dragAct->setChecked(false);
@@ -641,7 +699,6 @@ void MainWindow::parentShape(){
      if (!shape)
          return;
 
-
      glWidget->updateGL();
 }
 
@@ -685,8 +742,31 @@ void MainWindow::insertEllipse(){
     Session::get()->exec(so);
 }
 
+void MainWindow::flipChannel(){
+    if (darkChannelAct->isChecked())
+        Session::get()->setChannel(DARK_CHANNEL);
+
+    if (brightChannelAct->isChecked())
+        Session::get()->setChannel(BRIGHT_CHANNEL);
+
+    if (normalChannelAct->isChecked())
+        Session::get()->setChannel(NORMAL_CHANNEL);
+
+    if (alphaChannelAct->isChecked())
+        Session::get()->setChannel(ALPHA_CHANNEL);
+
+    if (depthChannelAct->isChecked())
+        Session::get()->setChannel(DEPTH_CHANNEL);
+
+    if (glChannelAct->isChecked())
+        Session::get()->setChannel(GL_SHADING);
+}
+
 #ifndef MODELING_MODE
 void updateGLSLLight(double x, double y, double z){
     MainWindow::glWidget->updateGLSLLight(x,y,z);
 }
+
+
+
 #endif

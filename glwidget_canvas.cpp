@@ -5,20 +5,23 @@
 
 GLuint texture[30];
 
-void Canvas::insert(Shape_p sp){
+void Canvas::insert(Shape_p sp)
+{
     _shapes.push_front(sp);
     updateDepth();
     UPDATE_GL
 }
 
-void Canvas::remove(Shape_p sp){
-//  m_GLSLShader->RemoveParamSet(sp->getShaderParam());
+void Canvas::remove(Shape_p sp)
+{
+    //m_GLSLShader->RemoveParamSet(sp->getShaderParam());
     _shapes.remove(sp);
     //delete sp;
     updateDepth();
 }
 
-Shape_p Canvas::findPrev(Shape_p pShape){
+Shape_p Canvas::findPrev(Shape_p pShape)
+{
     if (!_shapes.size())
         return 0;
     if (_shapes.size() == 1)
@@ -94,7 +97,8 @@ void Canvas::sendToFront(Shape_p pShape){
     updateDepth();
 }
 
-void Canvas::clear(){
+void Canvas::clear()
+{
     FOR_ALL_ITEMS(ShapeList,_shapes)
         delete *it;
     _shapes.clear();
@@ -112,7 +116,6 @@ void Canvas::setImagePlane(const string &filename){
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 }
 
-
 void Canvas::updateDepth()
 {
 #ifndef MODELING_MODE
@@ -122,7 +125,6 @@ void Canvas::updateDepth()
         (*it)->setLayerLabel(m++);
     }
 #endif
-
 }
 
 //NOW GL WIDGET ////////////////////////////////////////////

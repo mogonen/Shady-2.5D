@@ -2,9 +2,8 @@
 
 
 uniform float alpha;
-uniform sampler2D tex_SM, tex_LD, tex_DI_Dark, tex_DI_Bright, tex_Disp, tex_Shade;
+uniform sampler2D tex_SM, tex_DI_Dark, tex_DI_Bright, tex_BG, tex_LD, tex_Env;
 uniform float dist;
-uniform float surface_disp;
 
 //varying float F;
 uniform float width, height;
@@ -13,18 +12,21 @@ uniform float width, height;
 uniform float filter_size;
 uniform float amb_strength;
 
+uniform float LOD;
 
 //varying float filter_sum;
 uniform vec3 light_dir;
+uniform bool toggle_Mirror;
 uniform int toggle_ShaAmbCos;
+
+//0-render results, 1-ShapeMap, 2-DarkImage, 3-BrightImage, 4-BGImage, 5-LabelImage, 6-DepthImage
+uniform int cur_tex;
 uniform float SM_Quality;
 uniform float Cartoon_sha=0.1;
 uniform bool toggle_Point;
 
 //the array that stores all the reflection/refraction parameters
 uniform float refValues[10];
-uniform int refToggled[10];
-
 //the area that stores all the average normals and center positions(it is now bottom right position)
 uniform vec3 normalValues[10];
 uniform vec3 centerDepth[10];
@@ -85,6 +87,180 @@ void AmbientShadow(in vec4 center, out float Amb, int layerIndex)
 }
 
 
+
+
+//function to calculate point light shadow effect of image
+void Shadow1(in vec2 center, out float center_cos, out float Sha, out float Spe)
+{
+    float pure_cos;
+    vec2 point_light = 0.5*light_dir.rg + gl_TexCoord[0].st - vec2(0.5,0.5);
+    float point_light_lenght = length(point_light);
+    vec2 point_light_norm;
+    point_light_norm = normalize(point_light);
+
+    vec4 neighbor = SM_Quality*(2*texture2D(tex_SM,gl_TexCoord[0].st )-1.0);
+    float   temp    = 1-neighbor.r*neighbor.r-neighbor.g*neighbor.g;  if(temp<0.) temp=0.;
+    vec3 center_normal   = normalize(vec3(neighbor.r, neighbor.g, sqrt(temp)));
+    vec2 center_normal_2D   = vec2(neighbor.r, neighbor.g);
+
+
+    pure_cos = dot(center_normal_2D, -point_light) +0.0125;
+    pure_cos = pure_cos/(point_light_lenght+0.0125);
+
+
+    float i;
+    float diff = 0.0;
+    //float step = (point_light_lenght*10.0+1.0)*filter_size/(point_light_lenght*20.0+2.0);
+    float step = filter_size/4.;
+    float integral = 0.0;
+    float max_int=-1;
+    int count = 0;
+    float shadow_amount=1.0;
+
+    if(step>0.005)
+    {
+        for(i=0;i<((point_light_lenght*10.0+5.0)*filter_size);i+=step)
+        {
+            vec4 neighbor = texture2D(tex_SM, gl_TexCoord[0].st - i*point_light_norm/vec2(width, height));
+            float coef= neighbor.b*neighbor.a;
+            if(coef >0.2)
+            {
+                vec4 neighbor = SM_Quality*(2.0*neighbor-1.0);
+                temp = 1-neighbor.r*neighbor.r-neighbor.g*neighbor.g; if(temp<0.1) temp=0.1;
+                neighbor.z =      sqrt(temp);
+                neighbor = normalize(neighbor);
+                integral += (point_light_norm.x*neighbor.r+point_light_norm.y*neighbor.g);
+
+                count++;
+                if(max_int <   integral/count -light_dir.z/2 +0.1) max_int =  integral/count -light_dir.z/2+0.1;
+
+
+
+            }
+            else
+            {
+                integral -= 1.0;
+                count++;
+                if(max_int < integral/count -light_dir.z/2 +0.1) max_int =  integral/count -light_dir.z/2+0.1;
+
+            }
+        }
+
+    }
+
+    float c_center=0.3*amb_strength-0.3;
+    float c_delta=Cartoon_sha;
+
+    float b=c_center+c_delta;
+    float a=c_center-c_delta;
+
+    if(Cartoon_sha!=0)
+        Sha=(1-max_int-a)/(b-a);
+    else
+        Sha = 1-max_int;
+    if(Sha<0.0)
+        Sha=0.0;
+    if(Sha>1.0)
+        Sha=1.0;
+
+    if(Cartoon_sha!=0)
+        center_cos=(pure_cos-a)/(b-a);
+    else
+        center_cos = pure_cos;
+    if(center_cos<0.0)
+        center_cos=0.0;
+    if(center_cos>1.0)
+        center_cos=1.0;
+}
+
+
+
+//function to calculate parallel light shadow effect of image
+void Shadow2(in vec2 center, out float center_cos, out float Sha, out float Spe)
+{
+    float pure_cos;
+    vec2 light_dir_xy = normalize(light_dir.rg);
+    vec3 light_dir_n = normalize(light_dir);
+
+
+    vec4 neighbor = SM_Quality*(2*texture2D(tex_SM,gl_TexCoord[0].st )-1.0);
+    float   temp    = 1-neighbor.r*neighbor.r-neighbor.g*neighbor.g;  if(temp<0.) temp=0.;
+    vec3 center_normal   = normalize(vec3(neighbor.r, neighbor.g, sqrt(temp)));
+    vec2 center_normal_2D   = vec2(neighbor.r, neighbor.g);
+
+
+    /***Parallel lights. They give slightly different effects.***/
+    //pure_cos = dot(center_normal, -light_dir_n);
+    pure_cos = dot(center_normal_2D, (light_dir.rg)*light_dir.b);
+    // pure_cos = dot(center_normal_2D, (-light_dir.rg));
+
+
+
+    float i;
+    float diff = 0.0;
+    float step = filter_size/4.;
+    float integral = 0.0;
+    float max_int=-1;
+    int count = 0;
+    float shadow_amount=1.0;
+
+    if(step>0.005)
+    {
+        for(i=0;i<(4*filter_size);i+=step)
+        {
+            vec4 neighbor = texture2D(tex_SM, gl_TexCoord[0].st - i*light_dir_xy/vec2(width, height));
+            float coef= neighbor.b*neighbor.a;
+            if(coef >0.2)
+            {
+                vec4 neighbor = SM_Quality*(2.0*neighbor-1.0);
+                temp = 1-neighbor.r*neighbor.r-neighbor.g*neighbor.g;
+                if(temp<0.1)
+                    temp=0.1;
+                neighbor.z =      sqrt(temp);
+                neighbor = normalize(neighbor);
+                integral += (light_dir_xy.x*neighbor.r+light_dir_xy.y*neighbor.g);//(neighbor.z-SM_Quality);
+
+                count++;
+                if(max_int <   integral/count -light_dir.z/2 +0.1)
+                    max_int =  integral/count -light_dir.z/2+0.1;
+
+            }
+            else{integral -= 1.0; count++;
+                if(max_int < integral/count -light_dir.z/2 +0.1)
+                    max_int =  integral/count -light_dir.z/2+0.1;
+
+            }
+        }
+    }
+
+
+    float c_center=0.3*amb_strength-0.2;
+    float c_delta=Cartoon_sha;
+
+    float b=c_center+c_delta;
+    float a=c_center-c_delta;
+
+    if(Cartoon_sha!=0)
+        Sha=(1-max_int-a)/(b-a);
+    else
+        Sha = 1-max_int;
+    if(Sha<0.0)
+        Sha=0.0;
+    if(Sha>1.0)
+        Sha=1.0;
+
+    if(Cartoon_sha!=0)
+        center_cos=(pure_cos-a)/(b-a);
+    else
+        center_cos = pure_cos;
+    if(center_cos<0.0)
+        center_cos=0.0;
+    if(center_cos>1.0)
+        center_cos=1.0;
+}
+
+
+
 bool findLayerIntersect(in vec3 Sp, in vec3 Sv, in int LayerID, out vec3 Ip)
 {
     vec3 l0 = Sp;
@@ -104,6 +280,10 @@ bool findLayerIntersect(in vec3 Sp, in vec3 Sv, in int LayerID, out vec3 Ip)
     }
 }
 
+void CalReflect()
+{
+
+}
 //function to calculate the reflection and refraction effect of image
 //void ReflectRefract(in vec4 cood_color, out vec4 refractColor, out vec4 reflectColor)
 //{
@@ -118,6 +298,44 @@ bool findLayerIntersect(in vec3 Sp, in vec3 Sv, in int LayerID, out vec3 Ip)
 //    refractColor =  textureLod(tex_BG, cood_refr, LOD+20*length(cood_displace));
 //    reflectColor =  textureLod(tex_Env, cood_refl+(light_dir.rg)*0.2/(0.1+abs(light_dir.b)), LOD);
 //}
+
+void FrenselBlend(in vec4 cood_color, in vec4 refractColor, in vec4 reflectColor, out vec4 Ref_Fresnel)
+{
+    float Ratio;
+    if(toggle_Mirror)
+    {
+        Ratio=1;
+        //if(cood_color.p < 1) Ratio=Ratio*cood_color.p;
+    }
+    else
+    {
+        float temp = abs(cood_color.s -0.5);
+        float temp2 = abs(cood_color.t -0.5);
+        if(temp < temp2 ) temp = temp2;
+        float teta = 2.0* temp;
+        float t = (0.5+0.5*dist);
+        float c = 0.8*(1.0-t)+1.0*t;
+        float bc= 0.6*(1.0-t)+0.7*t;
+        float ac= 0.5*(1.0-t)+0.2*t;
+        float b=  1.0*(1.0-t)+0.1*t;
+        if(teta< ac)    {
+            Ratio= b- b/ac*teta;
+        }
+        else
+            if(teta< bc)    {
+                Ratio = 0.0;
+            }
+            else        {
+                Ratio= (teta -bc) /(c-bc);
+            }
+        if(Ratio>1.0)
+            Ratio = 1.0;
+        //    cood_color.p*2-1;
+        Ratio=Ratio/4.0;
+    }
+    //the reflection and refraction blended based on Fresnel
+    Ref_Fresnel  = mix(refractColor, reflectColor, Ratio);
+}
 
 
 const int INSIDE = 0; // 0000
@@ -266,6 +484,7 @@ vec3 projectOnLayerInd(in vec3 Pp, in int LayerInd, out float height)
     float dist = dot(Pp-LayerCenter, LayerNormal);
     height = dist;
     return Pp-dist*LayerNormal;
+//    return LayerNormal;
 }
 
 void getEstNormal(in vec2 coord,in float sm_smooth, out vec4 raw_value, out vec3 est_normal)
@@ -280,13 +499,9 @@ void getEstNormal(in vec2 coord,in float sm_smooth, out vec4 raw_value, out vec3
     //assuming a normalized normal value
     float   temp    = 1-raw_value.r*raw_value.r-raw_value.g*raw_value.g;
     if(temp<0.)
-        temp = 0;
-//        est_normal   = normalize(vec3(raw_value.r, raw_value.g, 1-(raw_value.r*raw_value.r-raw_value.g*raw_value.g)/2));
-//    else
-        est_normal   = normalize(vec3(raw_value.r, raw_value.g, sqrt(temp)));
-
-//    SM_normal - n_i the normal from shape map
-//    est_normal   = normalize(vec3(raw_value.r, raw_value.g, temp));
+        temp=0.;
+    //SM_normal - n_i the normal from shape map
+    est_normal   = normalize(vec3(raw_value.r, raw_value.g, sqrt(temp)));
 }
 
 void getCurLabelDepth(in vec3 p, out int label, out float depth)
@@ -307,15 +522,6 @@ float colorTest(vec3 Pp, int Tlabel)
         return 0;
 }
 
-highp float rand(vec2 co)
-{
-    highp float a = 12.9898;
-    highp float b = 78.233;
-    highp float c = 43758.5453;
-    highp float dt= dot(co.xy ,vec2(a,b));
-    highp float sn= mod(dt,3.14);
-    return fract(sin(sn) * c);
-}
 float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
 {
     float max_shadow_strength=0;
@@ -324,20 +530,19 @@ float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
     float sm_smooth = 1;
 
     float int_length = 0;
-    float thin_film = 0.0;
+    float thickness_disp = 0.0;
     float thickness_mult = 0.1;
     for(int j=1;j<10;j++)
     {
 
-        //integral of displacement
-        float step_disp_intl = 0;
         int LayerInd = j;
+
         //if this layer is empty
         if(length(normalValues[LayerInd])==0)
             break;
+
         //if current layer does not cast shadow
         if(shadowcreator[LayerInd]==0&&LayerInd!=Plabel)
-//        if(shadowcreator[LayerInd]==0)
             continue;
         //projected lighting position
         float lHeight; //Light distance to this layer plain
@@ -352,18 +557,20 @@ float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
 
         //crop the position with bounding box
         float forwarded_length = 0;
-//        vec3 TLpp = Lpp, TPpp = Ppp;
-//        if(!LineClipping(TLpp,TPpp,LayerInd))
-//            continue;
-//        forwarded_length = length(Ppp-TPpp);
+        vec3 TLpp = Lpp, TPpp = Ppp;
+        if(!LineClipping(TLpp,TPpp,LayerInd))
+            continue;
+        forwarded_length = length(Ppp-TPpp);
 
-//        Lpp = TLpp;
-//        Ppp = TPpp;
+        Lpp = TLpp;
+        Ppp = TPpp;
+
+//        if(Plabel!=LayerInd)
+//            return old_length;
+
+
         //projected light direction
         float light_length = length(Lpp-Ppp);
-        float light_length_3D = length(Lp-Pp);
-
-        plight_direct = plight_direct +0.005* light_length_3D*(vec3(rand(gl_TexCoord[0].st),1-rand(gl_TexCoord[0].st),1-0.5*rand(gl_TexCoord[0].st))-0.5);
 
         //layer normal - N
         vec3 layer_normal = (normalValues[LayerInd]);
@@ -371,24 +578,22 @@ float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
         int i;
         //    int n_steps = 100;
         //step size is ratio to width
-        int n_step = 100;
+        int n_step = int(50+50/(filter_size+1));
         float step = (filter_size+1)/length(vec2(width,height));
-//        step = light_length/n_step;
-
-        thin_film = 10*step*(1-dot(layer_normal,Lp-Pp));
-
         if(LayerInd != Plabel)
         {
-            sm_smooth = SM_Quality;
+            sm_smooth = 0.01;
+            thickness_disp = 0.01;
             thickness_mult = 0.01;
-            step = light_length/n_step;
+            n_step = int(light_length/step);
         }
         else
         {
-            sm_smooth = 1.0;
+            sm_smooth = 1.5;
+            thickness_disp = 0.01;
             thickness_mult = 0.1;
-//            if(step*n_step>light_length)
-//                step = int(light_length/n_step);
+            if(step*n_step>light_length)
+                n_step = int(light_length/step);
         }
 
 
@@ -415,9 +620,6 @@ float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
         vec3 step_vec = plight_direct*step;
         //loop for 10 layers
 
-        vec4 st_Disp_power = texture2D(tex_Disp,(next_p_h.xy+1)/2);
-
-
         int lastLabel = Plabel;
         for(i=0;i<n_step;i++)
         {
@@ -428,108 +630,77 @@ float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
                 getEstNormal((cur_p_h.rg+1)/2,sm_smooth, SM_value, SM_normal);
                 //move one step along the porjected lighting direction
                 next_p_h = cur_p_h + step_vec;
-                //current light height, a ratio of step size and light direction length\
-
-
                 //get the label
                 int label;
                 vec4 label_depth = texture2D(tex_LD, (next_p_h.xy+1)/2);
-                if(SM_value.b>0.0001)
+                label = int(label_depth.b*255+0.001);
+                //            next_p_h.z = label_depth.g*128.0/127.0;
+
+                //            //check if this point is transparant
+                //            float coef= SM_value.a*SM_value.b;
+
+
+                //make sure integral does not go to another layer
+                if(label == LayerInd)
                 {
-                    vec3 dispColor = texture2D(tex_Disp,(cur_p_h.xy+1)/2).rgb;
-                    float cur_Disp = (dispColor.r+dispColor.g+dispColor.b)/3;
 
-                    dispColor = texture2D(tex_Disp,(cur_p_h.xy+step_vec.xy+1)/2).rgb;
+                    //step_vec - v_i
+                    //temp - t
+                    float t = -dot(SM_normal,step_vec)/(abs(dot(SM_normal,layer_normal))+0.1);
+                    //next_p - p_i
+                    next_p = cur_p+step_vec+layer_normal*t;
 
-                    float next_Disp = (dispColor.r+dispColor.g+dispColor.b)/3;
-                    label = int(label_depth.b*255+0.001);
-                    //            next_p_h.z = label_depth.g*128.0/127.0;
-
-                    //            //check if this point is transparant
-                    //            float coef= SM_value.a*SM_value.b;
-                    //make sure integral does not go to another layer
-                    if(label == LayerInd)
+                    //calculate the current height
+                    acc_height = dot(next_p-next_p_h, layer_normal);
+                    //set next integral position
+                    cur_p = next_p;
+                    if(Plabel==LayerInd)
                     {
-
-                        //step_vec - v_i
-                        //temp - t
-                        float t = -dot(SM_normal,step_vec)/(abs(dot(SM_normal,layer_normal))+0.1);
-                        //next_p - p_i
-                        next_p = cur_p+step_vec+layer_normal*t;
-
-                        //calculate the current height
-                        acc_height = dot(next_p-next_p_h, layer_normal);
-                        //set next integral position
-                        cur_p = next_p;
-                        //if the original point's layer label is the same as the current checking layer
-                        if(Plabel==LayerInd)
-                        {
-                            if((next_Disp-cur_Disp)>0.2)
-                            {
-                                step_disp_intl = 0.02;
-                            }
-                            if((next_Disp-cur_Disp)<0)
-                            {
-                                step_disp_intl = 0;
-                            }
-
-                            multfactor=0.15*step*(1-dot(layer_normal,Lp-Pp));
-                        }
-                        else
-                        {
-                            step_disp_intl = 0;
-                            //                        if(lastLabel == label)
-                            multfactor=0.05*step*(1-dot(layer_normal,Lp-Pp));
-                            //                        else
-                            //                            multfactor = 0;
-                        }
+                        multfactor=0.15*step;
                     }
-                    //if the integral is on another layer
                     else
                     {
-//                        step_disp_intl = 0;
-                        if(Plabel==LayerInd)
-                        {
+//                        if(lastLabel == label)
+                            multfactor=0.95*step;
+//                        else
+//                            multfactor = 0;
 
-                            multfactor=0.15*step*(1-dot(layer_normal,Lp-Pp));
-                        }
-                        else
-                        {
-                            step_disp_intl = 0;
-                        }
-                        //                    next_p = cur_p+step_vec;
-                        //                    acc_height = dot(next_p-next_p_h, layer_normal);
-                        //                    cur_p = next_p;
-                        cur_p = cur_p_h+layer_normal*acc_height;
-                    }
-                    acc_height += step_disp_intl;
-                    if(multfactor!=0)
-                    {
-
-
-                        if(Plabel==LayerInd)
-                           { cur_light_height = mix(amb*0.00,lHeight,(i*step+forwarded_length)/old_length);
-                        //negativenum =(acc_height + thin_film- cur_light_height)* (acc_height - (SM_value.b*surface_disp+thin_film) - cur_light_height);
-                        negativenum =(acc_height*(1+2*surface_disp) + thin_film- cur_light_height)* (-0.01*acc_height -SM_value.b*surface_disp +thin_film- cur_light_height);
-                        }
-                        else
-                        {cur_light_height = mix(pHeight,lHeight,(i*step+forwarded_length)/old_length);
-          negativenum =(acc_height*(1+2*surface_disp) + thin_film- cur_light_height)* (-0.01*acc_height - (SM_value.b*surface_disp+thin_film) - cur_light_height);
-                        }
-                       //                        negativenum = acc_height - cur_light_height;
-                        //                    negativenum =4*(acc_height + surface_disp- cur_light_height)* (acc_height - (SM_value.b/16. - surface_disp) - cur_light_height)/ (SM_value.b*SM_value.b);
-                        count++;
-
-                        if(negativenum<0)
-                        {
-                            if(lHeight<0)
-                                shadow_strength+= multfactor;
-                            else
-                                shadow_strength+= multfactor;
-                        }
                     }
                 }
+                else
+                {
 
+                    if(Plabel==LayerInd)
+                    {
+                        multfactor=0.15*step;
+                    }
+                    else
+                    {
+                        multfactor=0;
+                    }
+
+
+//                    next_p = cur_p+step_vec;
+//                    acc_height = dot(next_p-next_p_h, layer_normal);
+//                    cur_p = next_p;
+                    cur_p = cur_p_h+layer_normal*acc_height;
+                }
+
+                if(multfactor!=0)
+                {
+                    //current light height, a ratio of step size and light direction length\
+                    if(Plabel==LayerInd)
+                       cur_light_height = mix(amb*0.01,lHeight,(i*step+forwarded_length)/old_length);
+                    else
+                       cur_light_height = mix(pHeight,lHeight,(i*step+forwarded_length)/old_length);
+                    negativenum =4*(acc_height + thickness_disp- cur_light_height)* (acc_height - (SM_value.b*thickness_mult+thickness_disp) - cur_light_height)/ (SM_value.b*SM_value.b);
+
+//                    negativenum =4*(acc_height + surface_disp- cur_light_height)* (acc_height - (SM_value.b/16. - surface_disp) - cur_light_height)/ (SM_value.b*SM_value.b);
+                    count++;
+
+                    if(negativenum<0)
+                        shadow_strength+=multfactor;
+                }
 
                 cur_p_h= next_p_h;
                 lastLabel = label;
@@ -539,7 +710,7 @@ float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
     }
 
 
-    max_shadow_strength = thin_film/(shadow_strength+thin_film);
+    max_shadow_strength = thickness_disp/(shadow_strength+thickness_disp);
 
 //    max_shadow_strength = shadow_strength;
     float Sha ;
@@ -568,7 +739,7 @@ float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
 
 
 
-void GetCenterCos(in vec3 thePos, in int LayerInd, out float center_cos)
+void GetCenterCos(in vec3 thePos, out float center_cos)
 {
     vec4 raw_SM;
     vec3 est_normal;
@@ -576,16 +747,11 @@ void GetCenterCos(in vec3 thePos, in int LayerInd, out float center_cos)
     /***Parallel lights. They give slightly different effects.***/
     float pure_cos;
     //pure_cos = dot(center_normal, -light_dir_n);
-    vec3 light_dir_v = light_dir-thePos;
-    vec3 light_dir_n = normalize(light_dir_v);
+    vec3 light_dir_n = normalize(light_dir-thePos);
 
-    vec3 ref_eye = -2*dot(light_dir_n,est_normal)*est_normal+light_dir_n;
-//    pure_cos = 0.5*pow(-ref_eye.z,2)+0.5*dot(light_dir_n, est_normal);
-//    vec3 layer_normal = (normalValues[LayerInd]);
-//     pure_cos = (dot(est_normal.rg, (light_dir_v.rg)))*abs(dot(light_dir_v,layer_normal));
-//    pure_cos = (dot(raw_SM.rg, (light_dir_n.rg)))+length(light_dir_n);
-//    pure_cos = dot(light_dir_n.rg, est_normal.rg) + light_dir_n.b*(1-est_normal.r*est_normal.r/2-est_normal.g*est_normal.g/2);
-    pure_cos = dot(light_dir_n, est_normal);
+    pure_cos = (dot(est_normal, light_dir_n));
+//     pure_cos = dot(center_normal_2D, (-light_dir.rg));
+
 
     float c_center=0.3*amb_strength-0.2;
     float c_delta=Cartoon_sha;
@@ -633,22 +799,29 @@ void main()
 
     AmbientShadow(cood_center, Amb, label);
 
+
+//    float tt =  colorTest(true_position,3);
+//    gl_FragColor = vec4(tt,tt,tt,1.0);
+//    return;
+
     if(label==0)
     {
-        gl_FragColor = vec4(0.0);
+        gl_FragColor = texture2D(tex_BG, gl_TexCoord[0].st);
         return;
     }
 
     true_position.b = true_depth;
-    GetCenterCos(true_position,label,center_cos);
+    GetCenterCos(true_position,center_cos);
 
     float h;
     vec3 pLight1 = projectOnLayerInd(light_dir, 1, h);
     vec3 pLight2 = projectOnLayerInd(light_dir, 2, h);
 
 
-    new_shadow = accHeightInLayer(light_dir, true_position,label, Amb);
-//    new_shadow = accHeightInLayer(light_dir, true_position,label, Amb);
+            //        gl_FragColor = vec4(vec3(accHeightInLayer(-vec3(light_dir.rg,-light_dir.b), true_position, label)),1.0);
+//            gl_FragColor = mix(accHeightInLayer(-vec3(light_dir.rg,-light_dir.b), true_position, label),vec4(vec3(center_cos),1.0),0.5);
+            new_shadow = accHeightInLayer(light_dir, true_position,label, Amb);
+//            gl_FragColor = vec4(vec3(center_cos),1.0);
 
 
     if(toggle_ShaAmbCos == 0)
@@ -662,17 +835,80 @@ void main()
     else if(toggle_ShaAmbCos == 3)
         center_cos = center_cos*Amb;
     else if(toggle_ShaAmbCos == 5)
+    {
         center_cos = center_cos*new_shadow*new_shadow;
+//        center_cos = min(center_cos,new_shadow*new_shadow);
+    }
     else if(toggle_ShaAmbCos == 6)
         center_cos=new_shadow*Amb;
     else if(toggle_ShaAmbCos == 7)
         center_cos=center_cos*new_shadow*Amb;
 
 
+//    center_cos = Sha;
 
+    //blend Diffusion image 1 and 2 based on shadow strength
+    vec4 Shadow_blend = mix( texture2D(tex_DI_Dark, gl_TexCoord[0].st),  texture2D(tex_DI_Bright, gl_TexCoord[0].st), center_cos);
 
-    gl_FragColor = mix( texture2D(tex_DI_Dark, gl_TexCoord[0].st),  texture2D(tex_DI_Bright, gl_TexCoord[0].st), (center_cos-0.5)*2);
-//    gl_FragColor = vec4(rand(gl_TexCoord[0].st));
+    //we were planning to add specular, but finally we removed it
+    //    vec4 Light_direct = mix(Shadow_blend, texture2D(tex_SI, gl_TexCoord[0].st), 0);
+    vec4 Light_direct = Shadow_blend;
+
+    //vec4 Light_direct = mix(vec4(0.0),vec4(1.0), Sha*Amb);
+    //vec4 Light_direct =vec4(1.0)*center_cos;
+
+    //calculate refraction/reflection with Fresnel
+//    vec4 refl_color, refr_color, Light_indirect; //reflection, refraction, and blended color
+//    ReflectRefract(cood_center, refr_color, refl_color);
+//    FrenselBlend(cood_center, refr_color, refl_color, Light_indirect);
+
+    //blend Shadow image and reflection/refraction image half-half
+//    vec4 Fore_blend = mix(Light_indirect, Light_direct, alpha*Light_direct.a);
+    vec4 Fore_blend = Light_direct;
+    //blend all image with foreground image
+    //    gl_FragColor   = Light_indirect;
+    //    gl_FragColor =  textureLod(tex_BG, gl_TexCoord[0].st, filter_size*2);
+    float Final_Mix = cood_center.a;
+    if (cood_center.b<0.001)
+        Final_Mix=Final_Mix*cood_center.b;
+
+    if(cur_tex == 0)
+    {
+//        if(checkEqual(pLight1.xy, thePosition.rg,0.02))
+//            gl_FragColor = vec4(0.0,0.5,1.0,1.0);
+//        else
+//            if(checkEqual(pLight2.xy, thePosition.rg,0.02))
+//                gl_FragColor = vec4(1.0,0.5,0.5,1.0);
+//            else
+            {
+//                vec3 Lp = light_dir.xyz;
+//                vec3 Pp = vec3(0.0,0.0,0.0);
+//                LineClipping(Lp,Pp, 1);
+//                if(checkEqual(Lp.xy, thePosition.rg,0.02))
+//                    gl_FragColor = vec4(1.0,0.0,1.0,1.0);
+                gl_FragColor = vec4(mix(texture2D(tex_BG, gl_TexCoord[0].st).rgb, Fore_blend.rgb, Final_Mix), 1.0);
+
+            }
+//        int t_label;
+//        vec3 pp = thePosition.rgb;
+//        getCurLabelDepth(pp, t_label);
+//        gl_FragColor = vec4(vec3(t_label), 1.0);
+    }
+    else if(cur_tex == 1)
+            gl_FragColor = texture2D(tex_SM, gl_TexCoord[0].st);
+    else if(cur_tex == 2)
+            gl_FragColor = texture2D(tex_DI_Dark, gl_TexCoord[0].st);
+    else if(cur_tex == 3)
+            gl_FragColor = texture2D(tex_DI_Bright, gl_TexCoord[0].st);
+    else if(cur_tex == 4)
+            gl_FragColor = texture2D(tex_BG, gl_TexCoord[0].st);
+    else if(cur_tex == 5)
+            gl_FragColor = texture2D(tex_LD, gl_TexCoord[0].st).bbba;
+    else if(cur_tex == 6)
+            gl_FragColor = texture2D(tex_LD, gl_TexCoord[0].st).ggga;
+    else if(cur_tex == 7)
+            gl_FragColor = texture2D(tex_Env, gl_TexCoord[0].st);
+
 
 //    gl_FragColor = vec4(1.0,0.0,1.0,1.0);
 

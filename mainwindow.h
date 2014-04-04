@@ -75,28 +75,28 @@ public:
 
 private slots:
 
-    void newFile();
-    void openFile();
-    void saveFile();
-    void saveFileAs();
+    void    newFile();
+    void    openFile();
+    void    saveFile();
+    void    saveFileAs();
 
-    void exportINP();
+    void    exportINP();
 
-    void undo();
-    void redo();
-    void about();
+    void    undo();
+    void    redo();
+    void    about();
 
-    void viewOptions();
-    void viewAttr();
+    void    viewOptions();
+    void    viewAttr();
 
-    void flipDrag();
-    void flipRender();
-    void unselectDrag();
+    void    flipDrag();
+    void    flipRender();
+    void    unselectDrag();
 
-    void selectExtrudeEdge();
-    void selectExtrudeFace();
-    void selectInsertSegment();
-    void selectDeleteFace();
+    void    selectExtrudeEdge();
+    void    selectExtrudeFace();
+    void    selectInsertSegment();
+    void    selectDeleteFace();
 
     void toggleNormals();
     void togglePathces();
@@ -105,7 +105,6 @@ private slots:
     void toggleShadow();
     void togglePreview();
     //void toggleShapeMap();
-
 
     void newGrid();
     void new2NGon();
@@ -127,7 +126,8 @@ private slots:
 
     void selectAssignPatternTool();
     void selectSetFoldsTool();
-
+    void selectSetColorTool();
+    void flipChannel();
 
 private:
 
@@ -159,6 +159,7 @@ private:
     QMenu           *editMenu;
     QMenu           *viewMenu;
     QMenu           *displayMenu;
+    QMenu           *channelsMenu;
     QMenu           *shapeMenu;
     QMenu           *toolsMenu;
     QMenu           *selectMenu;
@@ -182,6 +183,14 @@ private:
     QAction *       ambientOnAct;
     QAction *       shadowOnAct;
     QAction *       previewOnAct;
+
+    QAction *       darkChannelAct;
+    QAction *       brightChannelAct;
+    QAction *       alphaChannelAct;
+    QAction *       depthChannelAct;
+    QAction *       normalChannelAct;
+    QAction *       glChannelAct;
+
     //QAction *       shapemapOnAct;
 
     //File Menu Actions
@@ -231,6 +240,8 @@ private:
     QAction *       assignPatternAct;
     QAction *       setFoldsAct;
 
+    QAction *       setColorToolAct;
+
     //QAction *       windowSh
 
     std::map<int, int>      _optionWidgetIDs;
@@ -238,7 +249,7 @@ private:
 
     //need to improve this
     struct Options{
-        enum OptionWidget_e {NONE, DRAG, ELLIPSE, GRID, NGON, TORUS, SPINE, IMAGE_SHAPE, EXTRUDE, INSERT_SEGMENT, DELETE_FACE, ASSIGN_PATTERN, SET_FOLDS};
+        enum OptionWidget_e {NONE, DRAG, ELLIPSE, GRID, NGON, TORUS, SPINE, IMAGE_SHAPE, EXTRUDE, INSERT_SEGMENT, DELETE_FACE, ASSIGN_PATTERN, SET_FOLDS, SET_COLOR};
        };
 };
 

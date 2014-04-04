@@ -18,6 +18,7 @@
 #include "canvas.h"
 
 #include "Renderer/imageshape.h"
+#include "Renderer/layernormalcontrol.h"
 
 #define theSHAPE Session::get()->theShape()
 
@@ -64,7 +65,8 @@ inline bool selectionColor(Selectable_p pSel){
 }
 // now all renders here
 
-void SampleShape::render(int mode) {
+void SampleShape::render(int mode)
+{
 
     glColor3f(1.0, 0, 0);
     glBegin(GL_POLYGON);
@@ -73,7 +75,7 @@ void SampleShape::render(int mode) {
     glEnd();
 }
 
-void ControlPoint::render(int mode) {
+void ControlPoint::render(int mode){
 
     Selectable::render(mode);
 
@@ -97,7 +99,6 @@ void ControlPoint::render(int mode) {
         glVertex3f(p1.x, p1.y, 0);
         glEnd();
     }
-
 }
 
 void Shape::render(int mode)
@@ -119,7 +120,6 @@ void ShapeControl::renderControls(Shape_p shape)
         SKIP_DELETED_ITEM
         ShapeVertex_p sv = *it;
 
-        //FIX THIS!! MESHSHAPE SPESIFIC!!!
         if (sv->ref() && sv->ref()->isDeleted())
             continue;
 
@@ -308,22 +308,30 @@ void renderEdge(Edge_p pE){
     glEnd();
 }
 
-void renderFace(Face_p pFace){
+void renderFace(Face_p pFace)
+{
     if (!pFace->pData)
         return;
 
-   /* if(mode&BRIGHT_MODE)
-        glColor3f(diffuse.redF()*2.0,diffuse.greenF()*2.0,diffuse.blueF()*2.0);
-    else if (mode&DARK_MODE)
-        glColor3f(1-diffuse.redF(),1-diffuse.greenF(),1-diffuse.blueF());
-    else
-        glColor3f(diffuse.redF(),diffuse.greenF(),diffuse.blueF());
-   */
-
-  pFace->pData->render();
+    pFace->pData->render();
 }
 
 void MeshShape::render(int mode) {
+
+
+    if ( Session::selectMode() == SELECT_VERTEX)
+    {
+        SVList verts = getVertices();
+        FOR_ALL_CONST_ITEMS(SVList, verts)
+        {
+            SKIP_DELETED_ITEM
+            ShapeVertex_p sv = *it;
+            if ((sv->ref() && sv->ref()->isDeleted()) || sv->parent())
+                continue;
+
+            sv->render();
+        }
+    }
 
     if ( this == theSHAPE &&( isInRenderMode() || isSelectMode(MeshOperation::EDGE))  )
     {
@@ -333,7 +341,139 @@ void MeshShape::render(int mode) {
     //too messy, fix it!
     if (isInRenderMode() || isSelectMode(MeshOperation::FACE) || Session::isRender(DRAG_ON) )
     {
-         _control->ForAllFaces(renderFace);
+        if (Session::isRender(PREVIEW_ON)){
+            if (mode&BRIGHT_MODE)
+                glColor3f(0.9, 0.8, 0.8); //glColor3f(diffuse.redF(), diffuse.greenF(), diffuse.blueF());
+            else if (mode&DARK_MODE)
+                glColor3f(0.1, 0.1, 0.1); //glColor3f(diffuse.redF()*0.1, diffuse.greenF()*0.1, diffuse.blueF()*0.1);
+        }else if (Session::isRender(SHADING_ON)){
+            GLfloat mat_diff[] = { diffuse.redF(), diffuse.greenF(), diffuse.blueF(), 1.0 };
+            //GLfloat mat_shininess[] = { 50.0 };
+            glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diff);
+            //glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+        }
+
+        //_control->ForAllFaces(renderFace);
+        FaceList faces = _control->faces();
+        FOR_ALL_ITEMS(FaceList, faces)
+        {
+            SKIP_DELETED_ITEM;
+            if ((*it)->pData)
+                (*it)->pData->render(mode);
+        }
+    }
+}
+
+void Patch4::render(int mode){
+
+    if (!Session::isRender(DRAG_ON))
+      Selectable::render(mode);
+
+      for(int j=0; j < _sampleVi; j++){
+        for(int i = 0; i< _sampleUi; i++){
+
+            Point p[4];
+            p[0] = P(i, j);
+            p[1] = P(i+1, j);
+            p[2] = P(i+1, j+1);
+            p[3] = P(i, j+1);
+
+            if (isInSelection() || !isInRenderMode())
+            {
+                selectionColor((Selectable_p)this);
+                glBegin(GL_POLYGON);
+                for(int k=0; k<4; k++){
+                    glVertex3f(p[k].x, p[k].y, 0);
+                }
+                glEnd();
+                continue;
+            }
+
+            if (Session::isRender(WIREFRAME_ON)){
+
+                if (Session::isRender(NORMALS_ON))
+                {
+                    //drawNormals
+                    glColor3f(1,1,1);
+                    glPointSize(4.0);
+
+                    Vec3 n = _maps[NORMAL_CHANNEL][ind(i, j)];
+
+                    Vec3 p0 = p[0];
+                    Vec3 p1 = p0 + n[0]*NORMAL_RAD;
+                    glBegin(GL_LINES);
+                    glVertex3f(p0.x, p0.y, p0.z);
+                    glVertex3f(p1.x, p1.y, p1.z);
+                    glEnd();
+
+                    glBegin(GL_POINTS);
+                    glVertex3f(p0.x, p0.y, p0.z);
+                    glEnd();
+                }
+
+                glColor3f(1.0,1.0,1.0);
+                glLineWidth(0.5);
+                glBegin(GL_LINE_LOOP);
+                for(int k=0; k<4; k++)
+                    glVertex3f(p[k].x, p[k].y, 0);
+                glEnd();
+
+            }
+
+            bool isGLShading = (Session::channel() == GL_SHADING) && !Session::isRender(PREVIEW_ON);
+            if (isGLShading)
+                    glEnable(GL_LIGHTING);
+
+            RGBA col[4];
+            if (mode&DARK_MODE || mode&BRIGHT_MODE)
+            {
+                int channel = mode&DARK_MODE ? DARK_CHANNEL:BRIGHT_CHANNEL; //stupid
+                col[0] = _maps[channel][ind(i, j)];
+                col[1] = _maps[channel][ind(i+1, j)];
+                col[2] = _maps[channel][ind(i+1, j+1)];
+                col[3] = _maps[channel][ind(i, j+1)];
+            }else if (mode&LABELDEPTH_MODE){
+                col[0].set(1.0, 1.0, 1.0);
+                col[1].set(1.0, 1.0, 1.0);
+                col[2].set(1.0, 1.0, 1.0);
+                col[3].set(1.0, 1.0, 1.0);
+            }
+
+            glBegin(GL_POLYGON);            
+            for(int k = 0; k < 4; k++)
+            {
+                int index = ind(i + (k==1 || k==2), j + (k>1));
+                RGB val = _maps[Session::channel()][index];
+
+                if (isGLShading)
+                {
+                    RGB diff = _maps[BRIGHT_CHANNEL][index];
+                    RGB amb  = _maps[DARK_CHANNEL][index];
+                    GLfloat mat_diff[] = {diff.x, diff.y, diff.z, 1.0};//diff.w};
+                    GLfloat mat_amb[]  = {amb.x, amb.y, amb.z, 1.0};//amb.w};
+
+                    glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diff);
+                    glMaterialfv(GL_FRONT, GL_AMBIENT, mat_amb);
+
+                    Vec3 n =  _maps[NORMAL_CHANNEL][index];
+                    glNormal3f(n.x, n.y, n.z );
+                }
+                else if ( (Session::channel() == NORMAL_CHANNEL) || (mode&SM_MODE))
+                {                    
+                    glColor4f((val.x+1)/2, (val.y+1)/2, 1.0, 1.0);
+                }else{
+                    glColor4f(val.x, val.y, val.z, 1.0);// col[k].w);
+                }
+
+                glVertex2f(p[k].x, p[k].y);
+                glTexCoord2d((p[k].x+1)/2, (p[k].y+1)/2);
+            }
+            glEnd();
+
+            if (isGLShading)
+                    glDisable(GL_LIGHTING);
+
+        }
     }
 }
 
@@ -409,81 +549,7 @@ void CurvedEdge::render(int mode) {
 }
 
 
-void Patch4::render(int mode){
 
-    if (!Session::isRender(DRAG_ON))
-      Selectable::render(mode);
-
-      for(int j=0; j < _sampleVi; j++){
-        for(int i = 0; i< _sampleUi; i++){
-
-            Point p[4];
-            p[0] = P(i, j);
-            p[1] = P(i+1, j);
-            p[2] = P(i+1, j+1);
-            p[3] = P(i, j+1);
-
-            Vec3 n[4];
-            n[0] = _ns[ind(i, j)];
-            n[1] = _ns[ind(i+1, j)];
-            n[2] = _ns[ind(i+1, j+1)];
-            n[3] = _ns[ind(i, j+1)];
-
-            if (isInSelection() || !isInRenderMode())
-            {
-                selectionColor((Selectable_p)this);
-                glBegin(GL_POLYGON);
-                for(int k=0; k<4; k++){
-                    glVertex3f(p[k].x, p[k].y, 0);
-                }
-                glEnd();
-                continue;
-            }
-
-            if (Session::isRender(WIREFRAME_ON)){
-
-                if (Session::isRender(NORMALS_ON))
-                {
-                    //drawNormals
-                    glColor3f(1,1,1);
-                    glPointSize(4.0);
-
-                    Vec3 p0 = p[0];
-                    Vec3 p1 = p0 + n[0]*NORMAL_RAD;
-                    glBegin(GL_LINES);
-                    glVertex3f(p0.x, p0.y, p0.z);
-                    glVertex3f(p1.x, p1.y, p1.z);
-                    glEnd();
-
-                    glBegin(GL_POINTS);
-                    glVertex3f(p0.x, p0.y, p0.z);
-                    glEnd();
-                }
-
-                glColor3f(1.0,1.0,1.0);
-                glLineWidth(0.5);
-                glBegin(GL_LINE_LOOP);
-                for(int k=0; k<4; k++)
-                    glVertex3f(p[k].x, p[k].y, 0);
-                glEnd();
-
-            }
-
-            glBegin(GL_POLYGON);
-            for(int k = 0; k < 4; k++){
-               if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON))
-                    glNormal3f(n[k].x, n[k].y, n[k].z );
-                else
-                   glColor3f((n[k].x+1)/2, (n[k].y+1)/2, 1.0);
-
-                glVertex2f(p[k].x, p[k].y);
-                glTexCoord2d((p[k].x+1)/2, (p[k].y+1)/2);
-            }
-            glEnd();
-        }
-    }
-
-}
 
 void Rectangle::render(int mode){
 
@@ -510,8 +576,13 @@ void Rectangle::render(int mode){
 
 }
 
+void EllipseShape::render(int mode){
 
-void EllipseShape::render(int mode) {
+    if (Session::isRender(SHADING_ON))
+    {
+        GLfloat mat_diff[] = { diffuse.redF(), diffuse.greenF(), diffuse.blueF(), 1.0 };
+        glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diff);
+    }
 
     FOR_ALL_J(_segV){
         FOR_ALL_I(_segU){
@@ -564,17 +635,36 @@ void EllipseShape::render(int mode) {
 
             }
 
+            if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON))
+            {
+                glEnable(GL_LIGHTING);
+            }
+
             glBegin(GL_POLYGON);
-            for(int k = 0; k < size; k++){
-               if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON))
+            for(int k = 0; k < size; k++)
+            {
+                if (Session::isRender(SHADING_ON) && !Session::isRender(PREVIEW_ON))
+                {
                     glNormal3f(n[k].x, n[k].y, n[k].z );
+                }
                 else
-                   glColor3f((n[k].x+1)/2, (n[k].y+1)/2, 1.0);
+                {
+                    if (mode&DARK_MODE)
+                        glColor3f(0.1, 0.1, 0.1);
+                    else if (mode&BRIGHT_MODE)
+                        glColor3f(0.8, 0.8, 0.8);
+                    else{
+                        glColor3f((n[k].x+1)/2, (n[k].y+1)/2, 1.0);
+                    }
+                }
 
                 glVertex2f(p[k].x, p[k].y);
                 glTexCoord2d((p[k].x+1)/2, (p[k].y+1)/2);
             }
             glEnd();
+
+            if (Session::isRender(SHADING_ON))
+                    glDisable(GL_LIGHTING);
 
         }
     }
@@ -790,15 +880,6 @@ void ImageShape::render(int mode)
 
 }
 
-float ImageShape::CapValue(float in_num, float low_cap, float high_cap)
-{
-    if(in_num<low_cap)
-        return low_cap;
-    if(in_num>high_cap)
-        return high_cap;
-    return in_num;
-}
-
 void Light::render(int mode) {
     Selectable::render(mode);
 
@@ -807,6 +888,25 @@ void Light::render(int mode) {
     glBegin(GL_POINTS);
     glVertex3f(P().x, P().y, 0.001);
     glEnd();
+}
+
+void LayerNormalControl::render(int mode) {
+    //Point p0 = _pShape->P();
+
+    if(Session::isRender(NORMALS_ON)&&!(Session::isRender(PREVIEW_ON)||Session::isRender(AMBIENT_ON)||Session::isRender(SHADOWS_ON)))
+    {
+        Draggable::render(mode);
+        glColor3f(1.0, 1.0, 0);
+        glPointSize(8);
+        glBegin(GL_POINTS);
+        glVertex3f(P().x, P().y, 1.005);
+        //    glVertex3f(EndPoint.x, EndPoint.y, 1.005);
+        glEnd();
+        glBegin(GL_LINES);
+        glVertex3f(0.0, 0.0, 1.005);
+        glVertex3f(P().x, P().y, 1.005);
+        glEnd();
+    }
 }
 
 #endif

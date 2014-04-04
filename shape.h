@@ -15,6 +15,8 @@ enum ShapeType {MESH_SHAPE, SPINE_SHAPE, ELLIPSE_SHAPE, IMAGE_SHAPE};
 
 class Shape;
 class Shader;
+class LayerNormalControl;
+
 typedef Shape*                          Shape_p;
 typedef std::list<Shape_p>              ShapeList;
 
@@ -23,7 +25,6 @@ class   ControlNormal;
 typedef ShapeVertex*                    ShapeVertex_p;
 typedef std::list<ShapeVertex_p>        SVList;
 typedef std::map<int, ShapeVertex_p>    SVMap;
-
 
 //4 channel unsigned bytes assumed here.
 struct textureInfo
@@ -73,18 +74,20 @@ public:
     Vec2 getTangent();
 
     inline Point_p       pP()                 {return &_P;}
-    inline Normal        N()            const {return _N;}
-    inline Normal_p      pN()                 {return &_N;}
+    inline Normal        N()            const {return data[NORMAL_CHANNEL];}//_N;}
+    inline Normal_p      pN()                 {return &data[NORMAL_CHANNEL];}//_N;}//;}
     inline Shape_p       shape()        const {return _pShape;}
-    ControlNormal* pControlN()          const {return _pControlN;}
+    ControlNormal*       pControlN()    const {return _pControlN;}
 
     inline ShapeVertex_p pair()         const {return _pair;}
     inline int           id()           const {return name();}
     inline bool          isDeleted()    const {return _isDeleted;}
 
     void                 outdate();
-
     bool                _isDeleted; //public for now
+
+    //these should move to a shader later on
+    RGB                 data[NUM_CHANNELS];
 
 private:
 
@@ -93,7 +96,7 @@ private:
 
     Shape_p             _pShape;
     Point               _P;
-    Normal              _N;
+    //Normal              _N;
 
     ControlNormal*      _pControlN;
 
@@ -101,6 +104,10 @@ private:
     ~ShapeVertex();
 
     ShapeVertex_p _pair;
+    //color
+    //preview implementation
+
+
 };
 
 class ControlNormal:public ControlPoint
@@ -198,12 +205,14 @@ public:
     ShaderParameters    getShaderParam(){return _shaderParam;}
     void                setLayerLabel(unsigned char dep = 0){_shaderParam.m_layerLabel = dep;}
 
-    textureInfo m_brightTex;
-    textureInfo m_darkTex;
-    textureInfo m_smTex;
+    textureInfo         m_brightTex;
+    textureInfo         m_darkTex;
+    textureInfo         m_smTex;
 
-protected:
-    ShaderParameters       _shaderParam;
+    //protected:
+    ShaderParameters         _shaderParam;
+    LayerNormalControl*      _NormalControl;
+    QVector3D                _layerNormal;
 #endif
 
 };

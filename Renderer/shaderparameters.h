@@ -11,8 +11,13 @@ public:
     ShaderParameters();
     ~ShaderParameters();
 
-    float m_alphaValue;
+    double m_alphaValue;
+    bool m_reflectToggled;
     float m_translucency;
+
+    float m_thickness_mult;
+    float m_thickness_disp;
+
     QVector3D m_centerDepth;
     int   m_layerLabel;
     float m_SMQuality;

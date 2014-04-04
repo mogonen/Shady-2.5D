@@ -13,11 +13,12 @@
 #endif
 
 QWidget* createAttrWidget(Shape_p pShape)
-{
-    CustomDialog * widget = new CustomDialog("Shape Attr");
+{    
     //widget->addSpinBox("test:", 1, 8, &MeshShape::GRID_N, 1, "Rows");
     //widget->addSpinBox("U segments:", 2, 24, &Patch::N, 1);
     //widget->addColorSel("Diffuse:", &pShape->diffuse, "");
+
+    CustomDialog * widget = new CustomDialog("Shape Attr");
     QObject::connect(widget,SIGNAL(ValueUpdated()),Session::get()->glWidget(),SLOT(updateActive()));
     return widget;
 }
@@ -99,6 +100,12 @@ void MainWindow::selectSetFoldsTool(){
     unselectDrag();
 }
 
+void MainWindow::selectSetColorTool(){
+    setOptionsWidget(Options::SET_COLOR);
+    Session::get()->setCommand(new SetColor());
+    unselectDrag();
+}
+
 void MainWindow::new2NGon()
 {
     setOptionsWidget(Options::NGON);
@@ -140,6 +147,14 @@ QWidget* createDragOptions()
     CustomDialog * widget = new CustomDialog("Drag Tool Options",0);
     widget->addRadioGrp("Tool:","Default|AutoBind|ManualBind|Break", (int*)(&Drag::TOOL));
     widget->addRadioGrp("Cont:","C0|C1|C2", (int*)(&Drag::CONT));
+    return widget;
+}
+
+
+QWidget* createSetColorOptions()
+{
+    CustomDialog * widget = new CustomDialog("Set Color Tool Options",0);
+    //widget->addRadioGrp("Channel:","Dark|Bright|Depth", (int*)(&SetColor::CHANNEL));
     return widget;
 }
 
@@ -229,6 +244,28 @@ QWidget* createInsertSegmentOptions()
     return widget;
 }
 
+QWidget* createImageShapeAttrWidget(ImageShape* ImgShape){
+    CustomDialog * widget = new ImageShapeCustomDialog(ImgShape, "Shape Attr");//, 0, "Set Texture", ImgShape->LoadTextureImage());
+    QObject::connect(widget,SIGNAL(ValueUpdated()),Session::get()->glWidget(),SLOT(updateGLSM()));
+    return widget;
+}
+
+void createShapeImage(){
+//    MeshShape* pMS =ImageShape::insertGrid(Point(), MeshShape::GRID_LEN, MeshShape::GRID_M, MeshShape::GRID_N);
+    ImageShape* pIS = new ImageShape(1.0,1.0);
+    Session::get()->mainWindow()->addAttrWidget(createImageShapeAttrWidget(pIS ), (void*)pIS);
+
+    ShapeOrder* so = new ShapeOrder(ShapeOrder::INSERT_SHAPE);
+    so->setShape(pIS );
+    Session::get()->exec(so);
+}
+
+QWidget* createImageShapeOptions()
+{
+    CustomDialog * widget = new CustomDialog("Image Shape Options", 0, "Insert", createShapeImage);
+    return widget;
+}
+
 void MainWindow::createAllOptionsWidgets()
 {
     addOptionsWidget(new QWidget(), Options::NONE);
@@ -241,5 +278,6 @@ void MainWindow::createAllOptionsWidgets()
     addOptionsWidget(createInsertSegmentOptions(), Options::INSERT_SEGMENT);
     addOptionsWidget(createAssignPatternOptions(), Options::ASSIGN_PATTERN);
     addOptionsWidget(createSetFoldsOptions(), Options::SET_FOLDS);
+    addOptionsWidget(createImageShapeOptions(), Options::IMAGE_SHAPE);
+    addOptionsWidget(createSetColorOptions() , Options::SET_COLOR);
 }
-

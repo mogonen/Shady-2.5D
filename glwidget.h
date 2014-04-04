@@ -94,6 +94,8 @@ protected:
 private:
 
     void                renderCanvas();
+    void                preview();
+
     void                render(Shape*, int mode=0);
     void                renderShapes(int mode=0);
 
@@ -122,20 +124,23 @@ public:
     Shape*              removeActive();
     ShaderProgram*      getRShader(){return _pGLSLShader_R;}
     ShaderProgram*      getMShader(){return _pGLSLShader_M;}
+    ShaderProgram*      getCShader(){return _pGLSLShader_C;}
+
     void                reloadShader(){_pGLSLShader_R->ReloadShader();_pGLSLShader_M->ReloadShader();}
     void                updateGLSLLight(float x, float y, float z);
 
 private:
     ShaderProgram       *_pGLSLShader_R;
     ShaderProgram       *_pGLSLShader_M;
+    ShaderProgram       *_pGLSLShader_C;
 
-    QVector2D _mousePressPosition;
-    QVector3D _rotationAxis;
-    qreal _angularChange;
-    QQuaternion _rotation;
-    qreal _translateX;
-    qreal _translateY;
-    qreal _translateZ;
+    QVector2D           _mousePressPosition;
+    QVector3D           _rotationAxis;
+    qreal               _angularChange;
+    QQuaternion         _rotation;
+    qreal               _translateX;
+    qreal               _translateY;
+    qreal               _translateZ;
 
 #endif
 };

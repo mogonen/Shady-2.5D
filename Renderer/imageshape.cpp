@@ -4,7 +4,6 @@
 
 #include "imageshape.h"
 
-
 ImageShapeCustomDialog::ImageShapeCustomDialog(ImageShape* imgS, QString title, QWidget *parent, char* execLabel, void (*callback)(), bool * ischeck)
     : CustomDialog(title, parent, execLabel,callback,ischeck)
 {
@@ -15,29 +14,29 @@ ImageShapeCustomDialog::ImageShapeCustomDialog(ImageShape* imgS, QString title, 
 
 void ImageShapeCustomDialog::Initialize()
 {
-    //m_returnWidth = this->addDblSpinBoxF("Width:", 0, 2, &m_imgShape->m_width, 2);
-    //m_returnHeight = this->addDblSpinBoxF("Height:", 0,2, &m_imgShape->m_height, 2);
-    this->addDblSpinBoxF("Alpha:", 0, 1, &m_imgShape->m_alpha_th, 2);
+    m_returnWidth = this->addDblSpinBoxF("Width:", 0, 2, &m_imgShape->m_width, 2);
+    m_returnHeight = this->addDblSpinBoxF("Height:", 0,2, &m_imgShape->m_height, 2);
+    this->addDblSpinBoxF("AlphaTh:", 0, 1, &m_imgShape->m_alpha_th, 2);
     this->addDblSpinBoxF("Strech:", -10, 10, &m_imgShape->m_stretch, 1);
     this->addDblSpinBoxF("Depth:", 0, 1, &m_imgShape->m_assignedDepth, 2);
-    this->addCheckBox("Shadow Creator:", &m_imgShape->m_shadowCreator);
-
-    this->addComboBox("Cur Texture", "ShapeMap|Dark|Bright", &m_imgShape->m_curTexture);
+    this->addDblSpinBoxF("Refract:", -1, 1, &m_imgShape->_shaderParam.m_alphaValue, 2);
+    this->addCheckBox("Shadow Creator:", &m_imgShape->_shaderParam.m_shadowcreator);
+    this->addCheckBox("Toggled Reflection:", &m_imgShape->_shaderParam.m_reflectToggled);
+    this->addComboBox("Cur Texture", "ShapeMape|Dark|Bright|Label|Displacement", &m_imgShape->m_curTexture);
     QPushButton *texButton = new QPushButton("Set Texture");
     layoutNextElement->addWidget(texButton);
     connect(texButton,SIGNAL(clicked()),this,SLOT(LoadTextureImage()));
+    connect(texButton,SIGNAL(clicked()),this,SLOT(ValueUpdated()));
 }
 
 void ImageShapeCustomDialog::SetNewSize(double w, double h)
 {
-    /*
-     *m_returnWidth->blockSignals(true);
-     *m_returnHeight->blockSignals(true);
-     *m_returnWidth->setValue(w);
-     *m_returnHeight->setValue(h);
-     *m_returnWidth->blockSignals(false);
-     *m_returnHeight->blockSignals(false);
-    */
+    m_returnWidth->blockSignals(true);
+    m_returnHeight->blockSignals(true);
+    m_returnWidth->setValue(w);
+    m_returnHeight->setValue(h);
+    m_returnWidth->blockSignals(false);
+    m_returnHeight->blockSignals(false);
 }
 
 void ImageShapeCustomDialog::LoadTextureImage(int cur)
@@ -53,18 +52,22 @@ void ImageShapeCustomDialog::LoadTextureImage()
 
     switch(m_imgShape->m_curTexture)
     {
-        case 0:
-            m_imgShape->m_SMFile = fileName;
-            m_imgShape->m_texUpdate = ImageShape::UPDATE_SM;
-            break;
-        case 1:
-            m_imgShape->m_DarkFile = fileName;
-            m_imgShape->m_texUpdate = ImageShape::UPDATE_DARK;
-            break;
-        case 2:
-            m_imgShape->m_BrightFile = fileName;
-            m_imgShape->m_texUpdate = ImageShape::UPDATE_BRIGHT;
-            break;
+    case 0:
+        m_imgShape->m_SMFile = fileName;
+        m_imgShape->m_texUpdate = ImageShape::UPDATE_SM;
+        break;
+    case 1:
+        m_imgShape->m_DarkFile = fileName;
+        m_imgShape->m_texUpdate = ImageShape::UPDATE_DARK;
+        break;
+    case 2:
+        m_imgShape->m_BrightFile = fileName;
+        m_imgShape->m_texUpdate = ImageShape::UPDATE_BRIGHT;
+        break;
+    case 4:
+        m_imgShape->m_DispFile = fileName;
+        m_imgShape->m_texUpdate = ImageShape::UPDATE_DISP;
+        break;
     }
 }
 
@@ -86,13 +89,8 @@ ImageShape::~ImageShape()
     glDeleteTextures(1,&m_texDark);
     glDeleteTextures(1,&m_texBright);
     glDeleteTextures(1,&m_texSM);
-}
+    glDeleteTextures(1,&m_texDisp);
 
-
-void ImageShape::getBBox(BBox& bbox) const
-{
-    bbox.P[0].set(-m_width, -m_height);
-    bbox.P[1].set(m_width, m_height);
 }
 
 void ImageShape::calAverageNormal()
@@ -115,19 +113,21 @@ void ImageShape::calAverageNormal()
                     m++;
                 }
             }
-
         float f_r = (float)av_r*2/m/255-1;
         float f_g = (float)av_g*2/m/255-1;
-
-//      float f_b = 1-f_r*f_r-f_g*f_g;
+//        float f_b = 1-f_r*f_r-f_g*f_g;
         //this rgb is normalized
 //        if(f_b>=0)
 //            f_b = sqrt(f_b);
 //        else
 //            //if this rgb is not normalized
 //            f_b = av_b*2/m/255-1;
-
         _shaderParam.m_averageNormal = QVector2D(f_r,f_g);
         qDebug()<<"new normal"<< _shaderParam.m_averageNormal;
     }
+}
+
+void ImageShape::SetPenal(ImageShapeCustomDialog *penal)
+{
+    m_penal = penal;
 }

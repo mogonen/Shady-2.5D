@@ -1,5 +1,5 @@
 #version 130
-uniform sampler2D tex;
+uniform sampler2D texSM, tex;
 uniform float alpha_th;
 uniform float isLabelDepth;
 in vec4 theColor;
@@ -7,8 +7,10 @@ in vec4 theColor;
 
 void main(void)
 {
+    vec4 temp_a = texture2D(texSM, gl_TexCoord[0].st);
     vec4 temp_c = texture2D(tex, gl_TexCoord[0].st);
-    if(temp_c.a<alpha_th)
+
+    if(temp_a.a<alpha_th)
         discard;
     else
     {
@@ -22,9 +24,8 @@ void main(void)
 //                gl_FragColor = vec4(0.0,0.0,1.0,1.0);
         }
         else
-            gl_FragColor = vec4(temp_c.rgb,1.0);
+            gl_FragColor = temp_c;
 
     }
-//    gl_FragColor = theColor;
 
 }

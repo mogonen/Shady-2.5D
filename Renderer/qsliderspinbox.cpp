@@ -17,6 +17,12 @@ void QSliderSpinBox::SetSliderValue(double value)
     emit SliderSpinboxValueChange(value);
 }
 
+
+void QSliderSpinBox::SetValue(double value)
+{
+    this->setValue(value);
+    SetSliderValue(value);
+}
 //void QSliderSpinBox::PopSlider(double value)
 //{
 ////    if(m_SliderFrame->isHidden())

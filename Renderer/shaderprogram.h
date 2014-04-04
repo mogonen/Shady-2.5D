@@ -1,6 +1,9 @@
 #ifndef SHADERPROGRAM_H
 #define SHADERPROGRAM_H
 
+#include "framebufferwrapper.h"
+#include <QGLFramebufferObject>
+
 #include <QGLShaderProgram>
 #include <QGLFunctions>
 #include <QList>
@@ -11,7 +14,7 @@ class shape;
 class ShaderProgram : public QGLShaderProgram, public QGLFunctions
 {
 public:
-    enum SHADER_TYPE {TYPE_RENDER, TYPE_MODEL, TYPE_AMB};
+    enum SHADER_TYPE {TYPE_RENDER, TYPE_MODEL, TYPE_COMPOSITE};
     ShaderProgram(SHADER_TYPE type = TYPE_RENDER);
     ShaderProgram(const QString &VFile, const QString &FFile);
     ~ShaderProgram();
@@ -21,25 +24,33 @@ public:
     void InitializeParameters();
     void SetParametersToShader();
 
+    void BindAllFBO();
+    void ReleaseAllFBO();
+
     void LoadShader(const QString& vshader = QString(),const QString& fshader = QString());
     void ReloadShader();
     static GLuint SetTexture(QPixmap TextureMap, bool isMipmap, bool isReversed);
 
+    void initialiFBO(int w, int h);
+
     void SetTextureToShader();
-    void ResetDarkImage();
-    void ResetBrightImage();
-    void ResetLDImage();
-    void LoadDarkImage(unsigned char *data, int width, int height);
-    void LoadBrightImage(unsigned char *data, int width, int height);
+//    void ResetDarkImage();
+//    void ResetBrightImage();
+//    void ResetLDImage();
+//    void ResetShadeImage();
+//    void LoadDarkImage(unsigned char *data, int width, int height);
+//    void LoadBrightImage(unsigned char *data, int width, int height);
     void LoadBGImage(unsigned char *data, int width, int height);
-    void ComputeAmbImage();
+    void LoadEnvImage(unsigned char *data, int width, int height);
+//    void ComputeAmbImage();
 
-    void InitializeTextures();
-    void GrabShapeMap(int w, int h);
-    void GrabDarkMap();
-    void GrabBrightMap();
-    void GrabLDMap();
-
+//    void InitializeTextures();
+//    void GrabShapeMap(int w, int h);
+//    void GrabDarkMap();
+//    void GrabBrightMap();
+//    void GrabLDMap();
+//    void GrabShadeMap();
+//    void SetShadeMapFBO();
 
     void SetDepthValue(double dep);
     void SetAlphaValue(double alp);
@@ -88,7 +99,12 @@ public:
 //    void LoadAllParamSet();
 //    void LoadParamSet(ShaderParameters *p);
     bool isInitialized(){return m_isInitialized;}
+    bool isFBOInitialized(){return m_isFBOInitialized;}
+    bool isSMInitialized(){return m_isSMInitialized;}
     void SetInitialized(bool v){m_isInitialized = v;}
+    void SetFBOInitialized(bool v){m_isFBOInitialized = v;}
+    bool SetSMInitialized(bool v){m_isSMInitialized=v;}
+
     void LoadShaperParameters(ShapeList Shapes);
 
 //    void LoadShaperParameters(ShapeList Shapes);
@@ -109,18 +125,33 @@ public:
     int m_toggle_ShaAmbCos;
     int m_cur_tex;
     QVector3D m_MousePos;
+
+    //the reaons why I am having FrameBufferWrapper is QGLFramebufferObject has bug
+    // that does not work with ATI video card if there is a depth buffer.
+    // added by Youyou Wang, March 17, 2014
+
     //dark image
-    GLuint m_Dark;
+    FrameBufferWrapper *m_DarkFBO;
     //bright image
-    GLuint m_Bright;
+    FrameBufferWrapper *m_BrightFBO;
     //shape map
-    GLuint m_ShapeMap;
+    FrameBufferWrapper *m_ShapeMapFBO;
     //background image
     GLuint m_BG;
     //label-depth image
-    GLuint m_LD;
+    FrameBufferWrapper *m_LDFBO;
     //label-depth image
-    GLuint m_env;
+    GLuint m_Env;
+    //displacement image
+    FrameBufferWrapper *m_DispFBO;
+    //the results from shading/ambient/shadow
+    // however, FrameBufferWrapper does not work with shader, especially the m_ShadeFBO
+    // which I do not know why, but for time being, I set it as QGLFramebufferObject, scine
+    // it does not use depth buffer, so it should be fine with ATI video card
+    // so I have to set it as QGLFramebufferObject,
+    // added by Youyou Wang, March 17, 2014
+    QGLFramebufferObject *m_ShadeFBO;
+
 
     SHADER_TYPE m_type;
 
@@ -139,11 +170,15 @@ private:
     GLuint m_ShaderDepth;
 
     //make sure glCopyTextue is called before subTex is called
-    bool m_SMInitialized;
-    bool m_DarkInitialized;
-    bool m_BrightInitialized;
-    bool m_LDInitialized;
+//    bool m_SMInitialized;
+//    bool m_DarkInitialized;
+//    bool m_BrightInitialized;
+//    bool m_LDInitialized;
+//    bool m_SDInitialized;
+
     bool m_isInitialized;
+    bool m_isFBOInitialized;
+    bool m_isSMInitialized;
 };
 
 #endif // SHADERPROGRAM_H

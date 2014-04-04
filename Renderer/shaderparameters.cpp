@@ -9,6 +9,8 @@ ShaderParameters::ShaderParameters()
     m_SMQuality = 0.5;
     m_averageNormal = QVector2D(0.0,0.0);
     m_trueNormal = QVector3D(0.0,0.0,1.0);
+    m_reflectToggled = false;
+    m_shadowcreator = true;
 }
 
 ShaderParameters::~ShaderParameters()

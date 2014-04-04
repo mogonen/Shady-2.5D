@@ -3,6 +3,5 @@
         <file>Basic.fsh</file>
         <file>Basic.vsh</file>
         <file>Modelling.fsh</file>
-        <file>Ambient.fsh</file>
     </qresource>
 </RCC>

@@ -1,11 +1,11 @@
 #ifndef IMAGESHAPE_H
 #define IMAGESHAPE_H
 
-#include "./Shape.h"
-#include "./customdialog.h"
-
 #include <QString>
 #include <qgl.h>
+
+#include "./Shape.h"
+#include "./customdialog.h"
 
 class ImageShape;
 class ImageShapeCustomDialog : public CustomDialog
@@ -21,29 +21,16 @@ private slots:
     void LoadTextureImage();
 
 private:
-    ImageShape*     m_imgShape;
+    ImageShape* m_imgShape;
     QDoubleSpinBox* m_returnWidth;
     QDoubleSpinBox* m_returnHeight;
 };
 
+
 class ImageShape : public Shape
 {
-
-protected:
-
-    void onApplyT(const Matrix3x3& tM)
-    {
-        Vec3 v   = tM*Vec3(m_width, m_height, 0);
-        m_width  = v.x;
-        m_height = v.y;
-
-        v = tM*Vec3(0, 0, 1);
-        pP()->set(P() + Point(v.x/v.z, v.y/v.z));
-    }
-
 public:
-
-    ImageShape(int w = 1.0, int h = 1.0);
+    ImageShape(int w = 1, int h = 1);
     ~ImageShape();
     void render(int mode);
     void calAverageNormal();
@@ -51,14 +38,14 @@ public:
     void InitializeTex();
     void LoadTextureImage(int );
     void LoadTextureImage();
-    void SetPenal(ImageShapeCustomDialog *penal){m_penal = penal;}
-    float CapValue(float in_num, float low_cap, float high_cap);
+    void SetPenal(ImageShapeCustomDialog *penal);
+    void renderBBox();
 
-    void getBBox(BBox& bbox) const;
+    ShapeType   type() const {return IMAGE_SHAPE;}
 
     ImageShapeCustomDialog* GetPenal(){return m_penal;}
 
-    enum{NO_UPDATE = 0, UPDATE_SM = 1, UPDATE_BRIGHT = 2, UPDATE_DARK = 4} texType;
+    enum{NO_UPDATE = 0, UPDATE_SM = 1, UPDATE_BRIGHT = 2, UPDATE_DARK = 4, UPDATE_DISP = 8} texType;
 
     double m_alpha_th;
     double m_stretch;
@@ -71,13 +58,20 @@ public:
     GLuint m_texSM;
     GLuint m_texDark;
     GLuint m_texBright;
+    GLuint m_texDisp;
+
     QString m_SMFile;
     QString m_DarkFile;
     QString m_BrightFile;
+    QString m_DispFile;
     //shape map image will be saved for further use
     QImage m_SMimg;
     int m_curTexture;
     ImageShapeCustomDialog *m_penal;
 };
+
+inline float CapValue(float x, float lo, float hi){
+    return (x < lo) ? lo : ((x>hi)?hi:x);
+}
 
 #endif // IMAGESHAPE_H

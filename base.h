@@ -32,7 +32,8 @@ class ShapeControl;
 class MainWindow;
 
 enum RenderSetting  {DRAG_ON, SHADING_ON, AMBIENT_ON, SHADOWS_ON, NORMALS_ON, WIREFRAME_ON, PREVIEW_ON};
-enum PreviewSetting {DEFAULT_MODE = 0, SM_MODE = 1, DARK_MODE = 2, BRIGHT_MODE = 4, LABELDEPTH_MODE = 8};
+enum PreviewSetting {DEFAULT_MODE = 0, DRAG_MODE = 1, SM_MODE = 2, DARK_MODE = 4, BRIGHT_MODE = 8, LABELDEPTH_MODE = 16, DISPLACE_MODE = 32};
+        //{DEFAULT_MODE = 0, SM_MODE = 1, DARK_MODE = 2, BRIGHT_MODE = 4, LABELDEPTH_MODE = 8};
 
 
 typedef void* Void_p;
@@ -48,6 +49,10 @@ typedef Vec2*   Point_p;
 
 typedef Vec3    Normal;
 typedef Vec3*   Normal_p;
+
+typedef Vec4    RGBA;
+typedef Vec4*   RGBA_p;
+
 
 typedef std::list<Point> PointList;
 typedef std::list<Point_p> Point_pList;
@@ -254,6 +259,12 @@ public:
 struct ShapeVertex;
 bool isInRenderMode();
 
+
+enum SelectionMode {NOSELECT, SELECT_SHAPE, SELECT_VERTEX, SELECT_VERTEX_VERTEX, SELECT_EDGE, SELECT_FACE, SELECT_CORNER, SELECT_EDGE_EDGE};
+enum Channel       {NORMAL_CHANNEL, DARK_CHANNEL, BRIGHT_CHANNEL, ALPHA_CHANNEL, DEPTH_CHANNEL,  GL_SHADING, PREVIEW};
+
+#define NUM_CHANNELS 3
+
 typedef class Command{
     int _id;
 
@@ -266,20 +277,20 @@ protected:
 
 public:
 
-    enum CommandType {NONE, MESH_OPERATION, MESH_PRIMITIVE, DRAG, SHAPE_ORDER};//needed?
+    enum CommandType        {NONE, MESH_OPERATION, MESH_PRIMITIVE, DRAG, SHAPE_ORDER, SET_COLOR};//needed?
 
     //enum ExecMode    {NONE, ON_SELECT, ON_UP, ON_DOWN, ON_};
 
-    Command(){}
+    virtual Command*        exec() = 0;
+    virtual Command*        unexec() = 0;
+    virtual CommandType     type() const = 0;
 
-    virtual Command*    exec() = 0;
-    virtual Command*    unexec() = 0;
-    virtual CommandType  type() const = 0;
+    void                    select(){onSelect();}
+    void                    unselect(){onUnselect();}
+    void                    cancel(){onCancel();}
+    void                    sendClick(const Click& c){onClick(c);}
 
-    void            select(){onSelect();}
-    void            unselect(){onUnselect();}
-    void            cancel(){onCancel();}
-    void            sendClick(const Click& c){onClick(c);}
+    virtual SelectionMode   selectMode() const {return NOSELECT;}
 
 }* Command_p;
 
@@ -315,6 +326,7 @@ class Session{
     CommandList         _commands;
     Command_p           _pTheCommand;
     Shape*              _pTheShape;
+    Channel             _channel;
 
 
     static Session*     _pSession;
@@ -344,6 +356,8 @@ public:
 
     static Session*     get(){return _pSession;}
     static bool         isRender(RenderSetting rs);
+    static Channel      channel();
+    static SelectionMode selectMode();
 
     void                open(const char *fname);
     void                saveAs(const char* fname);
@@ -359,6 +373,9 @@ public:
     void                cancel();
 
     void                sendClick(const Click&);
+
+    void                setChannel(Channel channel);
+
 
 };
 

@@ -16,13 +16,14 @@ public:
     QFrame *m_SliderFrame;
     QSlider *m_Slider;
     double GetDoubleValue();
-
 private:
 protected:
 
 signals:
+    //this is only in-class use, do not use this signal, use the QDoubleSpinBox's signal instead
     void SliderSpinboxValueChange(double);
 public slots:
+    void SetValue(double);
     void SetChangeRange(int low, int high);
     void SetChangeStep(double step);
     void SetDoubleValue(int value);

@@ -45,7 +45,6 @@
 
 #include "canvas.h"
 
-
 unsigned int    GLWidget::_renderFlags;
 
 GLuint          SelectBuff[SELECT_BUFF_SIZE];
@@ -68,6 +67,7 @@ GLWidget::GLWidget(Canvas * pCanvas, QWidget *parent)
 #ifndef    MODELING_MODE
     _pGLSLShader_M = NULL;
     _pGLSLShader_R = NULL;
+    _pGLSLShader_C = NULL;
     _translateX = 0;
     _translateY = 0;
     _translateZ = 0;
@@ -116,8 +116,6 @@ void GLWidget::initializeGL()
 
      //glClearColor(1.0, 1.0, 1.0, 1.0);
      //Lighting
-     GLfloat mat_specular[]   = { 1.0, 1.0, 1.0, 1.0 };
-     GLfloat mat_shininess[]  = { 50.0 };
      GLfloat light_position[] = { -1.0, 1.0, 1.0, 0.0 };
 
 
@@ -125,8 +123,9 @@ void GLWidget::initializeGL()
      glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,colour) ;
      glLightfv(GL_LIGHT0,GL_SPECULAR,colour);
 
-//     glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
-//     glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+     //glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+     //glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+
      glLightfv(GL_LIGHT0, GL_POSITION, light_position);
      glEnable(GL_LIGHT0);
 
@@ -139,6 +138,8 @@ void GLWidget::initializeGL()
      _pGLSLShader_R->Initialize();
      _pGLSLShader_M = new ShaderProgram(ShaderProgram::TYPE_MODEL);
      _pGLSLShader_M->Initialize();
+     _pGLSLShader_C = new ShaderProgram(ShaderProgram::TYPE_COMPOSITE);
+     _pGLSLShader_C->Initialize();
      m_CameraChanged = true;
 #endif
 

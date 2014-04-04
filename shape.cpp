@@ -1,11 +1,15 @@
 #include "shape.h"
 #include "commands.h"
+#include "Renderer/layernormalcontrol.h"
 
 //ShapeVertex///////////////////////////////////////////////////////////////////////////
 
 ShapeVertex::ShapeVertex(Shape_p pS, bool isP, bool isN):ControlPoint(&_P){
     _pShape = pS;
-    _N.set(0,0,1);
+    data[NORMAL_CHANNEL].set(0,0,1);
+    data[BRIGHT_CHANNEL].set(1,1,1);
+    data[DARK_CHANNEL].set(0,0,0);
+
     flag = 0x00;
      _pair = 0;
     isPositionControl = isP;
@@ -52,6 +56,11 @@ ShapeVertex::~ShapeVertex(){
         _pair->_pair =0;
 }
 
+void ShapeVertex::outdate()
+{
+    _pShape->outdate(this);
+}
+
 void ShapeVertex::onDrag(const Vec2 &t, int button){
 
     //if (button==)
@@ -88,7 +97,7 @@ void ShapeVertex::onDrag(const Vec2 &t, int button){
 void ShapeVertex::dragNormal(const Vec2 &t){
     _pShape->outdate(this);
 
-    Vec2 v = (Vec2(_N.x*NORMAL_RAD, _N.y*NORMAL_RAD) + t);
+    Vec2 v = (Vec2(data[NORMAL_CHANNEL].x*NORMAL_RAD, data[NORMAL_CHANNEL].y*NORMAL_RAD) + t);
     double l = v.norm();
     if ( l > NORMAL_RAD ){
         v = v.normalize()*NORMAL_RAD;
@@ -97,7 +106,7 @@ void ShapeVertex::dragNormal(const Vec2 &t){
     double h = sqrt(NORMAL_RAD*NORMAL_RAD - l*l);
     if (h < 0)
         h = 0;
-    _N.set(Vec3(v.x, v.y, h).normalize());
+    data[NORMAL_CHANNEL].set(Vec3(v.x, v.y, h).normalize());
 }
 
 void   ShapeVertex::setTangent(const Vec2& tan, bool isnormal, bool ispair){
@@ -131,7 +140,7 @@ SVCache::SVCache(ShapeVertex_p sv){
 
 void SVCache::restore(){
 
-    _sv->_N = _N;
+    _sv->data[NORMAL_CHANNEL] = _N;
     _sv->_P = _P;
     _sv->unparent();
     if (_parent){
@@ -158,11 +167,14 @@ void SVCache::restore(){
 }
 
 //Shape////////////////////////////////////////////////////////////////////////////////////
-
-Shape::Shape():Draggable(false, &_t0){
+Shape::Shape():Draggable(false, &_t0)
+{
     _flags = 0;
     _tM.identity();
-    //diffuse.setRed(255);
+    diffuse.setRed(255);
+
+    _layerNormal    = QVector3D(0.0,0.0,1.0);
+    _NormalControl  = new LayerNormalControl(this);
 }
 
 Shape::~Shape(){
@@ -232,9 +244,9 @@ void Shape::applyT(const Matrix3x3& M){
     FOR_ALL_ITEMS(SVList, _vertices){
         ShapeVertex_p sv = (*it);
         Vec3 p = M*Vec3(sv->_P.x, sv->_P.y, 1);
-        Vec3 n = M*Vec3(sv->_N.x, sv->_N.y, 0);
+        //Vec3 n = M*Vec3(sv->_N.x, sv->_N.y, 0);
         sv->_P.set(p.x/p.z, p.y/p.z);
-        sv->_N.set(Vec3(n.x, n.y,sv->_N.z).normalize());
+        //sv->_N.set(Vec3(n.x, n.y,sv->_N.z).normalize());
     }
     onApplyT(M);
     Renderable::update();
@@ -243,13 +255,14 @@ void Shape::applyT(const Matrix3x3& M){
 void Shape::frezeT(){
     applyT(_tM);
     _tM.identity();
+    diffuse.setRed(250);
     //centerPivot();
 }
 
-void Shape::getBBox(BBox &bbox) const{
+void Shape::getBBox(BBox &bbox) const
+{
     bbox.P[0].set(99999, 99999);
     bbox.P[1].set(-99999, -99999);
-
     FOR_ALL_CONST_ITEMS(SVList, _vertices){
         ShapeVertex_p sv = (*it);
         //if (sv->_Parent()) continue;

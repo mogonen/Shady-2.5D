@@ -1,8 +1,8 @@
 CONFIG +=
 
 #DEFINES += SHOW_DLFL
-DEFINES += MODELING_MODE
-#DEFINES += RENDERING_MODE
+#DEFINES += MODELING_MODE
+DEFINES += RENDERING_MODE
 
 HEADERS += glwidget.h \
     mainwindow.h \
@@ -97,27 +97,25 @@ FACIAL_SHAPE{
 
 
 MODELING_MODE{
-
 HEADERS +=
 SOURCES +=
-
-
 }
-
-Rend{
 
     HEADERS +=  Renderer/shaderprogram.h \
     Renderer/shaderparameters.h \
     Renderer/qsliderspinbox.h \
     Renderer/renderoptionspenal.h \
     Renderer/imageshape.h \
+    Renderer/layernormalcontrol.h \
+    Renderer/framebufferwrapper.h
 
     SOURCES += Renderer/qsliderspinbox.cpp \
-    Renderer/renderoptionspenal.cpp \
-    Renderer/imageshape.cpp \
     Renderer/shaderprogram.cpp \
     Renderer/shaderparameters.cpp \
-}
+    Renderer/renderoptionspenal.cpp \
+    Renderer/imageshape.cpp \
+    Renderer/layernormalcontrol.cpp \
+    Renderer/framebufferwrapper.cpp
 
 RESOURCES += \
     Renderer/Shaders.qrc

@@ -9,30 +9,35 @@
 
 using namespace dlfl;
 
+typedef RGB*                Map;
+typedef std::vector<Map>    MapList;
+
 class Patch:public Selectable {
 
 protected:
-   Point* _ps;
-   Vec3*  _ns;
-   Face_p _pFace;
-   Point  _K[16]; //bezier surface
+   Point*   _ps;
+   Face_p   _pFace;
+   Point    _K[16]; //bezier surface
 
-   Point   K(int ei, int i);
+   Point    K(int ei, int i);
 
-   static  Vec3 decompose(const Vec3& v, const Vec3& nx);
-   static  Vec3 compose(const Vec3& v, const Vec3& nx);
+   static   Vec3 decompose(const Vec3& v, const Vec3& nx);
+   static   Vec3 compose(const Vec3& v, const Vec3& nx);
 
-   int     _sampleU, _sampleV, _sampleUi, _sampleVi, _sampleUV;
-   double  _Tu, _Tv;
+   int      _sampleU, _sampleV, _sampleUi, _sampleVi, _sampleUV;
+   double   _Tu, _Tv;
+
+   MapList  _maps;
 
 public:
-
 
     Patch(Face_p);
     Corner* C(int i) const {return _pFace->C(i);}
 
     //virtual void interpolateNormals()=0;
     void propateNormals();
+    void propateMap(int);
+
     Normal computeN(Corner_p);
     Normal computeN(Corner_p, double);
 
@@ -82,7 +87,9 @@ public:
 class Patch4:public Patch{
 
     inline Point P(int i, int j)const{return _ps[i + j*_sampleU];}
+
     Vec3   interpolateN(int, int);
+    RGB interpolate(int i, int j, Map map);
 
 protected:
 
@@ -93,9 +100,9 @@ public:
     virtual void render(int mode = 0);
 
     Patch4(Face_p);
-    //~Patch4();
 
     void interpolateNormals();
+    void interpolateMap(int channel);
 
 };
 

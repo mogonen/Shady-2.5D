@@ -49,5 +49,29 @@ private:
 
 };
 
+class SetColor:public Command{
+
+protected:
+
+    void onClick(const Click &);
+
+public:
+
+    SetColor(){}
+
+    Command_p       exec();
+    Command_p       unexec();
+
+    CommandType     type() const {return SET_COLOR;}
+    SelectionMode   selectMode() const{return SELECT_VERTEX;}
+
+
+private:
+
+    ShapeVertex_p       _pSV;
+    RGB                 _col;
+    Channel             _channel;
+};
+
 
 #endif // COMMANDS_H

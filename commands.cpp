@@ -1,3 +1,4 @@
+#include <QColorDialog>
 #include "commands.h"
 #include "canvas.h"
 
@@ -80,5 +81,31 @@ switch(_operation){
 
 Command_p ShapeOrder::unexec(){        
     Session::get()->canvas()->setShapeList(_shapes);
+    return 0;
+}
+
+//this shoud prefebly on select
+void SetColor::onClick(const Click& click){
+    if (!click.is(Click::UP))
+        return;
+
+   _pSV = dynamic_cast<ShapeVertex_p>(Session::get()->selectionMan()->getLastSelected());
+   if (_pSV)
+       exec();
+}
+
+Command_p SetColor::exec()
+{
+    _channel    = Session::channel();
+    _col        = _pSV->data[(int)_channel];
+    QColor color = QColorDialog::getColor(Qt::black, (QWidget*)Session::get()->glWidget(), "Text Color",  QColorDialog::DontUseNativeDialog);
+    _pSV->data[(int)_channel] = RGB(color.redF(), color.greenF(), color.blueF());
+    _pSV->outdate();
+    return new SetColor();
+}
+
+Command_p SetColor::unexec()
+{
+    _pSV->data[_channel] = _col;
     return 0;
 }
