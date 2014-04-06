@@ -92,7 +92,7 @@ ImageShape::~ImageShape()
     glDeleteTextures(1,&m_texDisp);
 
 }
-
+/*
 void ImageShape::calAverageNormal()
 {
     if(!m_SMimg.isNull())
@@ -126,7 +126,7 @@ void ImageShape::calAverageNormal()
         qDebug()<<"new normal"<< _shaderParam.m_averageNormal;
     }
 }
-
+*/
 void ImageShape::SetPenal(ImageShapeCustomDialog *penal)
 {
     m_penal = penal;

@@ -8,6 +8,7 @@ void LayerNormalControl::onDrag(const Point &t, int button)
         _EndPoint.set(_EndPoint - t);
 }
 
+/*
 QVector3D  LayerNormalControl::Normal3D()
 {
     return QVector3D(P().x,P().y,sqrt(_Radius*_Radius-P().x*P().x-P().y*P().y))/_Radius;
@@ -17,5 +18,7 @@ void  LayerNormalControl::SetNormal3D(QVector3D normal3D)
 {
 
     pP()->set(normal3D.x()*_Radius,normal3D.y()*_Radius);
+    _pShape->data[NORMAL_CHANNEL].set(normal3D.x(), normal3D.y(), normal3D.z());
 }
 
+*/

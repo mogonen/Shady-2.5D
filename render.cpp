@@ -349,9 +349,16 @@ void MeshShape::render(int mode) {
             else if (mode&DARK_MODE)
                 glColor3f(0.1, 0.1, 0.1); //glColor3f(diffuse.redF()*0.1, diffuse.greenF()*0.1, diffuse.blueF()*0.1);
         }else if (Session::isRender(SHADING_ON)){
-            GLfloat mat_diff[] = { diffuse.redF(), diffuse.greenF(), diffuse.blueF(), 1.0 };
+            RGB diff = data[BRIGHT_CHANNEL];
+            RGB amb  = data[DARK_CHANNEL];
+
+            GLfloat mat_diff[] = { diff.x, diff.y, diff.z, 1.0 };
+            GLfloat mat_amb[] = { amb.x, amb.y, amb.z, 1.0 };
+
             //GLfloat mat_shininess[] = { 50.0 };
             glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diff);
+            glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_amb);
+
             //glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
         }
 
@@ -576,8 +583,15 @@ void EllipseShape::render(int mode){
 
     if (isGLShading)
     {
-        GLfloat mat_diff[] = { diffuse.redF(), diffuse.greenF(), diffuse.blueF(), 1.0 };
+        RGB diff = data[BRIGHT_CHANNEL];
+        RGB amb  = data[DARK_CHANNEL];
+
+        GLfloat mat_diff[] = { diff.x, diff.y, diff.z, 1.0 };
+        GLfloat mat_amb[] = { amb.x, amb.y, amb.z, 1.0 };
+
+        //GLfloat mat_shininess[] = { 50.0 };
         glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diff);
+        glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_amb);
     }
 
     FOR_ALL_J(_segV){

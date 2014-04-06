@@ -8,10 +8,10 @@ ShapeVertex::ShapeVertex(Shape_p pS, bool isP, bool isN):ControlPoint(&_P){
     _pShape = pS;
 
     //init channels
-    data[NORMAL_CHANNEL].set(0,0,1);
-    data[BRIGHT_CHANNEL].set(1,1,1);
-    data[DARK_CHANNEL].set(0,0,0);
-    data[DEPTH_CHANNEL].set(0.5, 0.5, 0.5);
+    data[NORMAL_CHANNEL] = _pShape->data[NORMAL_CHANNEL];
+    data[BRIGHT_CHANNEL] = _pShape->data[BRIGHT_CHANNEL];
+    data[DARK_CHANNEL] = _pShape->data[DARK_CHANNEL];
+    data[DEPTH_CHANNEL] = _pShape->data[DEPTH_CHANNEL];
     //data[ALPHA_CHANNEL].set(1.0,1.0,1.0);
 
     flag = 0x00;
@@ -175,9 +175,15 @@ Shape::Shape():Draggable(false, &_t0)
 {
     _flags = 0;
     _tM.identity();
-    diffuse.setRed(255);
 
-    _layerNormal    = QVector3D(0.0,0.0,1.0);
+
+    data[NORMAL_CHANNEL].set(0.0, 0.0, 1.0);
+    data[BRIGHT_CHANNEL].set(1.0, 1.0, 1.0);
+    data[DARK_CHANNEL].set(0.0, 0.0, 0.0);
+    data[DEPTH_CHANNEL].set(0.5, 0.5, 0.5);
+
+
+    //_layerNormal    = QVector3D(0.0,0.0,1.0);
     _NormalControl  = new LayerNormalControl(this);
 }
 
@@ -259,7 +265,6 @@ void Shape::applyT(const Matrix3x3& M){
 void Shape::frezeT(){
     applyT(_tM);
     _tM.identity();
-    diffuse.setRed(250);
     //centerPivot();
 }
 

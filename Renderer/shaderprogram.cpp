@@ -733,7 +733,8 @@ void ShaderProgram::LoadShaperParameters(ShapeList Shapes)
     //position 0 is (0,0,0),
     //since shader takes 0 as background
     int m=1;
-    FOR_ALL_CONST_ITEMS(ShapeList, Shapes){
+    FOR_ALL_CONST_ITEMS(ShapeList, Shapes)
+    {
         ShaderParameters Param = (*it)->getShaderParam();
         refValues[m] = Param.m_alphaValue;
         reflToggled[m] = Param.m_reflectToggled;

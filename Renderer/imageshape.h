@@ -33,7 +33,7 @@ public:
     ImageShape(int w = 1, int h = 1);
     ~ImageShape();
     void render(int mode);
-    void calAverageNormal();
+    //void calAverageNormal();
 
     void InitializeTex();
     void LoadTextureImage(int );

@@ -196,7 +196,8 @@ public:
     void                unset(unsigned int bit){_flags &= ~(1 << bit);}
 
     //for now
-    QColor diffuse;
+    //QColor diffuse;
+
 
 #ifndef MODELING_MODE
     //These eventually need to move out
@@ -212,7 +213,10 @@ public:
     //protected:
     ShaderParameters         _shaderParam;
     LayerNormalControl*      _NormalControl;
-    QVector3D                _layerNormal;
+    //QVector3D                _layerNormal;
+
+
+    RGB                 data[ACTIVE_CHANNELS];
 #endif
 
 };
