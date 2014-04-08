@@ -68,6 +68,17 @@ public:
         bbox.P[1].set(_radX>0?_radX:-_radX, _radY>0?_radY:-_radY);
     }
 
+    void setRad(double rx, double ry)
+    {
+        _radX = rx;
+        _radY = ry;
+    }
+
+    void getRad(double &rx, double &ry){
+        rx = _radX;
+        ry = _radY;
+    }
+
     static double Radius;
 };
 

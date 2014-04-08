@@ -176,12 +176,10 @@ Shape::Shape():Draggable(false, &_t0)
     _flags = 0;
     _tM.identity();
 
-
     data[NORMAL_CHANNEL].set(0.0, 0.0, 1.0);
     data[BRIGHT_CHANNEL].set(1.0, 1.0, 1.0);
     data[DARK_CHANNEL].set(0.0, 0.0, 0.0);
     data[DEPTH_CHANNEL].set(0.5, 0.5, 0.5);
-
 
     //_layerNormal    = QVector3D(0.0,0.0,1.0);
     _NormalControl  = new LayerNormalControl(this);

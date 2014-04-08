@@ -8,6 +8,7 @@
 class MeshShape;
 class EllipseShape;
 class GridPattern;
+class ImageShape;
 
 struct Load{
     Selectable_p pObj;
@@ -29,7 +30,12 @@ class DefaultIO:public FileIO
     bool read(Shape*);
 
     bool writeMeshShape(MeshShape*, ofstream&);
+    bool writeEllipseShape(EllipseShape*, ofstream&);
+    bool writeImageShape(ImageShape * pIS, ofstream& outfile);
+
     bool parseMeshShape(MeshShape*);
+    bool parseEllipseShape(EllipseShape*);
+    bool parseImageShape(ImageShape*);
 
     Shape*  parseShape(const char*);
 

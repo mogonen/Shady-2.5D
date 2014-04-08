@@ -90,8 +90,22 @@ ImageShape::~ImageShape()
     glDeleteTextures(1,&m_texBright);
     glDeleteTextures(1,&m_texSM);
     glDeleteTextures(1,&m_texDisp);
-
 }
+
+void ImageShape::getBBox(BBox& bbox) const{
+    bbox.P[0].set(-m_width, -m_height); //_radX>0?-_radX:_radX, _radY>0?-_radY:_radY);
+    bbox.P[1].set(m_width, m_height); //_radX>0?_radX:-_radX, _radY>0?_radY:-_radY);
+}
+
+void ImageShape::onApplyT(const Matrix3x3& tM){
+    Vec3 v = tM*Vec3(m_width, m_height, 0);
+    m_width = v.x;
+    m_height = v.y;
+
+    v = tM*Vec3(0, 0, 1);
+    pP()->set(P() + Point(v.x/v.z, v.y/v.z));
+}
+
 /*
 void ImageShape::calAverageNormal()
 {

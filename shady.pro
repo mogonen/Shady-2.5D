@@ -55,12 +55,13 @@ SOURCES += glwidget.cpp \
     selection.cpp \
     session.cpp \
     meshshape/meshcommands.cpp \
-    fileio.cpp \
     commands.cpp \
     meshshape/patternpatch.cpp \
     meshshape/pattern.cpp \
     INPExporter.cpp \
-    meshshape/curvededge.cpp
+    meshshape/curvededge.cpp \
+    fileio_write.cpp \
+    fileio_read.cpp
 
 
 QT           += opengl widgets
