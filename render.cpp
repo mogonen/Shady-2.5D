@@ -115,7 +115,7 @@ void ShapeControl::renderControls(Shape_p shape)
     if (_theHandler->isActive())
             return;
 
-    //shape->_NormalControl->render();
+    shape->_NormalControl->render();
 
     SVList verts = shape->getVertices();
     FOR_ALL_CONST_ITEMS(SVList, verts){
@@ -582,18 +582,22 @@ void EllipseShape::render(int mode){
 
     bool isGLShading = (Session::channel() == GL_SHADING) && !Session::isRender(PREVIEW_ON);
     //bool isNormalChannel =  (Session::channel() == NORMAL_CHANNEL && !mode) || (mode&SM_MODE);
+    RGB bright = data[BRIGHT_CHANNEL];
+    RGB dark  = data[DARK_CHANNEL];
+    RGB depth  = data[DEPTH_CHANNEL];
+
+    RGB col = data[Session::channel()<ACTIVE_CHANNELS ? Session::channel() : (ACTIVE_CHANNELS-1) ];
+
 #ifdef RENDERING_MODE
     if (isGLShading)
     {
-        RGB diff = data[BRIGHT_CHANNEL];
-        RGB amb  = data[DARK_CHANNEL];
 
-        GLfloat mat_diff[] = { diff.x, diff.y, diff.z, 1.0 };
-        GLfloat mat_amb[] = { amb.x, amb.y, amb.z, 1.0 };
+        GLfloat mat_diff[] = { bright.x, bright.y, bright.z, 1.0 };
+        GLfloat mat_amb[] = { dark.x, dark.y, dark.z, 1.0 };
 
         //GLfloat mat_shininess[] = { 50.0 };
         glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diff);
-        glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_amb);
+        glMaterialfv(GL_FRONT, GL_AMBIENT, mat_amb);
     }
 #endif
 
@@ -656,20 +660,31 @@ void EllipseShape::render(int mode){
             glBegin(GL_POLYGON);
             for(int k = 0; k < size; k++)
             {
+                //verry messy, fix this!!!
+
                 if (isGLShading)
                 {
                     glNormal3f(n[k].x, n[k].y, n[k].z );
                 }
-                else
+                else if (mode)
                 {
-                    //fix this!!
                     if (mode&DARK_MODE)
-                        glColor3f(0.1, 0.1, 0.1);
+                        glColor3f(dark.x, dark.y, dark.z);
                     else if (mode&BRIGHT_MODE)
-                        glColor3f(0.8, 0.8, 0.8);
-                    else{
+                        glColor3f(bright.x, bright.y, bright.z);
+                    else if (mode&LABELDEPTH_MODE) {
+                        glColor3f(depth.x, depth.y, depth.z);
+                    }
+                    else if (mode&SM_MODE) {
                         glColor3f((n[k].x+1)/2, (n[k].y+1)/2, 1.0);
                     }
+                }else{
+                    if (Session::channel() == NORMAL_CHANNEL)
+                    {
+                        glColor3f((n[k].x+1)/2, (n[k].y+1)/2, 1.0);
+                    }
+                    else
+                        glColor3f(col.x, col.y, col.z);
                 }
 
                 glVertex2f(p[k].x, p[k].y);
@@ -759,6 +774,195 @@ void ImageShape::InitializeTex()
     }
     m_texUpdate = NO_UPDATE;
 }
+
+void ImageShape::render(int mode)
+{
+    Shape::render(mode);
+    if(m_texUpdate!=NO_UPDATE)
+        InitializeTex();
+
+    Session::get()->glWidget()->glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_texSM);
+    glDisable(GL_TEXTURE0);
+    Session::get()->glWidget()->glActiveTexture(GL_TEXTURE0+1);
+    if(mode&DEFAULT_MODE||mode&DRAG_MODE&&!(mode&SM_MODE||mode&DARK_MODE||mode&BRIGHT_MODE||mode&LABELDEPTH_MODE))
+    {
+
+        switch(m_curTexture)
+        {
+        case 0:
+            glBindTexture(GL_TEXTURE_2D, m_texSM);
+            break;
+        case 1:
+            glBindTexture(GL_TEXTURE_2D, m_texDark);
+            break;
+        case 2:
+            glBindTexture(GL_TEXTURE_2D, m_texBright);
+            break;
+        case 3:
+            glBindTexture(GL_TEXTURE_2D, m_texSM);
+            mode = mode|LABELDEPTH_MODE;
+        case 4:
+            glBindTexture(GL_TEXTURE_2D, m_texDisp);
+            break;
+        }
+
+    }
+    else
+    {
+
+
+        if(mode&SM_MODE||mode&LABELDEPTH_MODE)
+            glBindTexture(GL_TEXTURE_2D, m_texSM);
+        else if(mode&DARK_MODE)
+            glBindTexture(GL_TEXTURE_2D, m_texDark);
+        else if(mode&BRIGHT_MODE)
+            glBindTexture(GL_TEXTURE_2D, m_texBright);
+        else if(mode&DISPLACE_MODE)
+            glBindTexture(GL_TEXTURE_2D, m_texDisp);
+    }
+    glDisable(GL_TEXTURE0+1);
+
+    Session::get()->glWidget()->glActiveTexture(GL_TEXTURE0);
+    glDisable(GL_TEXTURE0);
+
+
+    Session::get()->glWidget()->getMShader()->bind();
+    Session::get()->glWidget()->getMShader()->setUniformValue("alpha_th", (float)m_alpha_th);
+    Session::get()->glWidget()->getMShader()->setUniformValue("texSM", 0);
+    Session::get()->glWidget()->getMShader()->setUniformValue("tex", 1);
+
+    if(mode&LABELDEPTH_MODE)
+        Session::get()->glWidget()->getMShader()->setUniformValue("isLabelDepth", (float)1.0);
+    else
+        Session::get()->glWidget()->getMShader()->setUniformValue("isLabelDepth", (float)0.0);
+
+
+    QVector3D layerNormal = _NormalControl->Normal3D();
+    qDebug()<<layerNormal;
+    double delta_LB2RT;
+    double delta_LT2BR;
+    if(layerNormal.z()>0.1)
+    {
+        delta_LB2RT = -(layerNormal.x()*m_width+layerNormal.y()*m_height)/layerNormal.z();
+        delta_LT2BR = -(layerNormal.x()*m_width-layerNormal.y()*m_height)/layerNormal.z();
+    }
+    else
+    {
+        delta_LB2RT = 1;
+        delta_LT2BR = 1;
+    }
+
+    double center_depth = this->m_assignedDepth;
+
+
+    //1.1 is for numerical issue
+    float blf = (center_depth-delta_LB2RT);
+    blf = CapValue(blf,0,1);
+    float tlf = (center_depth-delta_LT2BR);
+    tlf = CapValue(tlf,0,1);
+    float trf = (center_depth+delta_LB2RT);
+    trf = CapValue(trf,0,1);
+    float brf = (center_depth+delta_LT2BR);
+    brf = CapValue(brf,0,1);
+
+    glBegin(GL_QUADS);
+    glColor4f(center_depth,blf,((float)_shaderParam.m_layerLabel+1.01)/255.0,1.0);
+    glTexCoord2d(0.0,0.0);
+    glVertex3f(-m_width,-m_height,blf);
+    QVector3D bl(-m_width,-m_height,blf);
+//    glVertex3f(-m_width,-m_height,0.5);
+
+    glColor4f(center_depth,tlf,((float)_shaderParam.m_layerLabel+1.01)/255.0,1.0);
+    glTexCoord2d(0.0,1.0);
+    glVertex3f(-m_width,m_height,tlf);
+    QVector3D tl(-m_width,m_height,tlf);
+//    glVertex3f(-m_width,m_height,0.5);
+
+    glColor4f(center_depth,trf,((float)_shaderParam.m_layerLabel+1.01)/255.0,1.0);
+    glTexCoord2d(1.0,1.0);
+    glVertex3f(m_width,m_height,trf);
+    QVector3D tr(m_width,m_height,trf);
+
+//    glVertex3f(m_width,m_height,0.5);
+
+    glColor4f(center_depth,brf,((float)_shaderParam.m_layerLabel+1.01)/255.0,1.0);
+    glTexCoord2d(1.0,0.0);
+    glVertex3f(m_width,-m_height,brf);
+    QVector3D br(m_width,-m_height,brf);
+    glEnd();
+
+    QVector3D n1 = QVector3D::crossProduct(br-bl,tl-bl);
+//    qDebug()<<n1;
+    _shaderParam.m_trueNormal = QVector3D(n1.x(),n1.y(), n1.z()).normalized();
+//    _NormalControl->SetNormal3D(_shaderParam.m_trueNormal);
+//    _shaderParam.m_trueNormal = _layerNormal;
+
+//    if(n1.z()>0)
+//        _shaderParam.m_trueNormal = n1.normalized();
+//    else
+//        _shaderParam.m_trueNormal = -n1.normalized();
+
+//    qDebug()<<"bl"<<blf<<"tl"<<tlf<<"tr"<<trf<<"br"<<brf;
+//    qDebug()<<"bl"<<bl<<"tl"<<tl<<"tr"<<tr<<"br"<<br;
+
+    //    qDebug()<<"n1"<<n1;
+//    qDebug()<<"n2"<<n2;
+
+//    glVertex3f(m_width,-m_height,0.5);
+
+//    glDepthMask(GL_TRUE);
+    Session::get()->glWidget()->getMShader()->release();
+    glDisable(GL_TEXTURE_2D);
+    _shaderParam.m_centerDepth = QVector3D(m_width+P().x,-m_height+P().y,brf);
+    _shaderParam.m_boundingbox[0] = -m_width+P().x;
+    _shaderParam.m_boundingbox[1] = m_width+P().x;
+    _shaderParam.m_boundingbox[2] = -m_height+P().y;
+    _shaderParam.m_boundingbox[3] = m_height+P().y;
+
+//    glMatrixMode(GL_MODELVIEW);
+//    glLoadIdentity();
+//    glBegin(GL_POINTS);
+//    glColor3f(1.0,1.0,0.0);
+//    glVertex3f(_shaderParam.m_centerDepth.x(),_shaderParam.m_centerDepth.y(),0.0);
+//    glEnd();
+
+}
+
+
+
+void Light::render(int mode) {
+    Selectable::render(mode);
+
+    glColor3f(1.0, 1.0, 0);
+    glPointSize(8);
+    glBegin(GL_POINTS);
+    glVertex3f(P().x, P().y, 0.001);
+    glEnd();
+}
+
+void LayerNormalControl::render(int mode) {
+    //Point p0 = _pShape->P();
+
+    if(Session::isRender(NORMALS_ON)&&!(Session::isRender(PREVIEW_ON)||Session::isRender(AMBIENT_ON)||Session::isRender(SHADOWS_ON)))
+    {
+        Draggable::render(mode);
+        glColor3f(1.0, 1.0, 0);
+        glPointSize(8);
+        glBegin(GL_POINTS);
+        glVertex3f(P().x, P().y, 1.005);
+        //    glVertex3f(EndPoint.x, EndPoint.y, 1.005);
+        glEnd();
+        glBegin(GL_LINES);
+        glVertex3f(0.0, 0.0, 1.005);
+        glVertex3f(P().x, P().y, 1.005);
+        glEnd();
+    }
+}
+
+
+
+/*
 
 
 void ImageShape::render(int mode)
@@ -894,33 +1098,6 @@ void ImageShape::render(int mode)
 
 }
 
-void Light::render(int mode) {
-    Selectable::render(mode);
-
-    glColor3f(1.0, 1.0, 0);
-    glPointSize(8);
-    glBegin(GL_POINTS);
-    glVertex3f(P().x, P().y, 0.001);
-    glEnd();
-}
-
-void LayerNormalControl::render(int mode) {
-    //Point p0 = _pShape->P();
-
-    if(Session::isRender(NORMALS_ON)&&!(Session::isRender(PREVIEW_ON)||Session::isRender(AMBIENT_ON)||Session::isRender(SHADOWS_ON)))
-    {
-        Draggable::render(mode);
-        glColor3f(1.0, 1.0, 0);
-        glPointSize(8);
-        glBegin(GL_POINTS);
-        glVertex3f(P().x, P().y, 1.005);
-        //    glVertex3f(EndPoint.x, EndPoint.y, 1.005);
-        glEnd();
-        glBegin(GL_LINES);
-        glVertex3f(0.0, 0.0, 1.005);
-        glVertex3f(P().x, P().y, 1.005);
-        glEnd();
-    }
-}
+*/
 
 #endif

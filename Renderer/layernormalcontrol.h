@@ -24,7 +24,7 @@ public:
 
     void render(int mode = 0);
 
-    //QVector3D  Normal3D();
+    QVector3D  Normal3D();
     //void SetNormal3D(QVector3D normal3D);
 
 private:

@@ -71,6 +71,7 @@ public:
     static bool         IS_DIALOG;
     static bool         EXEC_ONCLICK;
 
+
 private:
 
     ShapeVertex_p       _pSV;
