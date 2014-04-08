@@ -85,6 +85,8 @@ MainWindow::MainWindow()
     setWindowTitle(tr("Shady"));
     resize(1200, 900);
 
+    Session::get()->canvas()->setImagePlane("E:/dog1.jpg");
+
     // set the number of patch lines
     //Patch::setN(16);
 }

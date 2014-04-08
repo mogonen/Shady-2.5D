@@ -7,8 +7,11 @@
 #include "MeshShape/cmesh.h"
 #include "MeshShape/meshshape.h"
 #include "MeshShape/curvededge.h"
-#include "Renderer/imageshape.h"
 #include "canvas.h"
+
+#ifndef MODELING_MODE
+#include "Renderer/imageshape.h"
+#endif
 
 typedef std::vector<std::string>        StringVec;
 
@@ -48,6 +51,10 @@ bool DefaultIO::write(Shape * pShape, ofstream &outfile)
 
     case ELLIPSE_SHAPE:
         writeEllipseShape((EllipseShape*)pShape, outfile);
+        break;
+
+    case IMAGE_SHAPE:
+        writeImageShape((ImageShape*)pShape, outfile);
         break;
 
     }
@@ -102,6 +109,7 @@ bool DefaultIO::writeEllipseShape(EllipseShape * pIS, ofstream& outfile)
 }
 
 bool DefaultIO::writeImageShape(ImageShape * pIS, ofstream& outfile){
+#ifndef MODELING_MODE
 /*
     double                      m_alpha_th;
     double                      m_stretch;
@@ -121,11 +129,13 @@ bool DefaultIO::writeImageShape(ImageShape * pIS, ofstream& outfile){
     QString                     m_BrightFile;
     QString                     m_DispFile;
 */
-    outfile<<(float)pIS->m_alpha_th<<", "<<(float)pIS->m_stretch<<", "<<(float)pIS->m_assignedDepth<<(float)pIS->m_width<<", "<<(float)pIS->m_height<<endl;
+    outfile<<(float)pIS->m_alpha_th<<", "<<(float)pIS->m_stretch<<", "<<(float)pIS->m_assignedDepth<<", "<<(float)pIS->m_width<<", "<<(float)pIS->m_height<<endl;
     outfile<<pIS->m_texUpdate<<", "<<pIS->m_shadowCreator<<", "<<pIS->m_texSM<<", "<<pIS->m_texDark<<", "<<pIS->m_texBright<<", "<<pIS->m_texDisp<<endl;
-    outfile<<qPrintable(pIS->m_SMFile)<<endl;
-    outfile<<qPrintable(pIS->m_DarkFile)<<endl;
-    outfile<<qPrintable(pIS->m_BrightFile)<<endl;
-    outfile<<qPrintable(pIS->m_DispFile)<<endl;
 
+    for(int channel = 0; channel<ACTIVE_CHANNELS; channel++ ){
+        if (!pIS->m_fileName[channel].isEmpty())
+            outfile<<qPrintable(pIS->m_fileName[channel])<<endl;
+    }
+
+#endif
 }

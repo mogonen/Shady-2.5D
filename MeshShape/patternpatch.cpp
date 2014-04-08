@@ -2,8 +2,8 @@
 #include "Patch.h"
 #include "../curve.h"
 
-int     PatternPatch::NU = 2;
-int     PatternPatch::NV = 2;
+int     PatternPatch::NU = 10;
+int     PatternPatch::NV = 10;
 //double  Patch::T;
 
 #define FOLD_W 16

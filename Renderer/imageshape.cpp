@@ -22,7 +22,7 @@ void ImageShapeCustomDialog::Initialize()
     this->addDblSpinBoxF("Refract:", -1, 1, &m_imgShape->_shaderParam.m_alphaValue, 2);
     this->addCheckBox("Shadow Creator:", &m_imgShape->_shaderParam.m_shadowcreator);
     this->addCheckBox("Toggled Reflection:", &m_imgShape->_shaderParam.m_reflectToggled);
-    this->addComboBox("Cur Texture", "ShapeMape|Dark|Bright|Label|Displacement", &m_imgShape->m_curTexture);
+    //this->addComboBox("Cur Texture", "ShapeMape|Dark|Bright|Label|Displacement", &m_imgShape->m_curTexture);
     QPushButton *texButton = new QPushButton("Set Texture");
     layoutNextElement->addWidget(texButton);
     connect(texButton,SIGNAL(clicked()),this,SLOT(LoadTextureImage()));
@@ -47,10 +47,12 @@ void ImageShapeCustomDialog::LoadTextureImage(int cur)
 
 void ImageShapeCustomDialog::LoadTextureImage()
 {
-    QString fileName = QFileDialog::getOpenFileName(this,
-        QPushButton::tr("Open Image"), "/home/", QPushButton::tr("Image Files (*.png *.jpg *.bmp)"));
+    QString fileName = QFileDialog::getOpenFileName(this, QPushButton::tr("Open Image"), "/home/", QPushButton::tr("Image Files (*.png *.jpg *.bmp)"));
+    int channel = (Session::get()->channel() <  ACTIVE_CHANNELS) ? Session::get()->channel() : (ACTIVE_CHANNELS-1);
+    m_imgShape->m_fileName[channel] = fileName;
+    m_imgShape->m_texUpdate  = 1 << channel;
 
-    switch(m_imgShape->m_curTexture)
+   /* switch(m_imgShape->m_curTexture)
     {
     case 0:
         m_imgShape->m_SMFile = fileName;
@@ -68,10 +70,10 @@ void ImageShapeCustomDialog::LoadTextureImage()
         m_imgShape->m_DispFile = fileName;
         m_imgShape->m_texUpdate = ImageShape::UPDATE_DISP;
         break;
-    }
+    }*/
 }
 
-ImageShape::ImageShape(int w, int h)
+ImageShape::ImageShape(float w, float h)
 {
     m_width = w;
     m_height = h;
@@ -141,6 +143,7 @@ void ImageShape::calAverageNormal()
     }
 }
 */
+
 void ImageShape::SetPenal(ImageShapeCustomDialog *penal)
 {
     m_penal = penal;

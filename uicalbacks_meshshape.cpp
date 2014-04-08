@@ -252,19 +252,23 @@ QWidget* createInsertSegmentOptions()
 }
 
 QWidget* createImageShapeAttrWidget(ImageShape* ImgShape){
+#ifndef MODELING_MODE
     CustomDialog * widget = new ImageShapeCustomDialog(ImgShape, "Shape Attr");//, 0, "Set Texture", ImgShape->LoadTextureImage());
     QObject::connect(widget,SIGNAL(ValueUpdated()),Session::get()->glWidget(),SLOT(updateGLSM()));
     return widget;
+#endif
 }
 
 void createShapeImage(){
     //MeshShape* pMS =ImageShape::insertGrid(Point(), MeshShape::GRID_LEN, MeshShape::GRID_M, MeshShape::GRID_N);
-    ImageShape* pIS = new ImageShape(1.0,1.0);
+#ifndef MODELING_MODE
+    ImageShape* pIS = new ImageShape(0.4, 0.3);
     Session::get()->mainWindow()->addAttrWidget(createImageShapeAttrWidget(pIS ), (void*)pIS);
 
     ShapeOrder* so = new ShapeOrder(ShapeOrder::INSERT_SHAPE);
     so->setShape(pIS );
     Session::get()->exec(so);
+#endif
 }
 
 QWidget* createImageShapeOptions()

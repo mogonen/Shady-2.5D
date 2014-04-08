@@ -24,7 +24,7 @@ int         MeshPrimitive::NGON_N           = 3;
 int         MeshPrimitive::NGON_SEG_V       = 1;
 double      MeshPrimitive::NGON_RAD         = 0.2;
 
-int         MeshPrimitive::TORUS_N          = 8;
+int         MeshPrimitive::TORUS_N          = 4;
 int         MeshPrimitive::TORUS_V          = 1;
 double      MeshPrimitive::TORUS_RAD_X      = 0.2;
 double      MeshPrimitive::TORUS_RAD_Y      = 0.2;

@@ -7,12 +7,14 @@
 ShapeVertex::ShapeVertex(Shape_p pS, bool isP, bool isN):ControlPoint(&_P){
     _pShape = pS;
 
+#ifdef RENDERING_MODE
     //init channels
     data[NORMAL_CHANNEL] = _pShape->data[NORMAL_CHANNEL];
     data[BRIGHT_CHANNEL] = _pShape->data[BRIGHT_CHANNEL];
     data[DARK_CHANNEL] = _pShape->data[DARK_CHANNEL];
     data[DEPTH_CHANNEL] = _pShape->data[DEPTH_CHANNEL];
     //data[ALPHA_CHANNEL].set(1.0,1.0,1.0);
+#endif
 
     flag = 0x00;
      _pair = 0;
@@ -175,7 +177,7 @@ Shape::Shape():Draggable(false, &_t0)
 {
     _flags = 0;
     _tM.identity();
-
+#ifdef RENDERING_MODE
     data[NORMAL_CHANNEL].set(0.0, 0.0, 1.0);
     data[BRIGHT_CHANNEL].set(1.0, 1.0, 1.0);
     data[DARK_CHANNEL].set(0.0, 0.0, 0.0);
@@ -183,6 +185,7 @@ Shape::Shape():Draggable(false, &_t0)
 
     //_layerNormal    = QVector3D(0.0,0.0,1.0);
     _NormalControl  = new LayerNormalControl(this);
+#endif
 }
 
 Shape::~Shape(){

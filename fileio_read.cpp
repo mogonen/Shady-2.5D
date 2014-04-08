@@ -7,7 +7,10 @@
 #include "MeshShape/meshshape.h"
 #include "MeshShape/curvededge.h"
 #include "ellipseshape.h"
+
+#ifndef MODELING_MODE
 #include "Renderer/imageshape.h"
+#endif
 
 struct SVLoad{
     ShapeVertex* sv;
@@ -186,7 +189,7 @@ Shape* DefaultIO::parseShape(const char* line)
         break;
 
     case IMAGE_SHAPE:
-        pShape = new EllipseShape();
+        pShape = new ImageShape();
         break;
     }
 
@@ -275,6 +278,8 @@ bool DefaultIO::parseEllipseShape(EllipseShape* pShape)
 
 bool DefaultIO::parseImageShape(ImageShape* pShape)
 {
+#ifndef MODELING_MODE
+
     /*legend:
      *
         double                      m_alpha_th;
@@ -309,26 +314,21 @@ bool DefaultIO::parseImageShape(ImageShape* pShape)
     int text, shadow, sm, dark, bright, disp;
     std::getline(_infile, line);
     sscanf(line.c_str(), "%d, %d, %d, %d, %d", &text, &shadow, &sm, &dark, &bright, &disp);
-    pShape->m_texUpdate         = text;
+    //pShape->m_texUpdate         = text;
     pShape->m_shadowCreator     = shadow;
     pShape->m_texSM             = sm;
     pShape->m_texDark           = dark;
     pShape->m_texBright         = bright;
     pShape->m_texDisp           = disp;
 
-    std::getline(_infile, line);
-    pShape->m_SMFile = QString::fromStdString(line);
+    int channel = 0;
+    while(std::getline(_infile, line)){
+        if (line.empty())
+            break;
+        pShape->m_fileName[channel] =  QString::fromStdString(line);
+        pShape->m_texUpdate = pShape->m_texUpdate  | (1 << channel);
+        channel++;
+    }
 
-    std::getline(_infile, line);
-    pShape->m_DarkFile = QString::fromStdString(line);
-
-    std::getline(_infile, line);
-    pShape->m_BrightFile = QString::fromStdString(line);
-
-    std::getline(_infile, line);
-    pShape->m_BrightFile = QString::fromStdString(line);
-
-    std::getline(_infile, line);
-    pShape->m_DispFile  = QString::fromStdString(line);
-
+#endif
 }

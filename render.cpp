@@ -115,7 +115,7 @@ void ShapeControl::renderControls(Shape_p shape)
     if (_theHandler->isActive())
             return;
 
-    shape->_NormalControl->render();
+    //shape->_NormalControl->render();
 
     SVList verts = shape->getVertices();
     FOR_ALL_CONST_ITEMS(SVList, verts){
@@ -349,6 +349,8 @@ void MeshShape::render(int mode) {
             else if (mode&DARK_MODE)
                 glColor3f(0.1, 0.1, 0.1); //glColor3f(diffuse.redF()*0.1, diffuse.greenF()*0.1, diffuse.blueF()*0.1);
         }else if (Session::isRender(SHADING_ON)){
+
+#ifdef  RENDERING_MODE
             RGB diff = data[BRIGHT_CHANNEL];
             RGB amb  = data[DARK_CHANNEL];
 
@@ -358,7 +360,7 @@ void MeshShape::render(int mode) {
             //GLfloat mat_shininess[] = { 50.0 };
             glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diff);
             glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_amb);
-
+#endif
             //glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
         }
 
@@ -580,7 +582,7 @@ void EllipseShape::render(int mode){
 
     bool isGLShading = (Session::channel() == GL_SHADING) && !Session::isRender(PREVIEW_ON);
     //bool isNormalChannel =  (Session::channel() == NORMAL_CHANNEL && !mode) || (mode&SM_MODE);
-
+#ifdef RENDERING_MODE
     if (isGLShading)
     {
         RGB diff = data[BRIGHT_CHANNEL];
@@ -593,6 +595,7 @@ void EllipseShape::render(int mode){
         glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diff);
         glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_amb);
     }
+#endif
 
     FOR_ALL_J(_segV){
         FOR_ALL_I(_segU){
@@ -709,7 +712,7 @@ void ImageShape::InitializeTex()
     {
         if(glIsTexture(m_texSM))
             Session::get()->glWidget()->deleteTexture(m_texSM);
-        if(m_SMFile.isEmpty()||!loadedImage.load(m_SMFile))
+        if(m_fileName[NORMAL_CHANNEL].isEmpty()||!loadedImage.load(m_fileName[NORMAL_CHANNEL]))
         {
             loadedImage = QImage(1,1,QImage::Format_ARGB32);
             loadedImage.setPixel(0,0,qRgba(0.0,0.0,255.0,255.0));
@@ -735,7 +738,7 @@ void ImageShape::InitializeTex()
     {
         if(glIsTexture(m_texDark))
             Session::get()->glWidget()->deleteTexture(m_texDark);
-        if(m_DarkFile.isEmpty()||!loadedImage.load(m_DarkFile))
+        if(m_fileName[DARK_CHANNEL].isEmpty()||!loadedImage.load(m_fileName[DARK_CHANNEL]))
         {
             loadedImage = QImage(1,1,QImage::Format_ARGB32);
             loadedImage.setPixel(0,0,qRgba(0.0,0.0,0.0,255.0));
@@ -747,7 +750,7 @@ void ImageShape::InitializeTex()
     {
         if(glIsTexture(m_texBright))
             Session::get()->glWidget()->deleteTexture(m_texBright);
-        if(m_BrightFile.isEmpty()||!loadedImage.load(m_BrightFile))
+        if(m_fileName[BRIGHT_CHANNEL].isEmpty()||!loadedImage.load(m_fileName[BRIGHT_CHANNEL]))
         {
             loadedImage = QImage(1,1,QImage::Format_ARGB32);
             loadedImage.setPixel(0,0,qRgba(255.0,255.0,255.0,255.0));

@@ -30,7 +30,7 @@ private:
 class ImageShape : public Shape
 {
 public:
-    ImageShape(int w = 1, int h = 1);
+    ImageShape(float w=0.4, float h=0.3);
     ~ImageShape();
     void render(int mode);
     //void calAverageNormal();
@@ -65,10 +65,13 @@ public:
     GLuint                      m_texBright;
     GLuint                      m_texDisp;
 
-    QString                     m_SMFile;
+    QString                     m_fileName[ACTIVE_CHANNELS];
+
+   /* QString                     m_SMFile;
     QString                     m_DarkFile;
     QString                     m_BrightFile;
     QString                     m_DispFile;
+*/
 
     //shape map image will be saved for further use
     QImage                      m_SMimg;

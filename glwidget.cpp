@@ -345,6 +345,7 @@ int GLWidget::selectGL(int x, int y){
 void GLWidget::orthoView(){
     //glOrtho(-1.0*_scale+_translate.x, 1.0*_scale+_translate.x, -1.0/_aspectR*_scale+_translate.y, 1.0/_aspectR*_scale+_translate.y, NEAR_P, FAR_P);
     glOrtho(-1.0*_scale, 1.0*_scale, -1.0/_aspectR*_scale, 1.0/_aspectR*_scale, NEAR_P, FAR_P);
+    //gluPerspective(120.0, 4.0/3.0, 0.0, 200.0);
 }
 
 Point GLWidget::toWorld(int x, int y){

@@ -19,66 +19,9 @@ void GLWidget::renderCanvas()
 }
 #else
 
-#endif
-
-void GLWidget::renderShapes(int mode){
-    FOR_ALL_CONST_ITEMS(ShapeList,_pCanvas->_shapes){ //need to add layers
-        Shape_p s = *it;
-        if (!s->isChild())
-            render(*it, mode);
-    }
-}
-
-void GLWidget::render(Shape_p pShape, int mode)
-{
-
-    glPushMatrix();
-
-    Point p = pShape->P();
-    glTranslatef(p.x, p.y, 0);
-
-    if (pShape == Session::get()->theShape() && mode==DEFAULT_MODE)
-        Session::get()->controller()->renderHandler();
-
-    apply(pShape->getTransform());
-    glMultMatrixd((double*)&tM);
-\
-    pShape->Shape::render(mode);
-    pShape->render(mode);
-
-    if (pShape->isParent()){
-        DraggableList childs = pShape->getChilds();
-        FOR_ALL_CONST_ITEMS(DraggableList, childs){
-            render((Shape_p)*it, mode);
-        }
-    }
-    glPopMatrix();
-}
-
-void GLWidget::apply(const Matrix3x3& M){
-    tM[0] = M[0].x;
-    tM[1] = M[1].x;
-    tM[2] = 0;
-    tM[3] = 0;
-
-    tM[4] = M[0].y;
-    tM[5] = M[1].y;
-    tM[6] = 0;
-    tM[7] = 0;
-
-    tM[8]  = 0;
-    tM[9]  = 0;
-    tM[10] = 1;
-    tM[11] = 0;
-
-    tM[12] = M[0].z;
-    tM[13] = M[1].z;
-    tM[14] = 0;
-    tM[15] = 1;
-}
-
 void GLWidget::preview()
 {
+
     glReadBuffer(GL_BACK);
     if(!_pGLSLShader_R->isSMInitialized())
     {
@@ -227,6 +170,7 @@ void GLWidget::preview()
         //QString z_pos = QString("pos: %1 %2 %3").arg(mousePos.x(),0,'f',3).arg(mousePos.y(),0,'f',3).arg(mousePos.z(),0,'f',3);
         //renderText(10, 20, z_pos, m_font);
     }
+
 }
 
 void GLWidget::renderCanvas()
@@ -263,6 +207,70 @@ void GLWidget::renderCanvas()
 
     }
 }
+
+#endif
+
+
+
+
+void GLWidget::renderShapes(int mode){
+    FOR_ALL_CONST_ITEMS(ShapeList,_pCanvas->_shapes){ //need to add layers
+        Shape_p s = *it;
+        if (!s->isChild())
+            render(*it, mode);
+    }
+}
+
+void GLWidget::render(Shape_p pShape, int mode)
+{
+
+    glPushMatrix();
+
+    Point p = pShape->P();
+    glTranslatef(p.x, p.y, 0);
+
+    if (pShape == Session::get()->theShape() && mode==DEFAULT_MODE)
+        Session::get()->controller()->renderHandler();
+
+    apply(pShape->getTransform());
+    glMultMatrixd((double*)&tM);
+\
+    pShape->Shape::render(mode);
+    pShape->render(mode);
+
+    if (pShape->isParent()){
+        DraggableList childs = pShape->getChilds();
+        FOR_ALL_CONST_ITEMS(DraggableList, childs){
+            render((Shape_p)*it, mode);
+        }
+    }
+    glPopMatrix();
+}
+
+void GLWidget::apply(const Matrix3x3& M){
+    tM[0] = M[0].x;
+    tM[1] = M[1].x;
+    tM[2] = 0;
+    tM[3] = 0;
+
+    tM[4] = M[0].y;
+    tM[5] = M[1].y;
+    tM[6] = 0;
+    tM[7] = 0;
+
+    tM[8]  = 0;
+    tM[9]  = 0;
+    tM[10] = 1;
+    tM[11] = 0;
+
+    tM[12] = M[0].z;
+    tM[13] = M[1].z;
+    tM[14] = 0;
+    tM[15] = 1;
+}
+
+
+
 
 /*
 void GLWidget::renderCanvas()

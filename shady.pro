@@ -102,6 +102,8 @@ HEADERS +=
 SOURCES +=
 }
 
+#RENDERING_MODE{
+
     HEADERS +=  Renderer/shaderprogram.h \
     Renderer/shaderparameters.h \
     Renderer/qsliderspinbox.h \
@@ -117,6 +119,7 @@ SOURCES +=
     Renderer/imageshape.cpp \
     Renderer/layernormalcontrol.cpp \
     Renderer/framebufferwrapper.cpp
+#}
 
 RESOURCES += \
     Renderer/Shaders.qrc
