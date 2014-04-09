@@ -116,7 +116,8 @@ void ShapeControl::renderControls(Shape_p shape)
     if (_theHandler->isActive())
             return;
 
-    shape->_NormalControl->render();
+    if(Session::isRender(NORMALS_ON))
+        shape->pControlN()->render();
 
     SVList verts = shape->getVertices();
     FOR_ALL_CONST_ITEMS(SVList, verts){

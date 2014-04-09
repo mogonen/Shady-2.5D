@@ -102,21 +102,22 @@ void SetColor::onClick(const Click& click)
     if (!click.is(Click::UP))
         return;
 
-   _pSV = dynamic_cast<ShapeVertex_p>(Session::get()->selectionMan()->getLastSelected());
-   if (_pSV)
+   _pSB = dynamic_cast<ShapeBase_p>(Session::get()->selectionMan()->getLastSelected());
+
+   if (_pSB)
        exec();
 }
 
 Command_p SetColor::exec()
 {
-    if (!_pSV && !Session::get()->selectionMan()->selectionSize())
+    if (!_pSB && !Session::get()->selectionMan()->selectionSize())
         return new SetColor();
 
     _channel     = Session::channel();
     QColor color = COLOR;
 
-    if (_pSV){
-        _col = _pSV->data[(int)_channel];
+    if (_pSB){
+        _col = _pSB->data[(int)_channel];
     }
 
     if (IS_DIALOG)
@@ -125,18 +126,18 @@ Command_p SetColor::exec()
         color = QColorDialog::getColor(QColor(col.x, col.y, col.z), (QWidget*)Session::get()->glWidget(), "Vertex Color",  QColorDialog::DontUseNativeDialog);
     }
 
-    if (_pSV){
-        _pSV->data[(int)_channel] = RGB(color.redF(), color.greenF(), color.blueF());
-        _pSV->outdate();
+    if (_pSB){
+        _pSB->data[(int)_channel] = RGB(color.redF(), color.greenF(), color.blueF());
+        _pSB->outdate();
     }
 
     SelectionSet selection = Session::get()->selectionMan()->getSelection();
     FOR_ALL_ITEMS(SelectionSet, selection)
     {
-        ShapeVertex_p sv = dynamic_cast<ShapeVertex_p>(*it);
-        if (sv){
-            sv->data[(int)_channel] = RGB(color.redF(), color.greenF(), color.blueF());
-            sv->outdate();
+        ShapeBase_p sb = dynamic_cast<ShapeBase_p>(*it);
+        if (sb){
+            sb->data[(int)_channel] = RGB(color.redF(), color.greenF(), color.blueF());
+            sb->outdate();
         }
     }
 
@@ -145,6 +146,6 @@ Command_p SetColor::exec()
 
 Command_p SetColor::unexec()
 {
-    _pSV->data[_channel] = _col;
+    _pSB->data[_channel] = _col;
     return 0;
 }

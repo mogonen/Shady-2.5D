@@ -4,7 +4,7 @@
 
 //ShapeVertex///////////////////////////////////////////////////////////////////////////
 
-ShapeVertex::ShapeVertex(Shape_p pS, bool isP, bool isN):ControlPoint(&_P){
+ShapeVertex::ShapeVertex(Shape_p pS, bool isP, bool isN):ControlPoint(&_P), ShapeBase(isN){
     _pShape = pS;
 
 #ifdef RENDERING_MODE
@@ -21,10 +21,8 @@ ShapeVertex::ShapeVertex(Shape_p pS, bool isP, bool isN):ControlPoint(&_P){
     isPositionControl = isP;
     isNormalControl = isN;
     if (isN){
-        _pControlN = new ControlNormal(this);
-        adopt(_pControlN);
-    }else
-        _pControlN = 0;
+        adopt(pControlN());
+    }
 
     _isDeleted = false;
 }
@@ -100,21 +98,6 @@ void ShapeVertex::onDrag(const Vec2 &t, int button){
     Draggable::onDrag(t, button);
 }
 
-void ShapeVertex::dragNormal(const Vec2 &t){
-    _pShape->outdate(this);
-
-    Vec2 v = (Vec2(data[NORMAL_CHANNEL].x*NORMAL_RAD, data[NORMAL_CHANNEL].y*NORMAL_RAD) + t);
-    double l = v.norm();
-    if ( l > NORMAL_RAD ){
-        v = v.normalize()*NORMAL_RAD;
-        l = NORMAL_RAD;
-    }
-    double h = sqrt(NORMAL_RAD*NORMAL_RAD - l*l);
-    if (h < 0)
-        h = 0;
-    data[NORMAL_CHANNEL].set(Vec3(v.x, v.y, h).normalize());
-}
-
 void   ShapeVertex::setTangent(const Vec2& tan, bool isnormal, bool ispair){
     if (!parent())
         return;
@@ -172,21 +155,47 @@ void SVCache::restore(){
     //_sv->isNormalControl = _sv->isParent();
 }
 
-//Shape////////////////////////////////////////////////////////////////////////////////////
-Shape::Shape():Draggable(false, &_t0)
-{
-    _flags = 0;
-    _tM.identity();
+
+ShapeBase::ShapeBase(bool isN){
 #ifdef RENDERING_MODE
     data[NORMAL_CHANNEL].set(0.0, 0.0, 1.0);
     data[BRIGHT_CHANNEL].set(1.0, 1.0, 1.0);
     data[DARK_CHANNEL].set(0.0, 0.0, 0.0);
     data[DEPTH_CHANNEL].set(0.5, 0.5, 0.5);
 
-    //_layerNormal    = QVector3D(0.0,0.0,1.0);
-    //_NormalControl  = new LayerNormalControl(this);
-    _NormalControl  = new ControlNormal(0, this);
+    if (isN)
+        _pControlN = new ControlNormal(this);
+    else
+        _pControlN = 0;
+
+
 #endif
+}
+
+void ShapeBase::dragNormal(const Vec2 &t){
+#ifdef RENDERING_MODE
+    double r = NORMAL_RAD*2;
+    Vec2 v = (Vec2(data[NORMAL_CHANNEL].x*r, data[NORMAL_CHANNEL].y*r) + t);
+    double l = v.norm();
+    if ( l > r ){
+        v = v.normalize()*r;
+        l = r;
+    }
+    double h = sqrt(r*r - l*l);
+    if (h < 0)
+        h = 0;
+    data[NORMAL_CHANNEL].set(Vec3(v.x, v.y, h).normalize());
+    outdate();
+#endif
+}
+
+
+//Shape////////////////////////////////////////////////////////////////////////////////////
+Shape::Shape():Draggable(false, &_t0), ShapeBase(true)
+{
+    _flags = 0;
+    _tM.identity();
+
 }
 
 Shape::~Shape(){
@@ -305,32 +314,14 @@ void Shape::centerPivot(){
     Renderable::update();
 }
 
-void Shape::dragNormal(const Vec2 &t){
-    //outdate();
-    double r = NORMAL_RAD*2;
-    Vec2 v = (Vec2(data[NORMAL_CHANNEL].x*r, data[NORMAL_CHANNEL].y*r) + t);
-    double l = v.norm();
-    if ( l > r ){
-        v = v.normalize()*r;
-        l = r;
-    }
-    double h = sqrt(r*r - l*l);
-    if (h < 0)
-        h = 0;
-    data[NORMAL_CHANNEL].set(Vec3(v.x, v.y, h).normalize());
-}
-
 Point ControlNormal::P() const
 {
-    if (_pSV)
-        return (_pSV->P() + Point(_pSV->N()*NORMAL_RAD));
-    else if (_pShape)
-        return (Point(_pShape->data[NORMAL_CHANNEL]*(NORMAL_RAD*2)));
+   Point p;
+   if (parent())
+       p = parent()->P();
+   return p + Point(_pShapeBase->N()*NORMAL_RAD);
 }
 
 void ControlNormal::onDrag(const Point &t, int button){
-    if (_pSV)
-        _pSV->dragNormal(t);
-    else if (_pShape)
-        _pShape->dragNormal(t);
+    _pShapeBase->dragNormal(t);
 }

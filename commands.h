@@ -58,7 +58,7 @@ protected:
 public:
 
     SetColor(){
-        _pSV = 0;
+        _pSB = 0;
     }
 
     Command_p           exec();
@@ -72,10 +72,10 @@ public:
     static bool          IS_DIALOG;
     static bool          EXEC_ONCLICK;
 
-
 private:
 
-    ShapeVertex_p       _pSV;
+    ShapeBase_p         _pSB;
+
     SVList              _selection;
     RGB                 _col;
     Channel             _channel;

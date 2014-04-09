@@ -13,6 +13,7 @@
 
 enum ShapeType {MESH_SHAPE, SPINE_SHAPE, ELLIPSE_SHAPE, IMAGE_SHAPE};
 
+class ShapeBase;
 class Shape;
 class Shader;
 class LayerNormalControl;
@@ -55,7 +56,27 @@ public:
     void restore();
 };
 
-class ShapeVertex:public ControlPoint
+
+typedef class ShapeBase {
+
+    ControlNormal*      _pControlN;
+    bool                isN;
+
+public:
+
+    ShapeBase(bool isN=false);
+
+    void                 dragNormal(const Vec2 &t);
+    virtual void         outdate(){}
+    RGB                  data[ACTIVE_CHANNELS];
+
+    inline Normal        N()            const {return data[NORMAL_CHANNEL];}  //_N;}
+    inline Normal_p      pN()                 {return &data[NORMAL_CHANNEL];} //_N;}//;}
+
+    ControlNormal*       pControlN()     const {return _pControlN;}
+} * ShapeBase_p;
+
+class ShapeVertex:public ControlPoint, public ShapeBase
 {
 
 protected:
@@ -70,14 +91,11 @@ public:
     void setPair(ShapeVertex_p sv, bool isSetTangent =false , bool isSetNormal = false);
     void unpair();
     void setTangent(const Vec2&, bool isnormal=false, bool ispair=false);
-    void dragNormal(const Vec2 &t);
     Vec2 getTangent();
 
     inline Point_p       pP()                 {return &_P;}
-    inline Normal        N()            const {return data[NORMAL_CHANNEL];}//_N;}
-    inline Normal_p      pN()                 {return &data[NORMAL_CHANNEL];}//_N;}//;}
     inline Shape_p       shape()        const {return _pShape;}
-    ControlNormal*       pControlN()    const {return _pControlN;}
+
 
     inline ShapeVertex_p pair()         const {return _pair;}
     inline int           id()           const {return name();}
@@ -85,9 +103,6 @@ public:
 
     void                 outdate();
     bool                _isDeleted; //public for now
-
-    //these should move to a shader later on
-    RGB                 data[ACTIVE_CHANNELS];
 
 private:
 
@@ -113,17 +128,17 @@ private:
 class ControlNormal:public ControlPoint
 {
 
-    ShapeVertex_p   _pSV;
-    Shape_p         _pShape;
+    //ShapeVertex_p   _pSV;
+    ShapeBase_p       _pShapeBase;
 
 protected:
     void onDrag(const Point &t, int button);
 
 public:
 
-    ControlNormal(ShapeVertex_p pSV, Shape_p pShape =0):ControlPoint(0), _pSV(pSV){
+    ControlNormal(ShapeBase_p pSB):ControlPoint(0){
         _color[0] = 1.0;
-        _pShape = pShape;
+        _pShapeBase = pSB;
         makeDraggable();
     }
 
@@ -132,7 +147,7 @@ public:
 };
 
 
-class Shape:public Draggable{
+class Shape:public Draggable, public ShapeBase{
 
     Point                _t0;
     Matrix3x3            _tM; //the transform matrix
@@ -167,6 +182,7 @@ public:
     //void                removeVertex(Point_p pP);
     SVList              getVertices() const {return _vertices;}
 
+    void                outdate(){Renderable::outdate();}
     virtual void        outdate(ShapeVertex_p sv){ Renderable::outdate(); }
 
 	//send generic command to the shape
@@ -211,13 +227,8 @@ public:
 
     //protected:
     ShaderParameters         _shaderParam;
-    //LayerNormalControl*      _NormalControl;
-    ControlNormal*      _NormalControl;
-    void                dragNormal(const Vec2 &t);
-    //QVector3D                _layerNormal;
 
 
-    RGB                 data[ACTIVE_CHANNELS];
 #endif
 
 };
