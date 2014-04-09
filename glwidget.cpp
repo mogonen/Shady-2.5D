@@ -131,9 +131,12 @@ void GLWidget::initializeGL()
 
      glMatrixMode(GL_MODELVIEW);
      glLoadIdentity();
-     glTranslatef(0, 0, -2.0);
+     glTranslatef(0, 0, -2.0);     
 
 #ifndef MODELING_MODE
+
+     initializeGLFunctions();
+
      _pGLSLShader_R = new ShaderProgram();
      _pGLSLShader_R->Initialize();
      _pGLSLShader_M = new ShaderProgram(ShaderProgram::TYPE_MODEL);
@@ -399,5 +402,9 @@ void GLWidget::updateGLSLLight(float x, float y, float z)
     _pGLSLShader_R->bind();
     _pGLSLShader_R->SetLightPos(QVector3D(x,y,z));
     _pGLSLShader_R->release();
+
+    _pGLSLShader_C->bind();
+    _pGLSLShader_C->SetLightPos(QVector3D(x,y,z));
+    _pGLSLShader_C->release();
 }
 #endif

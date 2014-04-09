@@ -113,22 +113,21 @@ private:
 class ControlNormal:public ControlPoint
 {
 
-    ShapeVertex_p _pSV;
+    ShapeVertex_p   _pSV;
+    Shape_p         _pShape;
 
 protected:
-    void onDrag(const Point &t, int button){
-        _pSV->dragNormal(t);
-    }
+    void onDrag(const Point &t, int button);
 
 public:
 
-    ControlNormal(ShapeVertex_p pSV):ControlPoint(0), _pSV(pSV){
+    ControlNormal(ShapeVertex_p pSV, Shape_p pShape =0):ControlPoint(0), _pSV(pSV){
         _color[0] = 1.0;
+        _pShape = pShape;
         makeDraggable();
     }
 
-    inline Point P()    const{return _pSV->P() + Point(_pSV->N()*NORMAL_RAD);}
-
+    inline Point P()    const;
 
 };
 
@@ -212,7 +211,9 @@ public:
 
     //protected:
     ShaderParameters         _shaderParam;
-    LayerNormalControl*      _NormalControl;
+    //LayerNormalControl*      _NormalControl;
+    ControlNormal*      _NormalControl;
+    void                dragNormal(const Vec2 &t);
     //QVector3D                _layerNormal;
 
 

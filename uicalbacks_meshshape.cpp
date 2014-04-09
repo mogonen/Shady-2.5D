@@ -161,6 +161,8 @@ QWidget* createSetColorOptions()
     CustomDialog * widget = new CustomDialog("Set Color Tool Options",0,"Assign",exec, &SetColor::EXEC_ONCLICK);
     widget->addColorSel("Color",&SetColor::COLOR);
     widget->addCheckBox ("Bring Dialog", &SetColor::IS_DIALOG);
+    widget->addRadioGrp("Apply:","Shape|Vertex", (int*)(&SetColor::SELECT_MODE));
+
     //widget->addRadioGrp("Channel:","Dark|Bright|Depth", (int*)(&SetColor::CHANNEL));
     return widget;
 }

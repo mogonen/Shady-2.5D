@@ -2,10 +2,10 @@
 #include "commands.h"
 #include "canvas.h"
 
-QColor SetColor::COLOR;
-bool  SetColor::IS_DIALOG = true;
-bool  SetColor::EXEC_ONCLICK = true;
-
+QColor          SetColor::COLOR;
+bool            SetColor::IS_DIALOG = true;
+bool            SetColor::EXEC_ONCLICK = true;
+int             SetColor::SELECT_MODE = 1;
 
 Drag::DragTool     Drag::TOOL = Drag::NONE;
 Drag::Continuity   Drag::CONT = Drag::C1;

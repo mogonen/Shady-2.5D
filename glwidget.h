@@ -61,7 +61,7 @@ class ShaderProgram;
 
 Selectable_p select(GLint hits, GLuint* buff);
 
-class GLWidget : public QGLWidget
+class GLWidget : public QGLWidget, public QGLFunctions
 {
     Q_OBJECT
 

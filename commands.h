@@ -65,11 +65,12 @@ public:
     Command_p           unexec();
 
     CommandType         type()       const{return SET_COLOR;}
-    SelectionMode       selectMode() const{return SELECT_VERTEX;}
+    SelectionMode       selectMode() const{return (SelectionMode)(SELECT_MODE+1);}
 
-    static QColor       COLOR;
-    static bool         IS_DIALOG;
-    static bool         EXEC_ONCLICK;
+    static QColor        COLOR;
+    static int           SELECT_MODE;
+    static bool          IS_DIALOG;
+    static bool          EXEC_ONCLICK;
 
 
 private:

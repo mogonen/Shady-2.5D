@@ -184,7 +184,8 @@ Shape::Shape():Draggable(false, &_t0)
     data[DEPTH_CHANNEL].set(0.5, 0.5, 0.5);
 
     //_layerNormal    = QVector3D(0.0,0.0,1.0);
-    _NormalControl  = new LayerNormalControl(this);
+    //_NormalControl  = new LayerNormalControl(this);
+    _NormalControl  = new ControlNormal(0, this);
 #endif
 }
 
@@ -302,4 +303,34 @@ void Shape::centerPivot(){
     }
     _t0 = _t0 + piv;
     Renderable::update();
+}
+
+void Shape::dragNormal(const Vec2 &t){
+    //outdate();
+    double r = NORMAL_RAD*2;
+    Vec2 v = (Vec2(data[NORMAL_CHANNEL].x*r, data[NORMAL_CHANNEL].y*r) + t);
+    double l = v.norm();
+    if ( l > r ){
+        v = v.normalize()*r;
+        l = r;
+    }
+    double h = sqrt(r*r - l*l);
+    if (h < 0)
+        h = 0;
+    data[NORMAL_CHANNEL].set(Vec3(v.x, v.y, h).normalize());
+}
+
+Point ControlNormal::P() const
+{
+    if (_pSV)
+        return (_pSV->P() + Point(_pSV->N()*NORMAL_RAD));
+    else if (_pShape)
+        return (Point(_pShape->data[NORMAL_CHANNEL]*(NORMAL_RAD*2)));
+}
+
+void ControlNormal::onDrag(const Point &t, int button){
+    if (_pSV)
+        _pSV->dragNormal(t);
+    else if (_pShape)
+        _pShape->dragNormal(t);
 }

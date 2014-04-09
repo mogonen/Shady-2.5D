@@ -88,7 +88,8 @@ void ControlPoint::render(int mode){
 
     glPointSize(5.0);
     glBegin(GL_POINTS);
-    glVertex3f(P().x, P().y, 0);
+    Point p = P();
+    glVertex3f(p.x, p.y, 0);
     glEnd();
 
     if (isChild() && isInRenderMode()){
@@ -742,7 +743,7 @@ void ImageShape::InitializeTex()
             else
                 m_width = m_height*w/h;
             m_SMimg = loadedImage;
-            calAverageNormal();
+            //calAverageNormal();
         }
         m_texSM = Session::get()->glWidget()->bindTexture(loadedImage, GL_TEXTURE_2D);
         if(GetPenal())
@@ -772,6 +773,20 @@ void ImageShape::InitializeTex()
         }
         m_texBright = Session::get()->glWidget()->bindTexture(loadedImage, GL_TEXTURE_2D);
     }
+/*
+    if(m_texUpdate&UPDATE_DISP)
+    {
+        if(glIsTexture(m_texDisp))
+            Session::get()->glWidget()->deleteTexture(m_texDisp);
+        //needs to be replaced
+        if(m_fileName[DEPTH_CHANNEL].isEmpty()||!loadedImage.load(m_fileName[DEPTH_CHANNEL]))
+        {
+            loadedImage = QImage(1,1,QImage::Format_ARGB32);
+            loadedImage.setPixel(0,0,qRgba(0.0,0.0,0.0,0.0));
+        }
+        m_texDisp = Session::get()->glWidget()->bindTexture(loadedImage, GL_TEXTURE_2D);
+    }
+*/
     m_texUpdate = NO_UPDATE;
 }
 
@@ -788,21 +803,22 @@ void ImageShape::render(int mode)
     if(mode&DEFAULT_MODE||mode&DRAG_MODE&&!(mode&SM_MODE||mode&DARK_MODE||mode&BRIGHT_MODE||mode&LABELDEPTH_MODE))
     {
 
-        switch(m_curTexture)
+        int channel = Session::get()->channel();
+        switch(channel)//m_curTexture)
         {
-        case 0:
+        case NORMAL_CHANNEL:
             glBindTexture(GL_TEXTURE_2D, m_texSM);
             break;
-        case 1:
+        case DARK_CHANNEL:
             glBindTexture(GL_TEXTURE_2D, m_texDark);
             break;
-        case 2:
+        case BRIGHT_CHANNEL:
             glBindTexture(GL_TEXTURE_2D, m_texBright);
             break;
-        case 3:
+        case DEPTH_CHANNEL:
             glBindTexture(GL_TEXTURE_2D, m_texSM);
             mode = mode|LABELDEPTH_MODE;
-        case 4:
+        case DISP_CHANNEL:
             glBindTexture(GL_TEXTURE_2D, m_texDisp);
             break;
         }
@@ -838,7 +854,8 @@ void ImageShape::render(int mode)
         Session::get()->glWidget()->getMShader()->setUniformValue("isLabelDepth", (float)0.0);
 
 
-    QVector3D layerNormal = _NormalControl->Normal3D();
+    Vec3 n = data[NORMAL_CHANNEL];
+    QVector3D layerNormal(0, 0, 1.0);//layerNormal(n.x, n.y, n.z);// = _NormalControl->Normal3D();
     qDebug()<<layerNormal;
     double delta_LB2RT;
     double delta_LT2BR;
