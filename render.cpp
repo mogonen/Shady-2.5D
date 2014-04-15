@@ -120,7 +120,8 @@ void ShapeControl::renderControls(Shape_p shape)
         shape->pControlN()->render();
 
     SVList verts = shape->getVertices();
-    FOR_ALL_CONST_ITEMS(SVList, verts){
+    FOR_ALL_CONST_ITEMS(SVList, verts)
+    {
         SKIP_DELETED_ITEM
         ShapeVertex_p sv = *it;
 
@@ -132,6 +133,7 @@ void ShapeControl::renderControls(Shape_p shape)
 
         sv->render();
     }
+
   /*
     //could not get pushname popname working!
     glPointSize(4.0);
@@ -323,27 +325,34 @@ void renderFace(Face_p pFace)
 void MeshShape::render(int mode) {
 
 
-    if ( Session::selectMode() == SELECT_VERTEX)
+    if ( Session::selectMode() == SELECT_VERTEX || Session::selectMode() == SELECT_TANGENT || Session::selectMode() == SELECT_VERTEX_TANGENT)
     {
         SVList verts = getVertices();
         FOR_ALL_CONST_ITEMS(SVList, verts)
         {
             SKIP_DELETED_ITEM
             ShapeVertex_p sv = *it;
-            if ((sv->ref() && sv->ref()->isDeleted()) || sv->parent())
+            if (sv->ref() && sv->ref()->isDeleted())
+                continue;
+
+            if (Session::selectMode() == SELECT_VERTEX && sv->parent())
+                continue;
+
+            if (Session::selectMode() == SELECT_TANGENT && ! sv->parent())
                 continue;
 
             sv->render();
         }
     }
 
-    if ( this == theSHAPE &&( isInRenderMode() || isSelectMode(MeshOperation::EDGE))  )
+    //fix this!!!
+    if (( (this == theSHAPE || !Session::isRender(SURFACES_ON)) &&( isInRenderMode() || isSelectMode(MeshOperation::EDGE)) || Session::selectMode() == SELECT_EDGE) && Session::isRender(CURVES_ON))
     {
        _control->ForAllEdges(renderEdge);
     }
 
     //too messy, fix it!
-    if (isInRenderMode() || isSelectMode(MeshOperation::FACE) || Session::isRender(DRAG_ON) )
+    if ((isInRenderMode() || isSelectMode(MeshOperation::FACE) || Session::isRender(DRAG_ON) || Session::selectMode() == SELECT_SHAPE ) && Session::isRender(SURFACES_ON))
     {
         if (Session::isRender(PREVIEW_ON)){
             if (mode&BRIGHT_MODE)
@@ -379,11 +388,12 @@ void MeshShape::render(int mode) {
 
 void Patch4::render(int mode){
 
-    if (!Session::isRender(DRAG_ON))
-      Selectable::render(mode);
+    if (!Session::isRender(DRAG_ON) && Session::selectMode() != SELECT_SHAPE)
+        Selectable::render(mode);
 
       for(int j=0; j < _sampleVi; j++){
-        for(int i = 0; i< _sampleUi; i++){
+        for(int i = 0; i< _sampleUi; i++)
+        {
 
             Point p[4];
             p[0] = P(i, j);
@@ -402,7 +412,8 @@ void Patch4::render(int mode){
                 continue;
             }
 
-            if (Session::isRender(WIREFRAME_ON)){
+            if (Session::isRender(WIREFRAME_ON))
+            {
 
                 if (Session::isRender(NORMALS_ON))
                 {
@@ -453,8 +464,8 @@ void Patch4::render(int mode){
                 {
                     RGB diff = _maps[BRIGHT_CHANNEL][index];
                     RGB amb  = _maps[DARK_CHANNEL][index];
-                    GLfloat mat_diff[] = {diff.x, diff.y, diff.z, 1.0};//diff.w};
-                    GLfloat mat_amb[]  = {amb.x, amb.y, amb.z, 1.0};//amb.w};
+                    GLfloat mat_diff[] = {diff.x, diff.y, diff.z, 1.0}; //diff.w};
+                    GLfloat mat_amb[]  = {amb.x, amb.y, amb.z, 1.0}; //amb.w};
 
                     glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diff);
                     glMaterialfv(GL_FRONT, GL_AMBIENT, mat_amb);
@@ -552,9 +563,6 @@ void CurvedEdge::render(int mode) {
     glEnd();
 }
 
-
-
-
 void Rectangle::render(int mode){
 
     if (!Session::isRender(DRAG_ON))
@@ -569,6 +577,7 @@ void Rectangle::render(int mode){
     {
         glVertex2f(p[k].x, p[k].y);
     }*/
+
     glColor3f(0.75, 0.75, 0.75);
     glBegin(GL_POLYGON);
     for(int k = 0; k < _pFace->size(); k++)
@@ -803,7 +812,6 @@ void ImageShape::render(int mode)
     Session::get()->glWidget()->glActiveTexture(GL_TEXTURE0+1);
     if(mode&DEFAULT_MODE||mode&DRAG_MODE&&!(mode&SM_MODE||mode&DARK_MODE||mode&BRIGHT_MODE||mode&LABELDEPTH_MODE))
     {
-
         int channel = Session::get()->channel();
         switch(channel)//m_curTexture)
         {
@@ -823,7 +831,6 @@ void ImageShape::render(int mode)
             glBindTexture(GL_TEXTURE_2D, m_texDisp);
             break;
         }
-
     }
     else
     {
@@ -947,8 +954,6 @@ void ImageShape::render(int mode)
 
 }
 
-
-
 void Light::render(int mode) {
     Selectable::render(mode);
 
@@ -978,11 +983,7 @@ void LayerNormalControl::render(int mode) {
     }
 }
 
-
-
 /*
-
-
 void ImageShape::render(int mode)
 {
 

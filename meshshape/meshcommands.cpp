@@ -10,27 +10,29 @@ bool        MeshShape::isSMOOTH             = false;
 bool        MeshShape::isSMOOTH             = true;
 #endif
 
-double      MeshOperation::EXTRUDE_T        = 0.25;
-bool        MeshOperation::isKEEP_TOGETHER  = false;
-bool        MeshOperation::EXEC_ONCLICK     = true;
+double          MeshOperation::EXTRUDE_T        = 0.25;
+bool            MeshOperation::isKEEP_TOGETHER  = false;
+bool            MeshOperation::EXEC_ONCLICK     = true;
 
 
-double      MeshPrimitive::GRID_N_LEN       = 0.2;
-double      MeshPrimitive::GRID_M_LEN       = 0.2;
+double          MeshPrimitive::GRID_N_LEN       = 0.2;
+double          MeshPrimitive::GRID_M_LEN       = 0.2;
 
-int         MeshPrimitive::GRID_N           = 2;
-int         MeshPrimitive::GRID_M           = 2;
-int         MeshPrimitive::NGON_N           = 3;
-int         MeshPrimitive::NGON_SEG_V       = 1;
-double      MeshPrimitive::NGON_RAD         = 0.2;
+int             MeshPrimitive::GRID_N           = 2;
+int             MeshPrimitive::GRID_M           = 2;
+int             MeshPrimitive::NGON_N           = 3;
+int             MeshPrimitive::NGON_SEG_V       = 1;
+double          MeshPrimitive::NGON_RAD         = 0.2;
 
-int         MeshPrimitive::TORUS_N          = 4;
-int         MeshPrimitive::TORUS_V          = 1;
-double      MeshPrimitive::TORUS_RAD_X      = 0.2;
-double      MeshPrimitive::TORUS_RAD_Y      = 0.2;
+int             MeshPrimitive::TORUS_N          = 4;
+int             MeshPrimitive::TORUS_V          = 1;
+double          MeshPrimitive::TORUS_RAD_X      = 0.2;
+double          MeshPrimitive::TORUS_RAD_Y      = 0.2;
 
-double      MeshPrimitive::TORUS_W          = 0.5;
-double      MeshPrimitive::TORUS_ARC        = 1.0;
+double          MeshPrimitive::TORUS_W          = 0.5;
+double          MeshPrimitive::TORUS_ARC        = 1.0;
+
+Sew::SewMode    Sew::SEW_MODE                   = Sew::SEW_EDGE;
 
 std::map<Vertex_p, Corner_p> vertexToCornerMap;
 
@@ -163,6 +165,93 @@ Command_p MeshPrimitive::unexec(){
     return 0;
 }
 
+
+Sew::Sew()
+{
+}
+
+
+Command_p Sew::exec(){
+
+    //TODO::this stufff should bew done upper in command class
+    if (Session::get()->selectionMan()->selectionSize()!=2)
+        return new Sew();
+
+    _sewmode = SEW_MODE;
+    _svcount =0;
+
+    SelectionSet selection = Session::get()->selectionMan()->getSelection();
+
+    if (SEW_MODE == SEW_VERTEX){
+        ShapeVertex_p   pSV[2];
+        FOR_ALL_ITEMS(SelectionSet, selection)
+        {
+            pSV[(*it)->I()]= dynamic_cast<ShapeVertex_p>(*it);
+        }
+
+        if (!pSV[0] || !pSV[1])
+            return new Sew();
+
+        sewVertex(pSV[0], pSV[1]);
+    }
+
+    if (SEW_MODE == SEW_EDGE){
+        CurvedEdge* pE[2];
+        FOR_ALL_ITEMS(SelectionSet, selection)
+        {
+            pE[(*it)->I()]= dynamic_cast<CurvedEdge*>(*it);
+        }
+
+        if (!pE[0] || !pE[1])
+            return new Sew();
+
+        Vec2 v0 = pE[0]->getSV(3)->P() - pE[0]->getSV(0)->P();
+        Vec2 v1 = pE[1]->getSV(3)->P() - pE[1]->getSV(0)->P();
+
+        if (v0*v1 > 0){
+            sewVertex(pE[0]->getSV(0),  pE[1]->getSV(0));
+            sewVertex(pE[0]->getSV(1),  pE[1]->getSV(1));
+            sewVertex(pE[0]->getSV(2),  pE[1]->getSV(2));
+            sewVertex(pE[0]->getSV(3),  pE[1]->getSV(3));
+
+        }else{
+            sewVertex(pE[0]->getSV(0),  pE[1]->getSV(3));
+            sewVertex(pE[0]->getSV(1),  pE[1]->getSV(2));
+            sewVertex(pE[0]->getSV(2),  pE[1]->getSV(1));
+            sewVertex(pE[0]->getSV(3),  pE[1]->getSV(0));
+        }
+
+    }
+
+    return new Sew();
+
+}
+
+Command_p Sew::unexec(){
+    for(int i=0; i<_svcount;i++)
+        _cache[i].restore();
+
+    return 0;
+}
+
+SelectionMode Sew::selectMode() const
+{
+    if (SEW_MODE == SEW_VERTEX)
+        return SELECT_VERTEX_TANGENT;
+
+    if (SEW_MODE == SEW_EDGE)
+        return SELECT_EDGE;
+}
+
+void Sew::sewVertex(ShapeVertex_p sv0, ShapeVertex_p sv1){
+    _cache[_svcount].set(sv0);
+    sv0->setGlobalP(sv1->gP());
+    for(int i=0; i< ACTIVE_CHANNELS; i++)
+        sv0->data[i] = sv1->data[i];
+
+    sv0->outdate();
+    _svcount++;
+}
 
 /*
 void MeshShape::executeStackOperation(){

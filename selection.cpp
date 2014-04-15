@@ -18,6 +18,8 @@ bool Selectable::isInSelection() const{
     return Session::get()->selectionMan()->isInSelection((Selectable_p)this);
 }
 
+int SelectionManager::INDEX = 0;
+
 SelectionManager::SelectionManager(){
     _count = 0;
     _theSelected = 0;
@@ -61,10 +63,18 @@ void SelectionManager::startSelect(Selectable_p pObj, const Click & click)
         return;
 
     if (click.isCtrl){
-        if (isSelect)
+        if (isSelect){
+            pObj->_index = INDEX;
             _selection.insert(pObj);
-        else
+            INDEX++;
+        }else{
             _selection.erase(pObj);
+            INDEX--;
+             FOR_ALL_ITEMS(SelectionSet, _selection){
+                 if ((*it)->_index > pObj->_index)
+                     (*it)->_index--;
+             }
+        }
     }else if (_theSelected && !_theSelected->isInSelection())
         _selection.clear();
 }
@@ -94,16 +104,24 @@ void SelectionManager::reset(){
     _count = 0;
 }
 
-bool SelectionManager::dragSelected(const Point& t, int button){
+void SelectionManager::cancelSelection(){
+    _selection.clear();
+    INDEX = 0;
+}
+
+bool SelectionManager::dragSelected(const Point& t, int button)
+{
 
     if (!_theSelected || !_theSelected->isDraggable())
         return false;
+
     Draggable_p dragged = ((Draggable_p)_theSelected);
     if (dragged->isLocked)
         return false;
 
     if (!_selection.empty()){
-        FOR_ALL_ITEMS(SelectionSet, _selection){
+        FOR_ALL_ITEMS(SelectionSet, _selection)
+        {
             if (!(*it)->isDraggable())
                 continue;
             Draggable_p pDragged = (Draggable_p)(*it);

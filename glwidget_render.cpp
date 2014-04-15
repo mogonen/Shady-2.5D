@@ -198,13 +198,20 @@ void GLWidget::renderCanvas()
             }
         }
 
-        FOR_ALL_CONST_ITEMS(ShapeList,_pCanvas->_shapes)
-        { //need to add layers
-            Shape_p s = *it;
-            if (!s->isChild())
-                render(*it);
+        if (is(SHOW_ISOLATED) && Session::get()->theShape()){
+           render(Session::get()->theShape());
         }
-
+        else
+        {
+            FOR_ALL_CONST_ITEMS(ShapeList,_pCanvas->_shapes)
+            { //need to add layers
+                Shape_p s = *it;
+                if (!s->isChild())
+                    render(*it);
+            }
+        }
+        if (is(BACKGROUND_ON) && isInRenderMode())
+            _pCanvas->renderBG();
     }
 }
 

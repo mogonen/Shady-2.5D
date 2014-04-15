@@ -31,7 +31,7 @@ class Canvas;
 class ShapeControl;
 class MainWindow;
 
-enum RenderSetting  {DRAG_ON, SHADING_ON, AMBIENT_ON, SHADOWS_ON, NORMALS_ON, WIREFRAME_ON, PREVIEW_ON};
+enum RenderSetting  {DRAG_ON, SHADING_ON, AMBIENT_ON, SHADOWS_ON, NORMALS_ON, WIREFRAME_ON, CURVES_ON, SURFACES_ON, PREVIEW_ON, SHOW_ISOLATED, BACKGROUND_ON};
 enum PreviewSetting {DEFAULT_MODE = 0, DRAG_MODE = 1, SM_MODE = 2, DARK_MODE = 4, BRIGHT_MODE = 8, LABELDEPTH_MODE = 16, DISPLACE_MODE = 32};
         //{DEFAULT_MODE = 0, SM_MODE = 1, DARK_MODE = 2, BRIGHT_MODE = 4, LABELDEPTH_MODE = 8};
 
@@ -120,30 +120,34 @@ struct Click
 
 class Selectable:public Renderable, public Referrer{
 
-    int _name;
-    bool _isDraggable;
+    int             _name;
+    bool            _isDraggable;
+    friend class    SelectionManager;
 
-    friend class SelectionManager;
+    int             _index;
 
 protected:
 
-    virtual void onUp(){}
-    virtual void onDown(){}
+    virtual void    onUp(){}
+    virtual void    onDown(){}
 
-    inline void makeDraggable(){_isDraggable = true;}
+    inline void     makeDraggable(){ _isDraggable = true; }
 
 public:
 
     Selectable(bool isUI);
     virtual ~Selectable();
 
-    virtual void render(int mode = 0);
+    virtual void    render(int mode = 0);
 
-    inline bool isDraggable() const{return _isDraggable;}
+    inline bool     isDraggable() const{return _isDraggable;}
 
-    int name() const{return _name;}
-    bool isTheSelected() const;
-    bool isInSelection() const;
+    int             name() const{return _name;}
+    bool            isTheSelected() const;
+    bool            isInSelection() const;
+
+
+    int                 I()const {return _index;}
 
 };
 
@@ -174,8 +178,11 @@ public:
     void                stopSelect(const Click&);
     bool                dragSelected(const Vec2& t, int button = 0);
     void                reset();
+    void                cancelSelection();
 
     bool                isSelect;
+
+    static int          INDEX;
 
 };
 
@@ -260,7 +267,7 @@ struct ShapeVertex;
 bool isInRenderMode();
 
 
-enum SelectionMode {NOSELECT, SELECT_SHAPE, SELECT_VERTEX, SELECT_VERTEX_VERTEX, SELECT_EDGE, SELECT_FACE, SELECT_CORNER, SELECT_EDGE_EDGE};
+enum SelectionMode {NOSELECT, SELECT_SHAPE, SELECT_VERTEX, SELECT_TANGENT, SELECT_VERTEX_TANGENT, SELECT_VERTEX_VERTEX, SELECT_EDGE, SELECT_FACE, SELECT_CORNER, SELECT_EDGE_EDGE};
 enum Channel       {NORMAL_CHANNEL, DARK_CHANNEL, BRIGHT_CHANNEL, DEPTH_CHANNEL, ALPHA_CHANNEL, DISP_CHANNEL, GL_SHADING, PREVIEW};
 
 #define ACTIVE_CHANNELS 4
@@ -351,6 +358,8 @@ public:
     void                moveActiveUp();
     void                sendActiveBack();
     void                sendActiveFront();
+    void                selectNext();
+    void                selectPrev();
 
     static void         init(MainWindow*);
 
@@ -364,6 +373,7 @@ public:
     void                exportShape(const char *fname, int exporterid);
     int                 save();
     void                reset();
+    void                setBG(const char *fname);
 
     //Manage Commands
     void                setCommand(Command_p);

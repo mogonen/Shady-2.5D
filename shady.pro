@@ -40,7 +40,6 @@ SOURCES += glwidget.cpp \
     curve.cpp \
     customdialog.cpp \
     shape.cpp \
-    meshshape/patch.cpp \
     meshshape/spine.cpp \
     meshshape/meshshape.cpp \
     meshshape/cmesh.cpp \

@@ -43,6 +43,7 @@ struct BBox{
     Point               pivot() const {return (P[0]+P[1])*0.5;}
 };
 
+
 class SVCache{
 
     ShapeVertex_p _sv, _pair, _parent;
@@ -73,8 +74,22 @@ public:
     inline Normal        N()            const {return data[NORMAL_CHANNEL];}  //_N;}
     inline Normal_p      pN()                 {return &data[NORMAL_CHANNEL];} //_N;}//;}
 
-    ControlNormal*       pControlN()     const {return _pControlN;}
+    ControlNormal*       pControlN()    const {return _pControlN;}
 } * ShapeBase_p;
+
+class SBCache{
+
+    ShapeVertex_p     _pSB;
+    //ShapeBase_p     _pSB;
+    RGB             _data[ACTIVE_CHANNELS];
+    Point           _p;
+
+public:
+
+    void set(ShapeVertex_p pSB);
+    void restore();
+
+};
 
 class ShapeVertex:public ControlPoint, public ShapeBase
 {
@@ -100,6 +115,9 @@ public:
     inline ShapeVertex_p pair()         const {return _pair;}
     inline int           id()           const {return name();}
     inline bool          isDeleted()    const {return _isDeleted;}
+
+    Point               gP();
+    void                setGlobalP(const Point&);
 
     void                 outdate();
     bool                _isDeleted; //public for now

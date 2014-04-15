@@ -85,7 +85,6 @@ MainWindow::MainWindow()
     setWindowTitle(tr("Shady"));
     resize(1200, 900);
 
-    Session::get()->canvas()->setImagePlane("E:/dog1.jpg");
 
     // set the number of patch lines
     //Patch::setN(16);
@@ -133,6 +132,7 @@ void MainWindow::initTools()
     toolbar->addAction(assignPatternAct);
     toolbar->addAction(setFoldsAct);
     toolbar->addAction(setColorToolAct);
+    toolbar->addAction(setSewToolAct);
 
     //init tool options dock
     optionsDockWidget = new QDockWidget(QString("Options"), this);
@@ -143,7 +143,6 @@ void MainWindow::initTools()
 
     optionsDockWidget->setWidget(optionsStackedWidget);
     attrDockWidget->setWidget(attrStackedWidget);
-
 
     this->addDockWidget(Qt::LeftDockWidgetArea, optionsDockWidget);
     this->addDockWidget(Qt::LeftDockWidgetArea, attrDockWidget);
@@ -234,6 +233,10 @@ void MainWindow::createActions()
     fileExportINPAct = new QAction(tr("Export INP"), this);
     connect(fileExportINPAct, SIGNAL(triggered()), this, SLOT(exportINP()));
 
+    fileSetBGImageAct = new QAction(tr("Set Background Image"), this);
+    connect(fileSetBGImageAct, SIGNAL(triggered()), this, SLOT(setBackgroundImage()));
+    //fileSetBGImageAct->setShortcut(Qt::CTRL + Qt::Key_B);
+
     editUndoAct = new QAction(tr("Undo"), this);
     editUndoAct->setShortcuts(QKeySequence::Undo);
     connect(editUndoAct, SIGNAL(triggered()), this, SLOT(undo()));
@@ -276,9 +279,25 @@ void MainWindow::createActions()
     shadingOnAct->setCheckable(true);
     connect(shadingOnAct, SIGNAL(triggered()), this, SLOT(toggleShading()));
 
+    surfacesOnAct = new QAction(tr("S&urfaces On"), this);
+    surfacesOnAct->setShortcut('U');
+    surfacesOnAct->setCheckable(true);
+    surfacesOnAct->setChecked(true);
+    connect(surfacesOnAct, SIGNAL(triggered()), this, SLOT(toggleSurfaces()));
+
+    curvesOnAct = new QAction(tr("&Curves On"), this);
+    curvesOnAct->setShortcut('C');
+    curvesOnAct->setCheckable(true);
+    curvesOnAct->setChecked(true);
+    connect(curvesOnAct, SIGNAL(triggered()), this, SLOT(toggleCurves()));
+
     previewOnAct = new QAction(tr("Preview On"), this);
     previewOnAct->setCheckable(true);
 
+    backgroundOnAct = new QAction(tr("Background On"), this);
+    backgroundOnAct->setShortcut('B');
+    backgroundOnAct->setCheckable(true);
+    connect(backgroundOnAct, SIGNAL(triggered()), this, SLOT(toggleBackgroundImage()));
 
     //====CHANNELS============================================================
     normalChannelAct = new QAction(tr("Normal"), this);
@@ -342,6 +361,11 @@ void MainWindow::createActions()
     patchesOnAct->setCheckable(true);
     connect(patchesOnAct, SIGNAL(triggered()), this, SLOT(togglePathces()));
 
+    showIsolatedAct = new QAction(tr("Show &Isolated"), this);
+    showIsolatedAct->setShortcut('I');
+    showIsolatedAct->setCheckable(true);
+    connect(showIsolatedAct, SIGNAL(triggered()), this, SLOT(showIsolated()));
+
     //====MESH OPERATIONS=======================================================
     extrudeEdgeAct = new QAction(tr("&Extrude Edge"), this);
     extrudeEdgeAct->setShortcut(tr("Ctrl+E"));
@@ -372,6 +396,10 @@ void MainWindow::createActions()
     setColorToolAct = new QAction(tr("Set Color"), this);
     //shapeTransformAct->setShortcut(tr("Ctrl+T"));
     connect(setColorToolAct, SIGNAL(triggered()), this, SLOT(selectSetColorTool()));
+
+    setSewToolAct = new QAction(tr("Sew"), this);
+    //shapeTransformAct->setShortcut(tr("Ctrl+T"));
+    connect(setSewToolAct, SIGNAL(triggered()), this, SLOT(selectSewTool()));
 
     QActionGroup* toolset = new QActionGroup(this);
 
@@ -445,6 +473,15 @@ void MainWindow::createActions()
     connect(shapeTransformAct, SIGNAL(triggered()), this, SLOT(transformShape()));
 
 
+    selectNextAct = new QAction(tr("Next"), this);
+    selectNextAct->setShortcut(Qt::Key_Right);
+    connect(selectNextAct, SIGNAL(triggered()), this, SLOT(selectNext()));
+
+    selectPrevAct = new QAction(tr("Previus"), this);
+    selectPrevAct->setShortcut(Qt::Key_Left);
+    connect(selectPrevAct, SIGNAL(triggered()), this, SLOT(selectPrev()));
+
+
 }
 
 void MainWindow::createMenus()
@@ -458,6 +495,8 @@ void MainWindow::createMenus()
     fileMenu->addSeparator();
     fileMenu->addAction("Import");
     fileMenu->addAction(fileExportINPAct);
+
+    fileMenu->addAction(fileSetBGImageAct);
 
     fileMenu->addSeparator();
     fileMenu->addAction(exitAct);
@@ -476,6 +515,10 @@ void MainWindow::createMenus()
 
     displayMenu->addAction(normalsOnAct);
     displayMenu->addAction(patchesOnAct);
+    displayMenu->addAction(surfacesOnAct);
+    displayMenu->addAction(curvesOnAct);
+    displayMenu->addAction(backgroundOnAct);
+    displayMenu->addAction(showIsolatedAct);
 
     previewMenu->addAction(previewAct);
     previewMenu->addSeparator();
@@ -532,6 +575,9 @@ void MainWindow::createMenus()
 
 
     selectMenu  = menuBar()->addMenu(tr("Select"));
+    selectMenu->addAction(selectNextAct);
+    selectMenu->addAction(selectPrevAct);
+
     selectMenu->addAction("Select All");
     selectMenu->addAction("Select Inverse");
     selectMenu->addAction("Grow Selection");
@@ -582,8 +628,15 @@ void MainWindow::keyPressEvent(QKeyEvent *event){
     }
 
     if (key == Qt::Key_Escape){
+
         Session::get()->controller()->cancel();
-        Session::get()->deactivate();
+
+        if (ControlPoint::IsThereActive())
+            ControlPoint::Deactivate();
+        else if (Session::get()->selectionMan()->selectionSize())
+            Session::get()->selectionMan()->cancelSelection();
+        else
+            Session::get()->deactivate();
     }
 
     if (key == Qt::Key_Return){
@@ -684,6 +737,14 @@ void MainWindow::togglePathces(){
     glWidget->setRender(WIREFRAME_ON, patchesOnAct->isChecked());
 }
 
+void MainWindow::toggleCurves(){
+    glWidget->setRender(CURVES_ON, curvesOnAct->isChecked());
+}
+
+void MainWindow::toggleSurfaces(){
+    glWidget->setRender(SURFACES_ON, surfacesOnAct->isChecked());
+}
+
 void MainWindow::toggleShading(){
     glWidget->setRender(SHADING_ON, shadingOnAct->isChecked());
 }
@@ -701,6 +762,17 @@ void MainWindow::togglePreview(){
     //previewOnAct->isChecked());
     //glWidget->updateGL();
 }
+
+void MainWindow::showIsolated(){
+   glWidget->setRender(SHOW_ISOLATED, showIsolatedAct->isChecked());
+}
+
+void MainWindow::toggleBackgroundImage()
+{
+    //Session::get()->canvas()->setImagePlane("e:/dog1.jpg");
+    glWidget->setRender(BACKGROUND_ON, backgroundOnAct->isChecked());
+}
+
 
 void MainWindow::toggleLockShape(){
     Shape_p shape = Session::get()->theShape();
@@ -738,6 +810,20 @@ void MainWindow::sendShapeBack(){
 
 void MainWindow::sendShapeFront(){
     Session::get()->exec(new ShapeOrder(ShapeOrder::SEND_FRONT));
+}
+
+void MainWindow::selectNext(){
+    Session::get()->selectNext();
+}
+
+void MainWindow::selectPrev(){
+    Session::get()->selectPrev();
+}
+
+void MainWindow::setBackgroundImage()
+{
+    QString fname = QFileDialog::getOpenFileName(this,"Choose Background Image");
+    Session::get()->setBG(fname.toUtf8().constData());
 }
 
 void MainWindow::transformShape(){

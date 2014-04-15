@@ -66,6 +66,7 @@ public:
 	int loadFrom(const char * fname);
 
     void setImagePlane(const string &filename);
+    void renderBG();
 
 #ifndef MODELING_MODE
     Point lightPos(int i)const {return _lights[i]->P();}

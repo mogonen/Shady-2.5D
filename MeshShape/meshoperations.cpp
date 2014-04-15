@@ -203,8 +203,8 @@ Face_p MeshOperation::extrude(Face_p f0, double t){
     return e->C0()->F();
 }
 
-Edge_p MeshOperation::extrude(Edge_p e0, double t, bool isSmooth, VertexMap *pVMap){
-
+Edge_p MeshOperation::extrude(Edge_p e0, double t, bool isSmooth, VertexMap *pVMap)
+{
     if (!e0 || !e0->isBorder())
         return 0;
 

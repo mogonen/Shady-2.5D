@@ -21,7 +21,6 @@ QWidget* createAttrWidget(Shape_p pShape)
     //widget->addSpinBox("test:", 1, 8, &MeshShape::GRID_N, 1, "Rows");
     //widget->addSpinBox("U segments:", 2, 24, &Patch::N, 1);
     //widget->addColorSel("Diffuse:", &pShape->diffuse, "");
-
     CustomDialog * widget = new CustomDialog("Shape Attr");
     QObject::connect(widget,SIGNAL(ValueUpdated()),Session::get()->glWidget(),SLOT(updateActive()));
     return widget;
@@ -110,6 +109,13 @@ void MainWindow::selectSetColorTool(){
     unselectDrag();
 }
 
+void MainWindow::selectSewTool(){
+    setOptionsWidget(Options::SEW);
+    Session::get()->setCommand(new Sew());
+    unselectDrag();
+}
+
+
 void MainWindow::new2NGon()
 {
     setOptionsWidget(Options::NGON);
@@ -154,18 +160,23 @@ QWidget* createDragOptions()
     return widget;
 }
 
-
-
 QWidget* createSetColorOptions()
 {
     CustomDialog * widget = new CustomDialog("Set Color Tool Options",0,"Assign",exec, &SetColor::EXEC_ONCLICK);
     widget->addColorSel("Color",&SetColor::COLOR);
-    widget->addCheckBox ("Bring Dialog", &SetColor::IS_DIALOG);
     widget->addRadioGrp("Apply:","Shape|Vertex", (int*)(&SetColor::SELECT_MODE));
-
+    widget->addCheckBox ("Bring Dialog", &SetColor::IS_DIALOG);
     //widget->addRadioGrp("Channel:","Dark|Bright|Depth", (int*)(&SetColor::CHANNEL));
     return widget;
 }
+
+QWidget* createSewOptions()
+{
+    CustomDialog * widget = new CustomDialog("Sew Tool Options",0,"Sew",exec);
+    widget->addRadioGrp("Apply:","Vertex|Edge", (int*)(&Sew::SEW_MODE));
+    return widget;
+}
+
 
 QWidget* createGridOptions()
 {
@@ -293,4 +304,5 @@ void MainWindow::createAllOptionsWidgets()
     addOptionsWidget(createSetFoldsOptions(), Options::SET_FOLDS);
     addOptionsWidget(createImageShapeOptions(), Options::IMAGE_SHAPE);
     addOptionsWidget(createSetColorOptions() , Options::SET_COLOR);
+    addOptionsWidget(createSewOptions() , Options::SEW);
 }

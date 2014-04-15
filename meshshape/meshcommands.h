@@ -130,4 +130,32 @@ public:
 
 };
 
+
+class Sew:public Command
+{
+
+public:
+
+    enum SewMode        {SEW_VERTEX, SEW_EDGE};
+
+    Sew();
+
+    Command_p           exec();
+    Command_p           unexec();
+
+    CommandType         type()       const{return SET_COLOR;}
+    SelectionMode       selectMode() const;
+
+    static SewMode      SEW_MODE;
+
+private:
+
+    SBCache             _cache[4];
+    int                 _svcount;
+    SewMode             _sewmode;
+
+    void sewVertex(ShapeVertex_p sv0, ShapeVertex_p sv1);
+
+};
+
 #endif // MESHCOMMANDS_H

@@ -118,6 +118,17 @@ Vec2 ShapeVertex::getTangent(){
     return Vec2(0,0);
 }
 
+Point   ShapeVertex::gP(){
+    return _pShape? (P()+ _pShape->gT()) : P();
+}
+
+void    ShapeVertex::setGlobalP(const Point& p){
+    pP()->set(p - _pShape->gT());
+}
+
+/*
+*/
+
 SVCache::SVCache(ShapeVertex_p sv){
     _sv = sv;
     _pair = sv->pair();
@@ -324,4 +335,21 @@ Point ControlNormal::P() const
 
 void ControlNormal::onDrag(const Point &t, int button){
     _pShapeBase->dragNormal(t);
+}
+
+
+void SBCache::set(ShapeVertex_p pSB){
+    _pSB = pSB;
+    for(int i=0; i<ACTIVE_CHANNELS; i++)
+        _data[i] = pSB->data[i];
+    //really??
+    _p = pSB->P();
+}
+
+void SBCache::restore(){
+    for(int i=0; i<ACTIVE_CHANNELS; i++)
+        _pSB->data[i] = _data[i];
+    //really??
+    _pSB->pP()->set(_p);
+    _pSB->outdate();
 }

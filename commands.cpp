@@ -116,7 +116,8 @@ Command_p SetColor::exec()
     _channel     = Session::channel();
     QColor color = COLOR;
 
-    if (_pSB){
+    if (_pSB)
+    {
         _col = _pSB->data[(int)_channel];
     }
 
@@ -126,22 +127,36 @@ Command_p SetColor::exec()
         color = QColorDialog::getColor(QColor(col.x, col.y, col.z), (QWidget*)Session::get()->glWidget(), "Vertex Color",  QColorDialog::DontUseNativeDialog);
     }
 
-    if (_pSB){
-        _pSB->data[(int)_channel] = RGB(color.redF(), color.greenF(), color.blueF());
-        _pSB->outdate();
-    }
+    RGB rgb(color.redF(), color.greenF(), color.blueF());
 
+    setColor(_pSB, rgb);
     SelectionSet selection = Session::get()->selectionMan()->getSelection();
     FOR_ALL_ITEMS(SelectionSet, selection)
     {
         ShapeBase_p sb = dynamic_cast<ShapeBase_p>(*it);
-        if (sb){
-            sb->data[(int)_channel] = RGB(color.redF(), color.greenF(), color.blueF());
-            sb->outdate();
-        }
+        setColor(sb, rgb);
     }
 
     return new SetColor();
+}
+
+void SetColor::setColor(ShapeBase_p pSB, const RGB &rgb)
+{
+    if (!pSB)
+        return;
+
+    pSB->data[(int)_channel] = rgb;
+    pSB->outdate();
+
+    if (selectMode() == SELECT_SHAPE)
+    {
+        Shape_p pShape = dynamic_cast<Shape_p>(pSB);
+        if (!pShape)
+            return;
+        SVList svlist = pShape->getVertices();
+        FOR_ALL_ITEMS(SVList, svlist)
+            setColor(*it, rgb);
+    }
 }
 
 Command_p SetColor::unexec()
@@ -149,3 +164,4 @@ Command_p SetColor::unexec()
     _pSB->data[_channel] = _col;
     return 0;
 }
+

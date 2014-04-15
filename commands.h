@@ -41,7 +41,9 @@ public:
 
 
     ShapeOrder(Operation op);
-    void setShape(Shape_p pShape){_pShape = pShape;}
+    void setShape(Shape_p pShape){
+        _pShape = pShape;
+    }
 
 private:
 
@@ -79,7 +81,8 @@ private:
     SVList              _selection;
     RGB                 _col;
     Channel             _channel;
-};
 
+    void setColor(ShapeBase_p, const RGB &col);
+};
 
 #endif // COMMANDS_H

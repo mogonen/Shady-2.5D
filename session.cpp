@@ -94,6 +94,10 @@ int Session::save(){
     _pFileIO->save(_filename);
 }
 
+void  Session::setBG(const char *fname){
+    _pCanvas->setImagePlane(fname);
+}
+
 void  Session::setCommand(Command_p pCommand){
     if (_pTheCommand){
         _pTheCommand->unselect();
@@ -116,6 +120,8 @@ void  Session::exec(Command_p pCommand){
     _commands.push_back(pCommand);
     if (_pTheCommand)
         _pTheCommand = newcommand;
+
+    _pSelectionMan->cancelSelection();
     _pGlWidget->updateGL();
 }
 
@@ -175,6 +181,16 @@ void  Session::sendActiveBack(){
 void  Session::sendActiveFront(){
     _pCanvas->sendToFront(_pTheShape);
     _pGlWidget->updateGL();
+}
+
+void  Session::selectNext(){
+    _pTheShape = _pCanvas->findNext(_pTheShape);
+    _pGlWidget->updateGL();
+}
+
+void  Session::selectPrev(){
+     _pTheShape = _pCanvas->findPrev(_pTheShape);
+     _pGlWidget->updateGL();
 }
 
 void  Session::setChannel(Channel channel){

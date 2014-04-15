@@ -5,6 +5,9 @@
 
 GLuint texture[30];
 
+GLuint bg_tex;
+double bg_aspect;
+
 void Canvas::insert(Shape_p sp)
 {
     _shapes.push_front(sp);
@@ -24,19 +27,6 @@ Shape_p Canvas::findPrev(Shape_p pShape)
 {
     if (!_shapes.size())
         return 0;
-    if (_shapes.size() == 1)
-        return _shapes.front();
-
-    ShapeList::iterator it = std::find(_shapes.begin(), _shapes.end(), pShape);
-    if (it == _shapes.begin())
-        it = _shapes.end();
-    it--;
-    return *it;
-}
-
-Shape_p Canvas::findNext(Shape_p pShape){
-    if (!_shapes.size())
-        return 0;
 
     if (_shapes.size() == 1)
         return _shapes.front();
@@ -47,6 +37,20 @@ Shape_p Canvas::findNext(Shape_p pShape){
 
     if (it == _shapes.end())
         it = _shapes.begin();
+    return *it;
+}
+
+Shape_p Canvas::findNext(Shape_p pShape){
+    if (!_shapes.size())
+        return 0;
+    if (_shapes.size() == 1)
+        return _shapes.front();
+
+    ShapeList::iterator it = std::find(_shapes.begin(), _shapes.end(), pShape);
+    if (it == _shapes.begin())
+        it = _shapes.end();
+    it--;
+    return *it;
 }
 
 void Canvas::moveDown(Shape_p pShape){
@@ -106,14 +110,36 @@ void Canvas::clear()
 }
 
 void Canvas::setImagePlane(const string &filename){
+
     QImage img_data = QGLWidget::convertToGLFormat(QImage(QString::fromStdString(filename)));
-    glGenTextures(30, texture);
-    glBindTexture(GL_TEXTURE_2D, texture[0]);
-    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA,
-                  img_data.width(), img_data.height(),
-                  0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.bits() );
+
+    glEnable(GL_TEXTURE_2D);
+    glGenTextures(1, &bg_tex);//;&texture[0]);
+
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, img_data.width(), img_data.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.bits() );
+    bg_aspect =  (img_data.width()*1.0) / img_data.height();
+}
+
+void Canvas::renderBG()
+{
+    glColor3f(0,0,0);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0);//bg_tex);
+
+    // Draw a textured quad
+    glColor4f(1, 1, 1, 1);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0, 0); glVertex2f(-1.0*bg_aspect, -1.0);
+    glTexCoord2f(0, 1); glVertex2f(-1.0*bg_aspect, 1.0);
+    glTexCoord2f(1, 1); glVertex2f(1.0*bg_aspect, 1.0);
+    glTexCoord2f(1, 0); glVertex2f(1.0*bg_aspect, -1.0);
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
 }
 
 void Canvas::updateDepth()

@@ -38,6 +38,9 @@ public:
 
     void render(int mode = 0);
     bool isActive() const {return (_pTheActive == this) || (_pTheActive == this->parent());}
+
+    static bool IsThereActive() {return _pTheActive != 0;}
+    static void Deactivate() {_pTheActive = 0;}
 };
 
 #endif // CONTROLPOINT_H

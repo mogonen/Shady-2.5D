@@ -74,6 +74,8 @@ GLWidget::GLWidget(Canvas * pCanvas, QWidget *parent)
 #endif
 
     setRender(DRAG_ON, true);
+    setRender(SURFACES_ON, true);
+    setRender(CURVES_ON, true);
 }
 
 void GLWidget::setRender(RenderSetting rs, bool set)
@@ -93,6 +95,9 @@ void GLWidget::flipDragMode(){
 
 void GLWidget::initializeGL()
 {
+
+
+
      glShadeModel(GL_SMOOTH);
      //glDepthRange(0.0, 1.0);
 
@@ -131,7 +136,7 @@ void GLWidget::initializeGL()
 
      glMatrixMode(GL_MODELVIEW);
      glLoadIdentity();
-     glTranslatef(0, 0, -2.0);     
+     glTranslatef(0, 0, -2.0);
 
 #ifndef MODELING_MODE
 
@@ -243,7 +248,8 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 
     Session::get()->selectionMan()->stopSelect(click);
 
-    if (!is(DRAG_ON) && type){
+    if (!is(DRAG_ON) && type)
+    {
         Session::get()->sendClick(click);
     }
     updateGL();

@@ -139,6 +139,17 @@ ShapeVertex_p CurvedEdge::getTangentSV(ShapeVertex_p sv)
     return (_pTanSV[0]->parent() == sv)? _pTanSV[0] : ((_pTanSV[1]->parent() == sv)? _pTanSV[1]:0);
 }
 
+ShapeVertex_p CurvedEdge::getSV(int i) const{
+    if (i==0)
+        return  _pE->C0()->V()->pData;
+
+    if (i==3)
+        return  _pE->C1()->V()->pData;
+
+    if (i==1 || i==2)
+        return  _pTanSV[i-1];
+}
+
 ShapeVertex_p CurvedEdge::getTangentSV(Corner_p pC){
     return pC ? getTangentSV(pC->V()->pData) : 0;
 }

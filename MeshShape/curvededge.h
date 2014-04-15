@@ -38,6 +38,7 @@ public:
     void discard();
     void setRef(Referable_p pRef);
 
+    ShapeVertex_p getSV(int i) const;
     ShapeVertex_p getTangentSV(int i) const {return _pTanSV[i];}
     ShapeVertex_p getTangentSV(ShapeVertex_p sv);
     ShapeVertex_p getTangentSV(Corner_p pC);

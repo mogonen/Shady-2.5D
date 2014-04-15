@@ -98,36 +98,47 @@ private slots:
     void    selectInsertSegment();
     void    selectDeleteFace();
 
-    void toggleNormals();
-    void togglePathces();
-    void toggleShading();
-    void toggleAmbient();
-    void toggleShadow();
-    void togglePreview();
+    void    toggleNormals();
+    void    togglePathces();
+    void    toggleShading();
+    void    toggleAmbient();
+    void    toggleShadow();
+    void    togglePreview();
+    void    toggleCurves();
+    void    toggleSurfaces();
+
     //void toggleShapeMap();
 
-    void newGrid();
-    void new2NGon();
-    void newTorus();
-    void newSpine();
-    void newFacial();
-    void newImageShape();
-    void insertEllipse();
+    void    newGrid();
+    void    new2NGon();
+    void    newTorus();
+    void    newSpine();
+    void    newFacial();
+    void    newImageShape();
+    void    insertEllipse();
 
-    void toggleLockShape();
-    void parentShape();
-    void groupShape();
-    void transformShape();
-    void moveShapeToBack();
-    void moveShapeToFront();
-    void sendShapeBack();
-    void sendShapeFront();
-    void deleteShape();
+    void    toggleLockShape();
+    void    parentShape();
+    void    groupShape();
+    void    transformShape();
+    void    moveShapeToBack();
+    void    moveShapeToFront();
+    void    sendShapeBack();
+    void    sendShapeFront();
+    void    deleteShape();
 
-    void selectAssignPatternTool();
-    void selectSetFoldsTool();
-    void selectSetColorTool();
-    void flipChannel();
+    void    selectAssignPatternTool();
+    void    selectSetFoldsTool();
+    void    selectSetColorTool();
+    void    selectSewTool();
+    void    flipChannel();
+
+    void    selectNext();
+    void    selectPrev();
+
+    void    showIsolated();
+    void    toggleBackgroundImage();
+    void    setBackgroundImage();
 
 private:
 
@@ -178,11 +189,17 @@ private:
     //need to be moved somewhere else
 
     QAction *       patchesOnAct;
+    QAction *       surfacesOnAct;
+    QAction *       curvesOnAct;
+
     QAction *       normalsOnAct;
     QAction *       shadingOnAct;
     QAction *       ambientOnAct;
     QAction *       shadowOnAct;
     QAction *       previewOnAct;
+    QAction *       backgroundOnAct;
+
+    QAction *       showIsolatedAct;
 
     QAction *       darkChannelAct;
     QAction *       brightChannelAct;
@@ -200,6 +217,8 @@ private:
     QAction *       fileOpenAct;
 
     QAction *       fileExportINPAct;
+
+    QAction *       fileSetBGImageAct;
 
     //Edit Menu Action
     QAction *       editUndoAct;
@@ -237,10 +256,15 @@ private:
     QAction *       shapeTransformAct;
     QAction *       shapeDeleteAct;
 
+    QAction *       selectNextAct;
+    QAction *       selectPrevAct;
+
+
     QAction *       assignPatternAct;
     QAction *       setFoldsAct;
 
     QAction *       setColorToolAct;
+    QAction *       setSewToolAct;
 
     //QAction *       windowSh
 
@@ -248,9 +272,10 @@ private:
     std::map<void*, int>    _attrWidgetIDs;
 
     //need to improve this
-    struct Options{
-        enum OptionWidget_e {NONE, DRAG, ELLIPSE, GRID, NGON, TORUS, SPINE, IMAGE_SHAPE, EXTRUDE, INSERT_SEGMENT, DELETE_FACE, ASSIGN_PATTERN, SET_FOLDS, SET_COLOR};
-       };
+    struct Options
+    {
+        enum OptionWidget_e {NONE, DRAG, ELLIPSE, GRID, NGON, TORUS, SPINE, IMAGE_SHAPE, EXTRUDE, INSERT_SEGMENT, DELETE_FACE, ASSIGN_PATTERN, SET_FOLDS, SET_COLOR, SEW};
+    };
 };
 
 
