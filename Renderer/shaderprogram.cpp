@@ -721,14 +721,14 @@ void ShaderProgram::SetLightPos(QVector3D light_pos)
 
 void ShaderProgram::LoadShaperParameters(ShapeList Shapes)
 {
-    float refValues[10];
+    float refvalue[10];
     int reflToggled[10];
-    QVector3D normalValues[10];
+    QVector3D normalvalue[10];
     QVector3D centerDepth[10];
     float boundingbox[40];
     int shadowcreator[10];
 //    for(int i=0;i<10;i++)
-//        normalValues[i] = QVector3D(0.0,0.0,0.0);
+//        normalvalue[i] = QVector3D(0.0,0.0,0.0);
 
     //position 0 is (0,0,0),
     //since shader takes 0 as background
@@ -736,14 +736,14 @@ void ShaderProgram::LoadShaperParameters(ShapeList Shapes)
     FOR_ALL_CONST_ITEMS(ShapeList, Shapes)
     {
         ShaderParameters Param = (*it)->getShaderParam();
-        refValues[m] = Param.m_alphaValue;
+        refvalue[m] = Param.m_alphaValue;
         reflToggled[m] = Param.m_reflectToggled;
-//        normalValues[m] = QVector3D(Param.m_trueNormal/2,0.0)+QVector3D(0.5,0.5,0.0);
-        normalValues[m] = Param.m_trueNormal;
+//        normalvalue[m] = QVector3D(Param.m_trueNormal/2,0.0)+QVector3D(0.5,0.5,0.0);
+        normalvalue[m] = Param.m_trueNormal;
         centerDepth[m] = Param.m_centerDepth;
         shadowcreator[m] = Param.m_shadowcreator;
         qDebug()<<"passed to shader center"<<m<<centerDepth[m];
-        qDebug()<<"passed to shader normal"<<m<<normalValues[m];
+        qDebug()<<"passed to shader normal"<<m<<normalvalue[m];
         BBox bbox;
         (*it)->getBBox(bbox);
         Point piv = bbox.pivot();
@@ -753,8 +753,8 @@ void ShaderProgram::LoadShaperParameters(ShapeList Shapes)
             boundingbox[m*4+i] = bb[i];//Param.m_boundingbox[i];
         m++;
     }
-    this->setUniformValueArray("refValues", refValues, 10,1);
-    this->setUniformValueArray("normalValues", normalValues, 10);
+    this->setUniformValueArray("refValues", refvalue, 10,1);
+    this->setUniformValueArray("normalValues", normalvalue, 10);
     this->setUniformValueArray("centerDepth", centerDepth, 10);
     this->setUniformValueArray("boundingbox", boundingbox, 40,1);
     this->setUniformValueArray("shadowcreator",shadowcreator,10);

@@ -247,7 +247,7 @@ void Sew::sewVertex(ShapeVertex_p sv0, ShapeVertex_p sv1){
     _cache[_svcount].set(sv0);
     sv0->setGlobalP(sv1->gP());
     for(int i=0; i< ACTIVE_CHANNELS; i++)
-        sv0->data[i] = sv1->data[i];
+        sv0->value[i] = sv1->value[i];
 
     sv0->outdate();
     _svcount++;

@@ -18,7 +18,7 @@ void  LayerNormalControl::SetNormal3D(QVector3D normal3D)
 {
 
     pP()->set(normal3D.x()*_Radius,normal3D.y()*_Radius);
-    _pShape->data[NORMAL_CHANNEL].set(normal3D.x(), normal3D.y(), normal3D.z());
+    _pShape->value[NORMAL_CHANNEL].set(normal3D.x(), normal3D.y(), normal3D.z());
 }
 
 */

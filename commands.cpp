@@ -118,7 +118,7 @@ Command_p SetColor::exec()
 
     if (_pSB)
     {
-        _col = _pSB->data[(int)_channel];
+        _col = _pSB->value[(int)_channel];
     }
 
     if (IS_DIALOG)
@@ -145,7 +145,7 @@ void SetColor::setColor(ShapeBase_p pSB, const RGB &rgb)
     if (!pSB)
         return;
 
-    pSB->data[(int)_channel] = rgb;
+    pSB->value[(int)_channel] = rgb;
     pSB->outdate();
 
     if (selectMode() == SELECT_SHAPE)
@@ -161,7 +161,7 @@ void SetColor::setColor(ShapeBase_p pSB, const RGB &rgb)
 
 Command_p SetColor::unexec()
 {
-    _pSB->data[_channel] = _col;
+    _pSB->value[_channel] = _col;
     return 0;
 }
 

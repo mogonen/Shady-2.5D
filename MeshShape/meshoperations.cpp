@@ -47,12 +47,21 @@ void applySubdivision(Corner_p pC, Point newCP[], bool haspair)
 
     Edge_p e0 = pC->prev()->E();
 
+    ShapeVertex_p pair0 =  e0->pData->getTangentSV(0)->pair();
+    ShapeVertex_p pair1 =  e0->pData->getTangentSV(1)->pair();
+
     e0->pData->discard();
     e0->pData = new CurvedEdge(e0);
     e0->pData->init();
 
-    if (haspair)
+    if (pair0 || pair1)
         e0->pData->getTangentSV(1)->setPair(pC->E()->pData->getTangentSV(0));
+
+    if (pair0)
+        e0->pData->getTangentSV(0)->setPair(pair0);
+
+    if (pair1)
+        pC->E()->pData->getTangentSV(1)->setPair(pair1);
 
     //now assign new positions
     CurvedEdge* curve0 = e0->pData;
@@ -61,7 +70,6 @@ void applySubdivision(Corner_p pC, Point newCP[], bool haspair)
     curve0->pCV(3)->set(newCP[3]);
 
     CurvedEdge* curve1 = pC->E()->pData;
-
     curve1->pCV(1)->set(newCP[4]);
     curve1->pCV(2)->set(newCP[5]);
 }
@@ -117,7 +125,6 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p){
 
     double t;
     e->pData->computeDistance(p, t);
-
     computeSubdivisionCV(e->C0(), t, CV);
     Point tan0 = computeVerticalTangent(t, e);
     Corner_p c0 = pMesh->splitEdge(e->C0(), pMS->addMeshVertex());
@@ -132,8 +139,6 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p){
         Point tan1  = computeVerticalTangent((1-t), c0->next()->next()->E(), c0->F());
         Point tan00 = computeVerticalTangent(t, c0->next()->next()->E(), c0->next()->next()->vNext()->F());
         computeSubdivisionCV(c0->next()->next(), 1-t, CV);
-
-
         Corner* c01 = pMesh->splitEdge(c0->next()->next(), pMS->addMeshVertex());
 
         applySubdivision(c01, CV, 0);

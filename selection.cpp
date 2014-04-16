@@ -55,7 +55,7 @@ void SelectionManager::startSelect(Selectable_p pObj, const Click & click)
     isSelect = click.is(Click::DOWN);
     _theSelected = pObj;
     _click0 = click;
-    //qDebug()<<pObj->name();
+    _isdragged = false;
 
     if (pObj)
         pObj->onDown();
@@ -85,18 +85,18 @@ void SelectionManager::stopSelect(const Click& click){
     if (!_theSelected)
         return;
 
-    if (_theSelected->isDraggable()){
+    if (_theSelected->isDraggable() && _isdragged){
         Vec2 t = _click1.P - _click0.P;
-        if ( t.normsqr() > 0.0001){
-            if (!_selection.empty())
-                Session::get()->exec(new Drag(_selection, t));
-            else
-                Session::get()->exec(new Drag((Draggable_p)_theSelected, t));
-        }
+
+        if (!_selection.empty())
+            Session::get()->exec(new Drag(_selection, t));
+        else
+            Session::get()->exec(new Drag((Draggable_p)_theSelected, t));
     }
 
     _theSelected->onUp();
     _theSelected = 0;
+    _isdragged = false;
 }
 
 void SelectionManager::reset(){
@@ -129,6 +129,8 @@ bool SelectionManager::dragSelected(const Point& t, int button)
         }
     }else
         dragged->drag(t, button);
+
+    _isdragged = true;
 
     return true;
 }

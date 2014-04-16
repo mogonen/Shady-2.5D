@@ -60,7 +60,8 @@ SOURCES += glwidget.cpp \
     INPExporter.cpp \
     meshshape/curvededge.cpp \
     fileio_write.cpp \
-    fileio_read.cpp
+    fileio_read.cpp \
+    MeshShape/patch.cpp
 
 
 QT           += opengl widgets

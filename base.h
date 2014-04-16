@@ -159,6 +159,8 @@ class SelectionManager{
     SelectableMap       _selectables;
     SelectionSet        _selection;
 
+    bool                _isdragged;
+
     Click               _click0, _click1;
 
 public:
@@ -188,14 +190,16 @@ public:
 
 class Draggable:public Selectable{
 
-    Point_p _pP;
+    Point_p             _pP;
 
-    DraggableList _childs;
-    Draggable_p _parent;
+    DraggableList       _childs;
+    Draggable_p         _parent;
+
 
 protected:
 
-    virtual void onDrag(const Point& t, int button = 0){
+    virtual void onDrag(const Point& t, int button = 0)
+    {
         if (isParent())
         {
             FOR_ALL_CONST_ITEMS(DraggableList, _childs){
@@ -209,7 +213,8 @@ public:
 
     bool isLocked;
 
-    Draggable(bool isUI, Point_p pP = 0):Selectable(isUI){
+    Draggable(bool isUI, Point_p pP = 0):Selectable(isUI)
+    {
         if (pP){
             makeDraggable();
         }

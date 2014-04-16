@@ -9,11 +9,11 @@ ShapeVertex::ShapeVertex(Shape_p pS, bool isP, bool isN):ControlPoint(&_P), Shap
 
 #ifdef RENDERING_MODE
     //init channels
-    data[NORMAL_CHANNEL] = _pShape->data[NORMAL_CHANNEL];
-    data[BRIGHT_CHANNEL] = _pShape->data[BRIGHT_CHANNEL];
-    data[DARK_CHANNEL] = _pShape->data[DARK_CHANNEL];
-    data[DEPTH_CHANNEL] = _pShape->data[DEPTH_CHANNEL];
-    //data[ALPHA_CHANNEL].set(1.0,1.0,1.0);
+    value[NORMAL_CHANNEL]    = _pShape->value[NORMAL_CHANNEL];
+    value[BRIGHT_CHANNEL]    = _pShape->value[BRIGHT_CHANNEL];
+    value[DARK_CHANNEL]      = _pShape->value[DARK_CHANNEL];
+    value[DEPTH_CHANNEL]     = _pShape->value[DEPTH_CHANNEL];
+    //value[ALPHA_CHANNEL].set(1.0,1.0,1.0);
 #endif
 
     flag = 0x00;
@@ -31,11 +31,13 @@ void ShapeVertex::setPair(ShapeVertex_p sv,bool isSetTangent,  bool isSetNormal)
     if (!sv || sv->parent() != parent())
         return;
 
-    if (sv->_pair)
-        sv->_pair->_pair = 0; //unpair
+    if (sv->_pair && !sv->_pair->isDeleted())
+        sv->_pair->_pair = 0; //unpair if alive
+
     sv->_pair = this;
-    if (_pair)
-        _pair->_pair = 0;//unpair
+    if (_pair && !_pair->isDeleted())
+        _pair->_pair = 0;//unpair if alive
+
     _pair = sv;
 
     Vec2 tan = (_P - _pair->_P);
@@ -140,7 +142,7 @@ SVCache::SVCache(ShapeVertex_p sv){
 
 void SVCache::restore(){
 
-    _sv->data[NORMAL_CHANNEL] = _N;
+    _sv->value[NORMAL_CHANNEL] = _N;
     _sv->_P = _P;
     _sv->unparent();
     if (_parent){
@@ -169,10 +171,10 @@ void SVCache::restore(){
 
 ShapeBase::ShapeBase(bool isN){
 #ifdef RENDERING_MODE
-    data[NORMAL_CHANNEL].set(0.0, 0.0, 1.0);
-    data[BRIGHT_CHANNEL].set(1.0, 1.0, 1.0);
-    data[DARK_CHANNEL].set(0.0, 0.0, 0.0);
-    data[DEPTH_CHANNEL].set(0.5, 0.5, 0.5);
+    value[NORMAL_CHANNEL].set(0.0, 0.0, 1.0);
+    value[BRIGHT_CHANNEL].set(1.0, 1.0, 1.0);
+    value[DARK_CHANNEL].set(0.0, 0.0, 0.0);
+    value[DEPTH_CHANNEL].set(0.5, 0.5, 0.5);
 
     if (isN)
         _pControlN = new ControlNormal(this);
@@ -186,7 +188,7 @@ ShapeBase::ShapeBase(bool isN){
 void ShapeBase::dragNormal(const Vec2 &t){
 #ifdef RENDERING_MODE
     double r = NORMAL_RAD*2;
-    Vec2 v = (Vec2(data[NORMAL_CHANNEL].x*r, data[NORMAL_CHANNEL].y*r) + t);
+    Vec2 v = (Vec2(value[NORMAL_CHANNEL].x*r, value[NORMAL_CHANNEL].y*r) + t);
     double l = v.norm();
     if ( l > r ){
         v = v.normalize()*r;
@@ -195,14 +197,14 @@ void ShapeBase::dragNormal(const Vec2 &t){
     double h = sqrt(r*r - l*l);
     if (h < 0)
         h = 0;
-    data[NORMAL_CHANNEL].set(Vec3(v.x, v.y, h).normalize());
+    value[NORMAL_CHANNEL].set(Vec3(v.x, v.y, h).normalize());
     outdate();
 #endif
 }
 
 
 //Shape////////////////////////////////////////////////////////////////////////////////////
-Shape::Shape():Draggable(false, &_t0), ShapeBase(true)
+Shape::Shape():Draggable(false, &_P), ShapeBase(true)
 {
     _flags = 0;
     _tM.identity();
@@ -239,13 +241,13 @@ void Shape::removeVertex(ShapeVertex_p sv){
 
 Point Shape::gT(){
     if (!parent())
-        return _t0;
-    return _t0 + ((Shape_p)parent())->gT();
+        return _P;
+    return _P + ((Shape_p)parent())->gT();
 }
 
 void Shape::sendClick(const Click& click){
     Click click2 = click;
-    click2.P = click2.P - _t0;
+    click2.P = click2.P - _P;
     onClick(click2);
 }
 
@@ -265,7 +267,7 @@ void Shape::scale(const Vec2& s){
 
 void Shape::resetT(){
     _tM.identity();
-    _t0.set();
+    _P.set();
 }
 
 void Shape::drag(ShapeVertex_p sv, const Vec2 & t){
@@ -321,7 +323,7 @@ void Shape::centerPivot(){
         ShapeVertex_p sv = (*it);
         sv->_P = sv->_P - piv;
     }
-    _t0 = _t0 + piv;
+    _P = _P + piv;
     Renderable::update();
 }
 
@@ -338,18 +340,16 @@ void ControlNormal::onDrag(const Point &t, int button){
 }
 
 
-void SBCache::set(ShapeVertex_p pSB){
+void SBCache::set(ShapeBase_p pSB){
     _pSB = pSB;
     for(int i=0; i<ACTIVE_CHANNELS; i++)
-        _data[i] = pSB->data[i];
-    //really??
-    _p = pSB->P();
+        _value[i] = pSB->value[i];
+    _p = pSB->_P;
 }
 
 void SBCache::restore(){
     for(int i=0; i<ACTIVE_CHANNELS; i++)
-        _pSB->data[i] = _data[i];
-    //really??
-    _pSB->pP()->set(_p);
+        _pSB->value[i] = _value[i];
+    _pSB->_P = _p;
     _pSB->outdate();
 }

@@ -11,7 +11,7 @@
 
 #define NORMAL_RAD 0.04
 
-enum ShapeType {MESH_SHAPE, SPINE_SHAPE, ELLIPSE_SHAPE, IMAGE_SHAPE};
+enum  ShapeType {SHAPE_VERTEX, MESH_SHAPE, SPINE_SHAPE, ELLIPSE_SHAPE, IMAGE_SHAPE};
 
 class ShapeBase;
 class Shape;
@@ -60,33 +60,38 @@ public:
 
 typedef class ShapeBase {
 
-    ControlNormal*      _pControlN;
-    bool                isN;
+    ControlNormal*       _pControlN;
+    bool                 isN;
+
+    friend class SBCache;
 
 public:
 
-    ShapeBase(bool isN=false);
+    ShapeBase(bool isN = false);
 
     void                 dragNormal(const Vec2 &t);
     virtual void         outdate(){}
-    RGB                  data[ACTIVE_CHANNELS];
+    RGB                  value[ACTIVE_CHANNELS];
+    Point                _P; //this could be a channel too?
 
-    inline Normal        N()            const {return data[NORMAL_CHANNEL];}  //_N;}
-    inline Normal_p      pN()                 {return &data[NORMAL_CHANNEL];} //_N;}//;}
+
+    inline Normal        N()    const {return  value[NORMAL_CHANNEL];}  //_N;}
+    inline Normal_p      pN()   {return &value[NORMAL_CHANNEL];} //_N;}//;}
 
     ControlNormal*       pControlN()    const {return _pControlN;}
+    virtual              ShapeType      type() const = 0;
+
 } * ShapeBase_p;
 
 class SBCache{
 
-    ShapeVertex_p     _pSB;
-    //ShapeBase_p     _pSB;
-    RGB             _data[ACTIVE_CHANNELS];
-    Point           _p;
+    ShapeBase_p         _pSB;
+    RGB                 _value[ACTIVE_CHANNELS];
+    Point               _p;
 
 public:
 
-    void set(ShapeVertex_p pSB);
+    void set(ShapeBase_p pSB);
     void restore();
 
 };
@@ -103,12 +108,13 @@ public:
     unsigned long       flag;
     bool                isPositionControl, isNormalControl;
 
-    void setPair(ShapeVertex_p sv, bool isSetTangent =false , bool isSetNormal = false);
-    void unpair();
-    void setTangent(const Vec2&, bool isnormal=false, bool ispair=false);
-    Vec2 getTangent();
+    void                 setPair(ShapeVertex_p sv, bool isSetTangent =false , bool isSetNormal = false);
+    void                 unpair();
+    void                 setTangent(const Vec2&, bool isnormal=false, bool ispair=false);
+    Vec2                 getTangent();
+    ShapeType            type() const {return SHAPE_VERTEX;}
 
-    inline Point_p       pP()                 {return &_P;}
+
     inline Shape_p       shape()        const {return _pShape;}
 
 
@@ -116,8 +122,8 @@ public:
     inline int           id()           const {return name();}
     inline bool          isDeleted()    const {return _isDeleted;}
 
-    Point               gP();
-    void                setGlobalP(const Point&);
+    Point                gP();
+    void                 setGlobalP(const Point&);
 
     void                 outdate();
     bool                _isDeleted; //public for now
@@ -128,8 +134,8 @@ private:
     friend class SVCache;
 
     Shape_p             _pShape;
-    Point               _P;
-    //Normal              _N;
+    //Point               _P;
+    //Normal            _N;
 
     ControlNormal*      _pControlN;
 
@@ -139,8 +145,6 @@ private:
     ShapeVertex_p _pair;
     //color
     //preview implementation
-
-
 };
 
 class ControlNormal:public ControlPoint
@@ -167,7 +171,7 @@ public:
 
 class Shape:public Draggable, public ShapeBase{
 
-    Point                _t0;
+    //Point                _t0;
     Matrix3x3            _tM; //the transform matrix
     Point                _piv;
 
@@ -191,7 +195,7 @@ public:
     Shape();
     virtual ~Shape();
     void                render(int mode = 0);
-    virtual ShapeType   type() const = 0;
+
 
     //Vertex Handling
     ShapeVertex_p       addVertex();

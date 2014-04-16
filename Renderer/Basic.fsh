@@ -22,11 +22,11 @@ uniform float Cartoon_sha=0.1;
 uniform bool toggle_Point;
 
 //the array that stores all the reflection/refraction parameters
-uniform float refValues[10];
+uniform float refvalue[10];
 uniform int refToggled[10];
 
 //the area that stores all the average normals and center positions(it is now bottom right position)
-uniform vec3 normalValues[10];
+uniform vec3 normalvalue[10];
 uniform vec3 centerDepth[10];
 //every 4 of them represent bounding value for -x,x,-y,y
 uniform float boundingbox[40];
@@ -90,7 +90,7 @@ bool findLayerIntersect(in vec3 Sp, in vec3 Sv, in int LayerID, out vec3 Ip)
     vec3 l0 = Sp;
     vec3 l = Sv;
     vec3 P0 = centerDepth[LayerID];
-    vec3 n = normalValues[LayerID];
+    vec3 n = normalvalue[LayerID];
     float d;
     float dot_d = dot(n,l);
     if(dot_d==0)
@@ -261,7 +261,7 @@ bool checkOnline(vec2 v, vec2 w, vec2 p, float range)
 
 vec3 projectOnLayerInd(in vec3 Pp, in int LayerInd, out float height)
 {
-    vec3 LayerNormal = normalValues[LayerInd];
+    vec3 LayerNormal = normalvalue[LayerInd];
     vec3 LayerCenter = vec3(centerDepth[LayerInd].r,centerDepth[LayerInd].g,centerDepth[LayerInd].b);
     float dist = dot(Pp-LayerCenter, LayerNormal);
     height = dist;
@@ -333,7 +333,7 @@ float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
         float step_disp_intl = 0;
         int LayerInd = j;
         //if this layer is empty
-        if(length(normalValues[LayerInd])==0)
+        if(length(normalvalue[LayerInd])==0)
             break;
         //if current layer does not cast shadow
         if(shadowcreator[LayerInd]==0&&LayerInd!=Plabel)
@@ -366,7 +366,7 @@ float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
         plight_direct = plight_direct +0.005* light_length_3D*(vec3(rand(gl_TexCoord[0].st),1-rand(gl_TexCoord[0].st),1-0.5*rand(gl_TexCoord[0].st))-0.5);
 
         //layer normal - N
-        vec3 layer_normal = (normalValues[LayerInd]);
+        vec3 layer_normal = (normalvalue[LayerInd]);
 
         int i;
         //    int n_steps = 100;
@@ -581,7 +581,7 @@ void GetCenterCos(in vec3 thePos, in int LayerInd, out float center_cos)
 
     vec3 ref_eye = -2*dot(light_dir_n,est_normal)*est_normal+light_dir_n;
 //    pure_cos = 0.5*pow(-ref_eye.z,2)+0.5*dot(light_dir_n, est_normal);
-//    vec3 layer_normal = (normalValues[LayerInd]);
+//    vec3 layer_normal = (normalvalue[LayerInd]);
 //     pure_cos = (dot(est_normal.rg, (light_dir_v.rg)))*abs(dot(light_dir_v,layer_normal));
 //    pure_cos = (dot(raw_SM.rg, (light_dir_n.rg)))+length(light_dir_n);
 //    pure_cos = dot(light_dir_n.rg, est_normal.rg) + light_dir_n.b*(1-est_normal.r*est_normal.r/2-est_normal.g*est_normal.g/2);
@@ -708,7 +708,7 @@ void main()
 //    gl_FragColor = vec4(vec3(dot(-light_dir, projectOnLayerInd(-light_dir, 1))),1.0);
 
 //    int label = int(texture2D(tex_LD, gl_TexCoord[0].st).b*255);
-//    gl_FragColor = vec4(normalValues[label],1.0);
+//    gl_FragColor = vec4(normalvalue[label],1.0);
 
 //    gl_FragColor = vec4(texture2D(tex_LD, gl_TexCoord[0].st).b);
 

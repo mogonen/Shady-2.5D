@@ -40,9 +40,9 @@ typedef std::map<int, SVLoad*>          SVLoadMap;
 typedef std::map<int, Vertex_p>         VertexLoadMap;
 typedef std::map<int, Edge_p>           EdgeLoadMap;
 typedef std::map<int, Face_p>           FaceLoadMap;
-typedef std::vector<std::string>        StringVec;
 
-void split(const std::string &s, char delim, StringVec &elems)
+
+void split(const std::string &s, char delim, Tokens &elems)
 {
     std::stringstream ss(s);
     std::string item;
@@ -54,12 +54,11 @@ void split(const std::string &s, char delim, StringVec &elems)
 
 bool DefaultIO::load(const char *fname)
 {
-
     _infile.open (fname);
     std::string readline;
     bool isok = true;
 
-    Shape* pShape = 0;
+    _pShape = 0;
     ShapeList shapes;
 
     while(std::getline(_infile, readline))
@@ -67,59 +66,33 @@ bool DefaultIO::load(const char *fname)
         if (readline.empty())
             continue;
 
-        StringVec toks;
-        std::string line = readline;
+        Tokens toks;
         split(readline, ' ', toks);
         std::string label = toks[0];
 
-        if (label.compare("s")==0)
+        if (label.compare("s") == 0)
         {
-            pShape = parseShape(line.c_str());
-            if (!pShape){
-                isok = false;
-                break;
+            ShapeBase_p pSB = parseShapeBase(toks);
+            if (pSB->type() != SHAPE_VERTEX){
+                _pShape = (Shape_p)pSB;
+                shapes.push_back(_pShape);
             }
-            shapes.push_back(pShape);
-        }
-        else if (pShape && label.compare("sv")==0)
-        {
-            float px, py, nx, ny, nz;
-            int id, parent, pair;
-
-            sscanf(toks[1].c_str(),"%d/%d/%d", &id, &parent, &pair);
-            sscanf(toks[2].c_str(),"%f", &px);
-            sscanf(toks[3].c_str(),"%f", &py);
-
-            sscanf(toks[4].c_str(),"%f", &nx);
-            sscanf(toks[5].c_str(),"%f", &ny);
-            sscanf(toks[6].c_str(),"%f", &nz);
-
-            ShapeVertex* sv = pShape->addVertex(Point(px, py));
-            sv->pN()->set(nx, ny, nz);
-            Load* load = new Load(sv);
-            load->keys[Load::PARENT] = parent;
-            load->keys[Load::PAIR] = pair;
-            _loadmap[id] = load;
-
-        }
-        else if (pShape && label.compare("#shapedata")==0)
-        {
-            switch(pShape->type())
+        }else if (_pShape && label.compare("#shapedata") == 0){
+            switch(_pShape->type())
             {
             case MESH_SHAPE:
-                parseMeshShape((MeshShape*)pShape);
+                parseMeshShape((MeshShape*)_pShape);
                 break;
 
             case ELLIPSE_SHAPE:
-                 parseEllipseShape((EllipseShape*)pShape);
+                 parseEllipseShape((EllipseShape*)_pShape);
                 break;
 
             case IMAGE_SHAPE:
-                 parseImageShape((ImageShape*)pShape);
+                 parseImageShape((ImageShape*)_pShape);
                 break;
             }
         }
-
     }
 
     _infile.close();
@@ -129,12 +102,18 @@ bool DefaultIO::load(const char *fname)
         Load* load = it->second;
         if (load->keys[Load::PARENT])
         {
-            ((Draggable_p)(_loadmap[load->keys[Load::PARENT]]->pObj))->adopt((Draggable_p)load->pObj);
+            /*int pk = load->keys[Load::PARENT];
+            ShapeBase_p pSBParent = _loadmap[pk]->pObj;
+            Draggable_p parent = ((Draggable_p)pSBParent);
+            parent->adopt((Draggable_p)load->pObj);*/
+           ShapeVertex_p parent = ((ShapeVertex_p)(_loadmap[load->keys[Load::PARENT]]->pObj));
+           parent->adopt((Draggable_p)load->pObj);
         }
 
         if (load->keys[Load::PAIR])
         {
-           ((ShapeVertex_p)(_loadmap[load->keys[Load::PAIR]]->pObj))->setPair((ShapeVertex_p)load->pObj);
+            ShapeVertex_p pair = ((ShapeVertex_p)(_loadmap[load->keys[Load::PAIR]]->pObj));
+            pair->setPair((ShapeVertex_p)load->pObj);
         }
     }
 
@@ -147,54 +126,66 @@ bool DefaultIO::load(const char *fname)
     return isok;
 }
 
+ShapeBase* DefaultIO::parseShapeBase(Tokens toks){
 
-bool DefaultIO::read(Shape * pShape)
-{
-
-    switch(pShape->type())
-    {
-    case MESH_SHAPE:
-        parseMeshShape((MeshShape*)pShape);
-        break;
-
-    case ELLIPSE_SHAPE:
-         parseEllipseShape((EllipseShape*)pShape);
-        break;
-
-    case IMAGE_SHAPE:
-         parseImageShape((ImageShape*)pShape);
-        break;
-    }
-}
-
-Shape* DefaultIO::parseShape(const char* line)
-{
-
-    char label[1];
-    float x, y;
-    int type, id, parent;
-    sscanf(line,"%s %f %f %d/%d/%d",&label, &x, &y, &type, &id, &parent);
-    if (label[0] != 's')
-        return 0;
-
-    Shape* pShape = 0;
+    int type = atoi(toks[1].c_str());
+    ShapeBase_p pSB = 0;
+    Load* load = 0;
     switch(type){
 
-    case MESH_SHAPE:
-        pShape = new MeshShape();
+    case SHAPE_VERTEX:{
+        ShapeVertex_p sv = _pShape->addVertex();
+        load = new Load(sv);
+        pSB = sv;
+    }
         break;
 
-    case ELLIPSE_SHAPE:
-        pShape = new EllipseShape();
+    case MESH_SHAPE:{
+        Shape_p pMS = new MeshShape();
+        load = new Load(pMS);
+        pSB = pMS;
+    }
         break;
 
-    case IMAGE_SHAPE:
-        pShape = new ImageShape();
+    case ELLIPSE_SHAPE:{
+        Shape_p pES = new EllipseShape();
+        load = new Load(pES);
+        pSB = pES;
+    }
+        break;
+
+    case IMAGE_SHAPE:{
+        Shape_p pIS = new ImageShape();
+        load = new Load(pIS);
+        pSB = pIS;
+    }
         break;
     }
 
-    pShape->translate(Vec2(x,y));
-    return pShape;
+    int name, parent, pair;
+    sscanf(toks[2].c_str(),"%d/%d/%d", &name, &parent, &pair);
+    //Load* load = new Load((Draggable_p)pSB);
+    if (load){
+        load->keys[Load::PARENT] = parent;
+        load->keys[Load::PAIR] = pair;
+        _loadmap[name] = load;
+    }
+
+    float px, py;
+    sscanf(toks[3].c_str(),"%f", &px);
+    sscanf(toks[4].c_str(),"%f", &py);
+    pSB->_P.set(px, py);
+
+    for(int c = 0; c < ACTIVE_CHANNELS; c++)
+    {
+        float vx, vy, vz;
+        sscanf(toks[5 + c*3].c_str(),"%f", &vx);
+        sscanf(toks[6 + c*3].c_str(),"%f", &vy);
+        sscanf(toks[7 + c*3].c_str(),"%f", &vz);
+        pSB->value[c].set(vx, vy, vz);
+    }
+
+    return pSB;
 }
 
 bool DefaultIO::parseMeshShape(MeshShape * pMS)
@@ -211,13 +202,12 @@ bool DefaultIO::parseMeshShape(MeshShape * pMS)
         if (line.empty())
             break;
 
-        StringVec toks;
+        Tokens toks;
         split(line, ' ', toks);
         std::string label = toks[0];
 
         if (label.compare("f")==0)
         {
-
             int size = toks.size()-3;
             Face_p pF = pMesh->addFace(size, toks[size+2].compare("1")==0 );
 
@@ -265,7 +255,7 @@ bool DefaultIO::parseEllipseShape(EllipseShape* pShape)
 {
     std::string line;
     std::getline(_infile, line);
-    StringVec toks;
+    Tokens toks;
     split(line, ' ', toks);
     if (toks[0].compare("rad"))
     {

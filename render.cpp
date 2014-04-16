@@ -362,8 +362,8 @@ void MeshShape::render(int mode) {
         }else if (Session::isRender(SHADING_ON)){
 
 #ifdef  RENDERING_MODE
-            RGB diff = data[BRIGHT_CHANNEL];
-            RGB amb  = data[DARK_CHANNEL];
+            RGB diff = value[BRIGHT_CHANNEL];
+            RGB amb  = value[DARK_CHANNEL];
 
             GLfloat mat_diff[] = { diff.x, diff.y, diff.z, 1.0 };
             GLfloat mat_amb[] = { amb.x, amb.y, amb.z, 1.0 };
@@ -593,11 +593,11 @@ void EllipseShape::render(int mode){
 
     bool isGLShading = (Session::channel() == GL_SHADING) && !Session::isRender(PREVIEW_ON);
     //bool isNormalChannel =  (Session::channel() == NORMAL_CHANNEL && !mode) || (mode&SM_MODE);
-    RGB bright = data[BRIGHT_CHANNEL];
-    RGB dark  = data[DARK_CHANNEL];
-    RGB depth  = data[DEPTH_CHANNEL];
+    RGB bright = value[BRIGHT_CHANNEL];
+    RGB dark  = value[DARK_CHANNEL];
+    RGB depth  = value[DEPTH_CHANNEL];
 
-    RGB col = data[Session::channel()<ACTIVE_CHANNELS ? Session::channel() : (ACTIVE_CHANNELS-1) ];
+    RGB col = value[Session::channel()<ACTIVE_CHANNELS ? Session::channel() : (ACTIVE_CHANNELS-1) ];
 
 #ifdef RENDERING_MODE
     if (isGLShading)
@@ -862,7 +862,7 @@ void ImageShape::render(int mode)
         Session::get()->glWidget()->getMShader()->setUniformValue("isLabelDepth", (float)0.0);
 
 
-    Vec3 n = data[NORMAL_CHANNEL];
+    Vec3 n = value[NORMAL_CHANNEL];
     QVector3D layerNormal(0, 0, 1.0);//layerNormal(n.x, n.y, n.z);// = _NormalControl->Normal3D();
     qDebug()<<layerNormal;
     double delta_LB2RT;

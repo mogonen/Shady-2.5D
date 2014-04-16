@@ -5,57 +5,63 @@
 #include <fstream>
 #include "base.h"
 
+class Shape;
+class ShapeBase;
 class MeshShape;
 class EllipseShape;
 class GridPattern;
 class ImageShape;
 
 struct Load{
-    Selectable_p pObj;
+    Draggable_p pObj;
     enum Key {PARENT, PAIR};
     int keys[2];
-    Load(Selectable_p pO){
+    Load(Draggable_p pO){
         pObj = pO;
     }
 };
 
-typedef std::map<int, Load*> LoadMap;
+typedef std::map<int, Load*>            LoadMap;
+typedef std::vector<std::string>        Tokens;
 
 class DefaultIO:public FileIO
 {
+    Shape*                   _pShape;
     std::ifstream            _infile;
     LoadMap                  _loadmap;
 
-    bool write(Shape*, ofstream& outfile);
-    bool read(Shape*);
+    bool                    write(Shape*, ofstream& outfile);
+    bool                    read(Shape*);
 
-    bool writeMeshShape(MeshShape*, ofstream&);
-    bool writeEllipseShape(EllipseShape*, ofstream&);
-    bool writeImageShape(ImageShape * pIS, ofstream& outfile);
+    bool                    writeMeshShape(MeshShape*, ofstream&);
+    bool                    writeEllipseShape(EllipseShape*, ofstream&);
+    bool                    writeImageShape(ImageShape * pIS, ofstream& outfile);
 
-    bool parseMeshShape(MeshShape*);
-    bool parseEllipseShape(EllipseShape*);
-    bool parseImageShape(ImageShape*);
+    bool                    parseMeshShape(MeshShape*);
+    bool                    parseEllipseShape(EllipseShape*);
+    bool                    parseImageShape(ImageShape*);
 
-    Shape*  parseShape(const char*);
+    void                    writeShapeBase(ShapeBase*, ofstream&);
+    ShapeBase*              parseShapeBase(Tokens);
+
+    Shape*                  parseShape(const char*);
 
 public:
 
-    bool load(const char *fname);
-    bool save(const char *fname);
+    bool                    load(const char *fname);
+    bool                    save(const char *fname);
 };
 
 class INPExporter:public Exporter{
 
-    //int*        _nodePage;
+    //int*                  _nodePage;
+   std::map<int, int>       _nodeMap;
 
-   std::map<int, int> _nodeMap;
+    void**                  _edgeNodes;
+    void**                  _vertexNodes;
 
-    void**      _edgeNodes;
-    void**      _vertexNodes;
-
-    int nodeIndex(GridPattern*, int i, int j);
-    int mapNodeId(GridPattern* patch, int i, int j, int node_id);
+    int                     nodeIndex(GridPattern*, int i, int j);
+    int                     mapNodeId(GridPattern* patch, int i, int j, int node_id);
 
 public:
     bool exportShape(Shape *, const char *fname);

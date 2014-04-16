@@ -60,7 +60,7 @@ void Patch::propateMap(int channel){
     RGB corner_col[4];
     for(int i=0; i<_pFace->size(); i++)
     {
-        corner_col[i] = C(i)->V()->pData->data[channel];
+        corner_col[i] = C(i)->V()->pData->value[channel];
     }
 
     for(int i=0; i<_pFace->size(); i++)
