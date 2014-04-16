@@ -834,8 +834,6 @@ void ImageShape::render(int mode)
     }
     else
     {
-
-
         if(mode&SM_MODE||mode&LABELDEPTH_MODE)
             glBindTexture(GL_TEXTURE_2D, m_texSM);
         else if(mode&DARK_MODE)
@@ -893,26 +891,26 @@ void ImageShape::render(int mode)
 
     glBegin(GL_QUADS);
     glColor4f(center_depth,blf,((float)_shaderParam.m_layerLabel+1.01)/255.0,1.0);
-    glTexCoord2d(0.0,0.0);
+    glTexCoord2d(0.0, 0.0);
     glVertex3f(-m_width,-m_height,blf);
     QVector3D bl(-m_width,-m_height,blf);
 //    glVertex3f(-m_width,-m_height,0.5);
 
     glColor4f(center_depth,tlf,((float)_shaderParam.m_layerLabel+1.01)/255.0,1.0);
-    glTexCoord2d(0.0,1.0);
+    glTexCoord2d(0.0, 1.0);
     glVertex3f(-m_width,m_height,tlf);
     QVector3D tl(-m_width,m_height,tlf);
 //    glVertex3f(-m_width,m_height,0.5);
 
     glColor4f(center_depth,trf,((float)_shaderParam.m_layerLabel+1.01)/255.0,1.0);
-    glTexCoord2d(1.0,1.0);
+    glTexCoord2d(1.0, 1.0);
     glVertex3f(m_width,m_height,trf);
     QVector3D tr(m_width,m_height,trf);
 
 //    glVertex3f(m_width,m_height,0.5);
 
     glColor4f(center_depth,brf,((float)_shaderParam.m_layerLabel+1.01)/255.0,1.0);
-    glTexCoord2d(1.0,0.0);
+    glTexCoord2d(1.0, 0.0);
     glVertex3f(m_width,-m_height,brf);
     QVector3D br(m_width,-m_height,brf);
     glEnd();
