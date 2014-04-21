@@ -97,10 +97,10 @@ FACIAL_SHAPE{
 }
 
 
-MODELING_MODE{
+#MODELING_MODE{
 HEADERS +=
 SOURCES +=
-}
+#}
 
 #RENDERING_MODE{
 
@@ -129,4 +129,3 @@ OTHER_FILES += \
     Renderer/Basic.fsh \
     Renderer/Modelling.fsh \
     Renderer/Ambient.fsh
-

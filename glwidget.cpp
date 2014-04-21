@@ -76,6 +76,8 @@ GLWidget::GLWidget(Canvas * pCanvas, QWidget *parent)
     setRender(DRAG_ON, true);
     setRender(SURFACES_ON, true);
     setRender(CURVES_ON, true);
+
+    _width0  = width();
 }
 
 void GLWidget::setRender(RenderSetting rs, bool set)
@@ -95,13 +97,10 @@ void GLWidget::flipDragMode(){
 
 void GLWidget::initializeGL()
 {
-
-
-
      glShadeModel(GL_SMOOTH);
      //glDepthRange(0.0, 1.0);
-
      //glClearColor(0.0,0.0,0.0,0.0);
+
      glClearColor(0.96,0.96,0.96,0.0);
 
      glEnable(GL_DEPTH_TEST);
@@ -122,8 +121,6 @@ void GLWidget::initializeGL()
      //glClearColor(1.0, 1.0, 1.0, 1.0);
      //Lighting
      GLfloat light_position[] = { -1.0, 1.0, 1.0, 0.0 };
-
-
      float colour[4] = {0,0,0,0};
      glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,colour) ;
      glLightfv(GL_LIGHT0,GL_SPECULAR,colour);
@@ -141,7 +138,6 @@ void GLWidget::initializeGL()
 #ifndef MODELING_MODE
 
      initializeGLFunctions();
-
      _pGLSLShader_R = new ShaderProgram();
      _pGLSLShader_R->Initialize();
      _pGLSLShader_M = new ShaderProgram(ShaderProgram::TYPE_MODEL);
@@ -177,7 +173,6 @@ void GLWidget::setView()
     glMultMatrixf(matrix.constData());
 #endif
 }
-
 
 void GLWidget::resizeGL(int width, int height)
 {
@@ -230,7 +225,6 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
         }
     }
     updateGL();
-
 }
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
@@ -296,11 +290,12 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     updateGL();
 }
 
-void GLWidget::wheelEvent(QWheelEvent* e ){
-
+void GLWidget::wheelEvent(QWheelEvent* e )
+{
     if ( e->modifiers() & Qt::AltModifier){
         _scale-=(e->delta()/120.0 * 0.1);
-        _scale = CLAMP(_scale, 0.1, 8.0);
+        _scale = CLAMP(_scale, 0.1, 10.0);
+        m_CameraChanged = true;
         updateGL();
     }
 }
@@ -322,8 +317,8 @@ void GLWidget::keyPressEvent(QKeyEvent * event){
     updateGL();
 }
 
-int GLWidget::selectGL(int x, int y){
-
+int GLWidget::selectGL(int x, int y)
+{
     glSelectBuffer(SELECT_BUFF_SIZE, SelectBuff);
     glGetIntegerv(GL_VIEWPORT, ViewPort);
     glRenderMode(GL_SELECT);
@@ -338,11 +333,9 @@ int GLWidget::selectGL(int x, int y){
     orthoView();
     setView();
 
-//    glTranslatef(0.0,0.0,-1.0);
-//    glMatrixMode(GL_MODELVIEW);
-
+//  glTranslatef(0.0,0.0,-1.0);
+//  glMatrixMode(GL_MODELVIEW);
     renderCanvas();
-
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
 
@@ -353,12 +346,15 @@ int GLWidget::selectGL(int x, int y){
 
 void GLWidget::orthoView(){
     //glOrtho(-1.0*_scale+_translate.x, 1.0*_scale+_translate.x, -1.0/_aspectR*_scale+_translate.y, 1.0/_aspectR*_scale+_translate.y, NEAR_P, FAR_P);
-    glOrtho(-1.0*_scale, 1.0*_scale, -1.0/_aspectR*_scale, 1.0/_aspectR*_scale, NEAR_P, FAR_P);
+    double unit = width()*1.0/_width0;
+    double asp = height()*1.0/width();
+    glOrtho(-unit*_scale, unit*_scale, -unit*asp*_scale, unit*asp*_scale, NEAR_P, FAR_P);
+    //glOrtho(-1.0*_scale, 1.0*_scale, -1.0/_aspectR*_scale, 1.0/_aspectR*_scale, NEAR_P, FAR_P);
     //gluPerspective(120.0, 4.0/3.0, 0.0, 200.0);
 }
 
-Point GLWidget::toWorld(int x, int y){
-
+Point GLWidget::toWorld(int x, int y)
+{
     if(m_CameraChanged)
         loadCameraParameters();
     double winX = (double)x;
@@ -383,10 +379,10 @@ void GLWidget::loadCameraParameters()
 {
     //Load openGL ModelView/Project/Viewpot parameters
     glGetIntegerv(GL_VIEWPORT, ViewPort);           // Retrieves The Viewport Values (X, Y, Width, Height)
-    glGetDoublev(GL_MODELVIEW_MATRIX, MvMatrix);       // Retrieve The Modelview Matrix
-    glGetDoublev(GL_PROJECTION_MATRIX, ProjMatrix);     // Retrieve The Projection Matrix
+    glGetDoublev(GL_MODELVIEW_MATRIX, MvMatrix);    // Retrieve The Modelview Matrix
+    glGetDoublev(GL_PROJECTION_MATRIX, ProjMatrix); // Retrieve The Projection Matrix
 
-//    //Not know why, but it solves the problem, maybe some issue with QT
+//  Not know why, but it solves the problem, maybe some issue with QT
 //    if(this->width()<this->height())
 //        m_GLviewport[1] = -m_GLviewport[1];
 

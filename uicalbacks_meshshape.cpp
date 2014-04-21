@@ -57,6 +57,7 @@ void createSpine()
     if (spine==0)
         return;
     Shape_p pMS = spine->buildMeshShape();
+    Session::get()->removeShape(spine);
     Session::get()->mainWindow()->addAttrWidget(createAttrWidget(pMS), (void*)pMS);
     Session::get()->insertShape(pMS);
 }
@@ -165,7 +166,7 @@ QWidget* createSetColorOptions()
     CustomDialog * widget = new CustomDialog("Set Color Tool Options",0,"Assign",exec, &SetColor::EXEC_ONCLICK);
     widget->addColorSel("Color",&SetColor::COLOR);
     widget->addRadioGrp("Apply:","Shape|Vertex", (int*)(&SetColor::SELECT_MODE));
-    widget->addCheckBox ("Bring Dialog", &SetColor::IS_DIALOG);
+    widget->addRadioGrp("Source:", "Tool|Dialog|Background", (int*)(&SetColor::SOURCE));
     //widget->addRadioGrp("Channel:","Dark|Bright|Depth", (int*)(&SetColor::CHANNEL));
     return widget;
 }
@@ -176,7 +177,6 @@ QWidget* createSewOptions()
     widget->addRadioGrp("Apply:","Vertex|Edge", (int*)(&Sew::SEW_MODE));
     return widget;
 }
-
 
 QWidget* createGridOptions()
 {

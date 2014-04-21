@@ -24,11 +24,13 @@ void  CurvedEdge::set(Edge_p pE){
     if (_pTanSV[0]){
         _pTanSV[0]->setRef(_pE);
         _pTanSV[0]->_isDeleted = false;
+        _pTanSV[0]->setPair(_pTanSV[0]->pair());
     }
 
     if (_pTanSV[1]){
         _pTanSV[1]->setRef(_pE);
         _pTanSV[1]->_isDeleted = false; //markUndeleted();
+        _pTanSV[1]->setPair(_pTanSV[1]->pair());
     }
 }
 

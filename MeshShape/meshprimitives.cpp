@@ -78,6 +78,10 @@ MeshShape* MeshPrimitive::insertNGon(const Point& p, int n, int segv, double rad
 MeshShape* MeshPrimitive::insertTorus(const Point& p, int n, int v, double rad_x, double rad_y, double w, double arc, MeshShape* pMS)
 {
 
+    double evenW = -1.0;
+
+    evenW = MIN(rad_x,rad_y)*w;
+
     if (!pMS)
         pMS = new MeshShape();
 
@@ -91,10 +95,18 @@ MeshShape* MeshPrimitive::insertTorus(const Point& p, int n, int v, double rad_x
     Vertex_p* vs = new Vertex_p[nU*nV];
 
     FOR_ALL_J(nV){
+        double t = j*1.0/(nV-1);
         FOR_ALL_I(nU){
             double ang_u = -step_u * i;
             Point p(cos(ang_u)*rad_x, sin(ang_u)*rad_y);
-            vs[i+j*nU] = pMS->addMeshVertex(p*(1.0 - w/(nV-1)*j ) );
+            Point pp;
+            if (evenW>0)
+            {
+                pp = p*(1-t) + (p.normalize()*(p.norm() - evenW))*(t);
+            }else{
+                pp = p*(1.0 - w/(nV-1)*j );
+            }
+            vs[i+j*nU] = pMS->addMeshVertex(pp);
         }
     }
 

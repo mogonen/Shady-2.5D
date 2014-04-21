@@ -2,6 +2,7 @@
 #include "meshcommands.h"
 #include "spineshape.h"
 #include "patch.h"
+#include "curvededge.h"
 
 //Defaults
 #ifdef  SHOW_DLFL
@@ -43,8 +44,12 @@ void MeshOperation::execOP(){
     case NONE:
         break;
 
-    case EXTRUDE_EDGE:
+    case EXTRUDE_EDGE:{
+
+        _pairs[0] = _pE->pData->getTangentSV(0)->pair();
+        _pairs[1] = _pE->pData->getTangentSV(1)->pair();
         extrude(_pE, EXTRUDE_T, MeshShape::isSMOOTH, isKEEP_TOGETHER?&vertexToCornerMap:0);
+    }
         break;
 
     case INSERT_SEGMENT:
@@ -79,27 +84,34 @@ void MeshOperation::execOP(){
 //all operations on meshshape needs to be made static to allow operation on all layers
 
 bool MeshOperation::pickElement(){
+
     _pE  = 0;
     _pF  = 0;
     _pMS = 0;
     Selectable_p obj = Session::get()->selectionMan()->getLastSelected();
+
     if (!obj || obj->isUI() || !obj->ref())
         return false;
+
     //there might be a better way for this
-    if (_operation == EXTRUDE_EDGE || _operation == INSERT_SEGMENT || _operation == ASSIGN_PATTERN || _operation == SET_FOLDS){
+    if (_operation == EXTRUDE_EDGE || _operation == INSERT_SEGMENT || _operation == ASSIGN_PATTERN || _operation == SET_FOLDS)
+    {
         _pE = dynamic_cast<Edge_p>((Edge_p)obj->ref());
          if (!_pE)
              return false;
          _pMS = ((MeshShape*)_pE->mesh()->caller());
          return true;
-    }else if (_operation == EXTRUDE_FACE || _operation == DELETE_FACE){
+    }
+    else if (_operation == EXTRUDE_FACE || _operation == DELETE_FACE){
         _pF = dynamic_cast<Face_p>((Face_p)obj->ref());
          if(!_pF)
              return false;
          _pMS = ((MeshShape*)_pF->mesh()->caller());
          return true;
     }
+
     return false;
+
 }
 
 Command_p MeshOperation::exec(){
@@ -111,6 +123,13 @@ Command_p MeshOperation::exec(){
 
 Command_p MeshOperation::unexec(){
     _pMS->mesh()->rollback(_rollbackId);
+
+    //this needs a fix, very ad hoc
+    if (_operation == EXTRUDE_EDGE){
+        _pE->pData->getTangentSV(0)->setPair(_pairs[0],true);
+        _pE->pData->getTangentSV(1)->setPair(_pairs[1],true);
+    }
+
     _pMS->update();
     return 0;
 }

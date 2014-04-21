@@ -110,9 +110,9 @@ void Canvas::clear()
 }
 
 void Canvas::setImagePlane(const string &filename){
-
-    QImage img_data = QGLWidget::convertToGLFormat(QImage(QString::fromStdString(filename)));
-
+    if (!filename.empty())
+        _pBGImage->readFromFile(filename);
+   /* QImage img_data = QGLWidget::convertToGLFormat(QImage(QString::fromStdString(filename)));
     glEnable(GL_TEXTURE_2D);
     glGenTextures(1, &bg_tex);//;&texture[0]);
 
@@ -122,24 +122,68 @@ void Canvas::setImagePlane(const string &filename){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, img_data.width(), img_data.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.bits() );
-    bg_aspect =  (img_data.width()*1.0) / img_data.height();
+    bg_aspect =  (img_data.width()*1.0) / img_data.height();*/
 }
 
-void Canvas::renderBG()
+ImagePlane::ImagePlane(){
+    glGenTextures(1, &_tex);
+}
+
+bool ImagePlane::readFromFile(const string &filename){
+
+    QImage img(QString::fromStdString(filename));
+
+    if (img.isNull())
+        return false;
+
+    _img = QGLWidget::convertToGLFormat(img);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, _tex);
+
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _img.width(), _img.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _img.bits() );
+    _aspect = (_img.width()*1.0) / _img.height();
+    return true;
+}
+
+bool  ImagePlane::hasTexture() const{ return !_img.isNull();}
+
+
+void ImagePlane::render()
 {
     glColor3f(0,0,0);
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, 0);//bg_tex);
+    glBindTexture(GL_TEXTURE_2D, _tex);//bg_tex);
 
     // Draw a textured quad
     glColor4f(1, 1, 1, 1);
     glBegin(GL_QUADS);
-    glTexCoord2f(0, 0); glVertex2f(-1.0*bg_aspect, -1.0);
-    glTexCoord2f(0, 1); glVertex2f(-1.0*bg_aspect, 1.0);
-    glTexCoord2f(1, 1); glVertex2f(1.0*bg_aspect, 1.0);
-    glTexCoord2f(1, 0); glVertex2f(1.0*bg_aspect, -1.0);
+    glTexCoord2f(0, 0); glVertex2f(-1.0*_aspect, -1.0);
+    glTexCoord2f(0, 1); glVertex2f(-1.0*_aspect, 1.0);
+    glTexCoord2f(1, 1); glVertex2f( 1.0*_aspect, 1.0);
+    glTexCoord2f(1, 0); glVertex2f( 1.0*_aspect, -1.0);
     glEnd();
+
+    /*glBegin(GL_QUADS);
+    glTexCoord2f(0, 0); glVertex3f(0, 0, 0);
+    glTexCoord2f(0, 1); glVertex3f(0, 100, 0);
+    glTexCoord2f(1, 1); glVertex3f(100, 100, 0);
+    glTexCoord2f(1, 0); glVertex3f(100, 0, 0);
+    glEnd();*/
+
     glDisable(GL_TEXTURE_2D);
+}
+
+QRgb ImagePlane::getColor(const Point &p) const{
+    double w = 2.0*_aspect;
+    double h = 2.0;
+    int x = (int)(_img.width()*(p.x + _aspect)/w);
+    int y = (int)(_img.height()*(p.y + 1.0)/h);
+    return  _img.pixel(x, y);
 }
 
 void Canvas::updateDepth()

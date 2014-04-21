@@ -59,6 +59,8 @@ protected:
 
 public:
 
+    enum Source {TOOL, DIALOG, BACKGROUND};
+
     SetColor(){
         _pSB = 0;
     }
@@ -69,10 +71,10 @@ public:
     CommandType         type()       const{return SET_COLOR;}
     SelectionMode       selectMode() const{return (SelectionMode)(SELECT_MODE+1);}
 
-    static QColor        COLOR;
-    static int           SELECT_MODE;
-    static bool          IS_DIALOG;
-    static bool          EXEC_ONCLICK;
+    static QColor       COLOR;
+    static int          SELECT_MODE;
+    static bool         EXEC_ONCLICK;
+    static Source       SOURCE;
 
 private:
 
@@ -82,7 +84,7 @@ private:
     RGB                 _col;
     Channel             _channel;
 
-    void setColor(ShapeBase_p, const RGB &col);
+    void                setColor(ShapeBase_p, const RGB &col, bool isbg=false);
 };
 
 #endif // COMMANDS_H

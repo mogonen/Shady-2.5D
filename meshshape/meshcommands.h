@@ -9,13 +9,12 @@ using namespace dlfl;
 class MeshOperation: public Command
 {
 
-    Face_p      _pF;
-    Edge_p      _pE;
-    MeshShape*  _pMS;
+    Face_p              _pF;
+    Edge_p              _pE;
+    MeshShape*          _pMS;
+    int                 _rollbackId;
 
-    int         _rollbackId;
-
-    bool        pickElement();
+    bool                pickElement();
 
 protected:
 
@@ -40,11 +39,10 @@ public:
         return MODES[(int)_operation];
     }
 
-    CommandType type() const {return MESH_OPERATION;}
+    CommandType             type() const {return MESH_OPERATION;}
 
-
-    virtual Command_p exec();
-    virtual Command_p unexec();
+    virtual Command_p       exec();
+    virtual Command_p       unexec();
 
     static bool             EXEC_ONCLICK;
     static double           EXTRUDE_T;
@@ -61,6 +59,9 @@ private:
 
     OperationMode           _operation;
     Click                   _click;
+
+    //for exture edge, needs to be improved
+    ShapeVertex_p           _pairs[2];
 
 };
 
@@ -136,23 +137,23 @@ class Sew:public Command
 
 public:
 
-    enum SewMode        {SEW_VERTEX, SEW_EDGE};
+    enum SewMode            {SEW_VERTEX, SEW_EDGE};
 
     Sew();
 
-    Command_p           exec();
-    Command_p           unexec();
+    Command_p               exec();
+    Command_p               unexec();
 
-    CommandType         type()       const{return SET_COLOR;}
-    SelectionMode       selectMode() const;
+    CommandType             type()       const{return SET_COLOR;}
+    SelectionMode           selectMode() const;
 
-    static SewMode      SEW_MODE;
+    static SewMode          SEW_MODE;
 
 private:
 
-    SBCache             _cache[4];
-    int                 _svcount;
-    SewMode             _sewmode;
+    SBCache                 _cache[4];
+    int                     _svcount;
+    SewMode                 _sewmode;
 
     void sewVertex(ShapeVertex_p sv0, ShapeVertex_p sv1);
 

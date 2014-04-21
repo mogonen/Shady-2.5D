@@ -32,6 +32,7 @@ class ImageShape : public Shape
 public:
     ImageShape(float w=0.4, float h=0.3);
     ~ImageShape();
+
     void render(int mode);
     //void calAverageNormal();
 

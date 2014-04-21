@@ -322,10 +322,10 @@ void renderFace(Face_p pFace)
     pFace->pData->render();
 }
 
-void MeshShape::render(int mode) {
+void MeshShape::render(int mode)
+{
 
-
-    if ( Session::selectMode() == SELECT_VERTEX || Session::selectMode() == SELECT_TANGENT || Session::selectMode() == SELECT_VERTEX_TANGENT)
+    if (Session::selectMode() == SELECT_VERTEX || Session::selectMode() == SELECT_TANGENT || Session::selectMode() == SELECT_VERTEX_TANGENT)
     {
         SVList verts = getVertices();
         FOR_ALL_CONST_ITEMS(SVList, verts)
@@ -354,7 +354,8 @@ void MeshShape::render(int mode) {
     //too messy, fix it!
     if ((isInRenderMode() || isSelectMode(MeshOperation::FACE) || Session::isRender(DRAG_ON) || Session::selectMode() == SELECT_SHAPE ) && Session::isRender(SURFACES_ON))
     {
-        if (Session::isRender(PREVIEW_ON)){
+        if (Session::isRender(PREVIEW_ON))
+        {
             if (mode&BRIGHT_MODE)
                 glColor3f(0.9, 0.8, 0.8); //glColor3f(diffuse.redF(), diffuse.greenF(), diffuse.blueF());
             else if (mode&DARK_MODE)
@@ -374,7 +375,6 @@ void MeshShape::render(int mode) {
 #endif
             //glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
         }
-
         //_control->ForAllFaces(renderFace);
         FaceList faces = _control->faces();
         FOR_ALL_ITEMS(FaceList, faces)
@@ -384,6 +384,8 @@ void MeshShape::render(int mode) {
                 (*it)->pData->render(mode);
         }
     }
+
+
 }
 
 void Patch4::render(int mode){
@@ -394,7 +396,6 @@ void Patch4::render(int mode){
       for(int j=0; j < _sampleVi; j++){
         for(int i = 0; i< _sampleUi; i++)
         {
-
             Point p[4];
             p[0] = P(i, j);
             p[1] = P(i+1, j);
@@ -414,7 +415,6 @@ void Patch4::render(int mode){
 
             if (Session::isRender(WIREFRAME_ON))
             {
-
                 if (Session::isRender(NORMALS_ON))
                 {
                     //drawNormals
@@ -455,9 +455,8 @@ void Patch4::render(int mode){
             {
                 int index = ind(i + (k==1 || k==2), j + (k>1));
                 int channel = Session::channel();
-                channel = mode&DARK_MODE ? DARK_CHANNEL : (mode&BRIGHT_MODE? BRIGHT_CHANNEL : (mode&SM_MODE ? NORMAL_CHANNEL : ((mode&LABELDEPTH_MODE)?DEPTH_CHANNEL:channel)) );
 
-
+                channel = mode&DARK_MODE ? DARK_CHANNEL : (mode&BRIGHT_MODE? BRIGHT_CHANNEL : (mode&SM_MODE?NORMAL_CHANNEL : ((mode&LABELDEPTH_MODE)?DEPTH_CHANNEL:channel)) );
                 RGB val = _maps[(channel<ACTIVE_CHANNELS)?channel:(ACTIVE_CHANNELS-1)][index];
 
                 if (isGLShading)

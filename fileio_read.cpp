@@ -154,12 +154,14 @@ ShapeBase* DefaultIO::parseShapeBase(Tokens toks){
     }
         break;
 
+#ifndef MODELING_MODE
     case IMAGE_SHAPE:{
         Shape_p pIS = new ImageShape();
         load = new Load(pIS);
         pSB = pIS;
     }
         break;
+#endif
     }
 
     int name, parent, pair;

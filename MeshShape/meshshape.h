@@ -48,6 +48,7 @@ public:
     //mesh operations
     static bool             isSMOOTH;
 
+    void test();
 };
 
 //Callbacks

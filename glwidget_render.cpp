@@ -145,7 +145,6 @@ void GLWidget::preview()
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_BLEND);
 
-
     if (is(DRAG_ON))
     {
         glColor3f(1.0, 1.0, 0);
@@ -198,8 +197,10 @@ void GLWidget::renderCanvas()
             }
         }
 
-        if (is(SHOW_ISOLATED) && Session::get()->theShape()){
+        if (is(SHOW_ISOLATED) && Session::get()->theShape())
+        {
            render(Session::get()->theShape());
+
         }
         else
         {
@@ -210,11 +211,12 @@ void GLWidget::renderCanvas()
                     render(*it);
             }
         }
-        if (is(BACKGROUND_ON) && isInRenderMode())
-            _pCanvas->renderBG();
+
+        if (is(BACKGROUND_ON) && isInRenderMode() && _pCanvas->bgImage()->hasTexture())
+            _pCanvas->bgImage()->render();
+
     }
 }
-
 #endif
 
 
@@ -232,7 +234,6 @@ void GLWidget::render(Shape_p pShape, int mode)
 {
 
     glPushMatrix();
-
     Point p = pShape->P();
     glTranslatef(p.x, p.y, 0);
 
@@ -245,12 +246,14 @@ void GLWidget::render(Shape_p pShape, int mode)
     pShape->Shape::render(mode);
     pShape->render(mode);
 
-    if (pShape->isParent()){
+    if (pShape->isParent())
+    {
         DraggableList childs = pShape->getChilds();
         FOR_ALL_CONST_ITEMS(DraggableList, childs){
             render((Shape_p)*it, mode);
         }
     }
+
     glPopMatrix();
 }
 

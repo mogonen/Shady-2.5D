@@ -19,7 +19,8 @@
 #define FOR_ALL_I(size) for(int i =0; i < size; i++ )
 #define FOR_ALL_J(size) for(int j =0; j < size; j++ )
 #define CLAMP(n, min, max) ( (n) < (min) ? (min) : ( ( (n) > (max) ) ? (max) : (n) ) )
-
+#define MAX(x,y) ( (x) > (y) ? (x) : (y))
+#define MIN(x,y) ( (x) < (y) ? (x) : (y))
 
 class Renderable;
 class Selectable;

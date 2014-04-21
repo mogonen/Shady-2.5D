@@ -96,6 +96,7 @@ int Session::save(){
 
 void  Session::setBG(const char *fname){
     _pCanvas->setImagePlane(fname);
+    _pGlWidget->setRender(BACKGROUND_ON, true);
 }
 
 void  Session::setCommand(Command_p pCommand){

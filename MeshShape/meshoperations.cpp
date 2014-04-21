@@ -10,9 +10,7 @@ void initCurve(Corner_p pC){
     pE->pData = new CurvedEdge(pE);
 
 #if SHOW_DLFL
-
     pE->pData->init();
-
 #else
 
     Point p0 = pC->V()->pData->P();
@@ -114,7 +112,7 @@ Point computeVerticalTangent(double t, Edge_p pE, Face_p pF =0)
 
 void MeshOperation::insertSegment(Edge_p e, const Point & p){
 
-    if (!e )
+    if (!e)
         return;
 
     Point CV[7];
@@ -152,16 +150,22 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p){
         c0 = c0n;
     }
 
-    if (!c0->isBorder() && c0->F() == endf){ //looping
+    if (!c0->isBorder() && c0->F() == endf){ //looping needs vertical tangents
         pMesh->insertEdge(c0, c0->next()->next()->next());
     }else while(!c1->isBorder()){
 
-       computeSubdivisionCV(c1->next()->next(), t, CV);
+        Point tan1  = computeVerticalTangent(t, c0->next()->next()->E(), c0->F());
+        Point tan00 = computeVerticalTangent((1-t), c0->next()->next()->E(), c0->next()->next()->vNext()->F());
+
+        computeSubdivisionCV(c1->next()->next(), t, CV);
         Corner* c11 = pMesh->splitEdge(c1->next()->next(), pMS->addMeshVertex());
         applySubdivision(c11, CV, 0);
 
         Corner* c1n = c11->vNext();
-        pMesh->insertEdge(c1, c11);
+        Edge_p pEnew =pMesh->insertEdge(c1, c11);
+        pEnew->pData->getTangentSV(0)->pP()->set(tan0);
+        pEnew->pData->getTangentSV(1)->pP()->set(tan1);
+        tan0 = tan00;
 
         c1 = c1n;
     }
@@ -231,7 +235,9 @@ Edge_p MeshOperation::extrude(Edge_p e0, double t, bool isSmooth, VertexMap *pVM
     f->update(true);
     f->reoffset(e0->C()->I() + 2 - e0->C()->other()->I());
 
-    if (isSmooth && !pVMap){
+
+    if (isSmooth && !pVMap)
+    {
         for(int i=0; i<4; i++)
             MeshShape::makeSmoothCorners(f->C(i),true, 1);
     }

@@ -14,16 +14,16 @@ ShapeVertex::ShapeVertex(Shape_p pS, bool isP, bool isN):ControlPoint(&_P), Shap
     value[DARK_CHANNEL]      = _pShape->value[DARK_CHANNEL];
     value[DEPTH_CHANNEL]     = _pShape->value[DEPTH_CHANNEL];
     //value[ALPHA_CHANNEL].set(1.0,1.0,1.0);
-#endif
-
-    flag = 0x00;
-     _pair = 0;
-    isPositionControl = isP;
     isNormalControl = isN;
     if (isN){
         adopt(pControlN());
     }
 
+#endif
+
+    flag = 0x00;
+     _pair = 0;
+    isPositionControl = isP;
     _isDeleted = false;
 }
 
@@ -31,14 +31,15 @@ void ShapeVertex::setPair(ShapeVertex_p sv,bool isSetTangent,  bool isSetNormal)
     if (!sv || sv->parent() != parent())
         return;
 
-    if (sv->_pair && !sv->_pair->isDeleted())
-        sv->_pair->_pair = 0; //unpair if alive
-
-    sv->_pair = this;
-    if (_pair && !_pair->isDeleted())
+    if (_pair && !_pair->isDeleted() && _pair->_pair == this)
         _pair->_pair = 0;//unpair if alive
 
     _pair = sv;
+
+    if (sv->_pair && !sv->_pair->isDeleted())
+        sv->_pair->_pair = 0; //unpair if alive*/
+
+    sv->_pair = this;
 
     Vec2 tan = (_P - _pair->_P);
     if (isSetNormal){

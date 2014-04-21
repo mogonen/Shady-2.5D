@@ -2,10 +2,10 @@
 #include "commands.h"
 #include "canvas.h"
 
-QColor          SetColor::COLOR;
-bool            SetColor::IS_DIALOG = true;
-bool            SetColor::EXEC_ONCLICK = true;
-int             SetColor::SELECT_MODE = 1;
+QColor              SetColor::COLOR;
+SetColor::Source    SetColor::SOURCE = SetColor::TOOL;
+bool                SetColor::EXEC_ONCLICK = true;
+int                 SetColor::SELECT_MODE = 1;
 
 Drag::DragTool     Drag::TOOL = Drag::NONE;
 Drag::Continuity   Drag::CONT = Drag::C1;
@@ -45,42 +45,41 @@ ShapeOrder::ShapeOrder(Operation op){
     _pShape = 0;
 }
 
-Command_p ShapeOrder::exec(){
-
+Command_p ShapeOrder::exec()
+{
     _shapes = Session::get()->canvas()->shapes();
-
     if (_pShape==0)
         _pShape = Session::get()->theShape();
 
     if (_pShape == 0)
         return 0;
 
-switch(_operation){
+    switch(_operation)
+    {
+        case MOVE_UP:
+            Session::get()->moveActiveUp();
+            break;
 
-    case MOVE_UP:
-        Session::get()->moveActiveUp();
+        case MOVE_DOWN:
+            Session::get()->moveActiveDown();
+            break;
+
+        case SEND_BACK:
+            Session::get()->sendActiveBack();
+            break;
+
+        case SEND_FRONT:
+            Session::get()->sendActiveFront();
+            break;
+
+        case INSERT_SHAPE:
+            Session::get()->insertShape(_pShape);
         break;
 
-    case MOVE_DOWN:
-        Session::get()->moveActiveDown();
+        case DELETE_SHAPE:
+            Session::get()->removeShape(_pShape);
         break;
-
-    case SEND_BACK:
-        Session::get()->sendActiveBack();
-        break;
-
-    case SEND_FRONT:
-        Session::get()->sendActiveFront();
-        break;
-
-    case INSERT_SHAPE:
-        Session::get()->insertShape(_pShape);
-    break;
-
-    case DELETE_SHAPE:
-        Session::get()->removeShape(_pShape);
-    break;
-}
+    }
     return 0;
 }
 
@@ -121,15 +120,14 @@ Command_p SetColor::exec()
         _col = _pSB->value[(int)_channel];
     }
 
-    if (IS_DIALOG)
+    if (SOURCE == DIALOG)
     {
         RGBA col = _col*255;
         color = QColorDialog::getColor(QColor(col.x, col.y, col.z), (QWidget*)Session::get()->glWidget(), "Vertex Color",  QColorDialog::DontUseNativeDialog);
     }
 
     RGB rgb(color.redF(), color.greenF(), color.blueF());
-
-    setColor(_pSB, rgb);
+    setColor(_pSB, rgb, SOURCE == BACKGROUND);
     SelectionSet selection = Session::get()->selectionMan()->getSelection();
     FOR_ALL_ITEMS(SelectionSet, selection)
     {
@@ -140,14 +138,20 @@ Command_p SetColor::exec()
     return new SetColor();
 }
 
-void SetColor::setColor(ShapeBase_p pSB, const RGB &rgb)
+void SetColor::setColor(ShapeBase_p pSB, const RGB &rgb, bool isbg)
 {
     if (!pSB)
         return;
 
-    pSB->value[(int)_channel] = rgb;
-    pSB->outdate();
+    if (isbg && Session::get()->canvas()->bgImage())
+    {
+        QColor col(Session::get()->canvas()->bgImage()->getColor(pSB->_P));
+        //rgb order is flipped, don't know why...
+        pSB->value[(int)_channel] = RGB(col.blueF(), col.greenF(),col.redF());
+    }else
+        pSB->value[(int)_channel] = rgb;
 
+    pSB->outdate();
     if (selectMode() == SELECT_SHAPE)
     {
         Shape_p pShape = dynamic_cast<Shape_p>(pSB);
@@ -155,7 +159,7 @@ void SetColor::setColor(ShapeBase_p pSB, const RGB &rgb)
             return;
         SVList svlist = pShape->getVertices();
         FOR_ALL_ITEMS(SVList, svlist)
-            setColor(*it, rgb);
+                setColor(*it, rgb, isbg);
     }
 }
 
