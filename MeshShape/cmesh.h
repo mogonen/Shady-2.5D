@@ -28,10 +28,9 @@ class  Patch;
 
 namespace dlfl {
 
-typedef ShapeVertex VertexData;
-typedef CurvedEdge  EdgeData;
-typedef Patch       FaceData;
-
+typedef ShapeVertex         VertexData;
+typedef CurvedEdge          EdgeData;
+typedef Patch               FaceData;
 
 class Corner;
 class Edge;
@@ -39,11 +38,11 @@ class Vertex;
 class Face;
 class Mesh;
 
-typedef Corner*     Corner_p;
-typedef Edge*       Edge_p;
-typedef Vertex*     Vertex_p;
-typedef Face*       Face_p;
-typedef Mesh*       Mesh_p;
+typedef Corner*             Corner_p;
+typedef Edge*               Edge_p;
+typedef Vertex*             Vertex_p;
+typedef Face*               Face_p;
+typedef Mesh*               Mesh_p;
 
 typedef std::list<Edge_p>   EdgeList;
 typedef std::list<Vertex_p> VertexList;

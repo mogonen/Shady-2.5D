@@ -115,6 +115,8 @@ private:
 
     static unsigned int  _renderFlags;
 
+    int                 _width0;
+
  public slots:
     void updateActive();
 

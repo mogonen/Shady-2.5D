@@ -22,6 +22,7 @@ bool DefaultIO::save(const char *fname)
     ofstream outfile;
     outfile.open (fname);
 
+    //if (Session::get()->canvas()->bgImage()->hasTexture())
     ShapeList shapes = Session::get()->canvas()->shapes();
     FOR_ALL_ITEMS(ShapeList, shapes){
         write((Shape*)(*it), outfile);

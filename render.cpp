@@ -491,6 +491,39 @@ void Patch4::render(int mode){
     }
 }
 
+void PatchN::render(int mode)
+{
+    if (!Session::isRender(DRAG_ON) && Session::selectMode() != SELECT_SHAPE)
+        Selectable::render(mode);
+
+    for(int n = 0; n < face()->size(); n++)
+    {
+        for(int j=0; j < _sampleVi; j++){
+            for(int i = 0; i< _sampleUi; i++)
+            {
+                Point p[4];
+                p[0] = P(n, i, j);
+                p[1] = P(n, i+1, j);
+                p[2] = P(n, i+1, j+1);
+                p[3] = P(n, i, j+1);
+
+                glColor3f(1.0, 0, 0);
+                glLineWidth(0.5);
+                glBegin(GL_LINE_LOOP);
+                for(int k=0; k<4; k++)
+                    glVertex3f(p[k].x, p[k].y, 0);
+                glEnd();
+            }
+        }
+    }
+    glPointSize(2.0);
+    glColor3f(0, 0, 1.0);
+    glBegin(GL_POINTS);
+    for(int k=0; k<16; k++)
+        glVertex2f(_K[k].x, _K[k].y);
+    glEnd();
+}
+
 #ifdef FACIAL_SHAPE
 void FacialShape::initBG(){
     QImage img_data = QGLWidget::convertToGLFormat(QImage(QString::fromStdString(m_imgName)));

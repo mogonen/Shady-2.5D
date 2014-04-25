@@ -77,21 +77,22 @@ int GridPattern::getPattern(int i, int j) const{
 void GridPattern::onUpdate(){
     _pFace->update();
 
+    Point K[16];
     //init bezier surface points
     for(int i=0; i<4; i++){
-        _K[i]= K(0,i);
-        _K[i+12]= K(2,i);
+        K[i]= KVal(0,i);
+        K[i+12]= KVal(2,i);
     }
-    _K[7] = K(1,1);
-    _K[11] = K(1,2);
+    K[7] = KVal(1,1);
+    K[11] = KVal(1,2);
 
-    _K[4] = K(3,1);
-    _K[8] = K(3,2);
+    K[4] = KVal(3,1);
+    K[8] = KVal(3,2);
 
-    _K[5]  = _K[1]  + _K[4]  - _K[0];
-    _K[6]  = _K[2]  + _K[7]  - _K[3];
-    _K[9]  = _K[13] + _K[8]  - _K[12];
-    _K[10] = _K[11] + _K[14] - _K[15];
+    K[5]  = K[1]  + K[4]  - K[0];
+    K[6]  = K[2]  + K[7]  - K[3];
+    K[9]  = K[13] + K[8]  - K[12];
+    K[10] = K[11] + K[14] - K[15];
 
     //bezier surface interpolation
     for(int j=0; j<_sampleV;j++)
@@ -99,7 +100,7 @@ void GridPattern::onUpdate(){
             Point p;
             for(int bj = 0; bj<4; bj++)
                 for(int bi = 0; bi<4; bi++)
-                    p = p + cubicBernstein(bi, i*_Tu)*cubicBernstein(bj, j*_Tv)*_K[bi+bj*4];
+                    p = p + cubicBernstein(bi, i*_Tu)*cubicBernstein(bj, j*_Tv)*K[bi+bj*4];
             _ps[ind(i,j)] = p;
 
         }
@@ -175,20 +176,20 @@ void UVPatternPatch::onUpdate(){
     //init bezier surface points
     for(int i=0; i<4; i++)
     {
-        _K[i]= K(0,i);
-        _K[i+12]= K(2,i);
+        K[i]= KVal(0,i);
+        K[i+12]= KVal(2,i);
     }
 
-    _K[7] = K(1,1);
-    _K[11] = K(1,2);
+    K[7] = KVal(1,1);
+    K[11] = KVal(1,2);
 
-    _K[4] = K(3,1);
-    _K[8] = K(3,2);
+    K[4] = KVal(3,1);
+    K[8] = KVal(3,2);
 
-    _K[5]  = _K[1]  + _K[4]  - _K[0];
-    _K[6]  = _K[2]  + _K[7]  - _K[3];
-    _K[9]  = _K[13] + _K[8]  - _K[12];
-    _K[10] = _K[11] + _K[14] - _K[15];
+    K[5]  = K[1]  + K[4]  - K[0];
+    K[6]  = K[2]  + K[7]  - K[3];
+    K[9]  = K[13] + K[8]  - K[12];
+    K[10] = K[11] + K[14] - K[15];
 
     Point* samples = new Point[N];
 
@@ -200,7 +201,7 @@ void UVPatternPatch::onUpdate(){
             Point p;
             for(int bj = 0; bj<4; bj++)
                 for(int bi = 0; bi<4; bi++)
-                    p = p + cubicBernstein(bi, i*T)*cubicBernstein(bj, (u+1)*Tu)*_K[bi+bj*4];
+                    p = p + cubicBernstein(bi, i*T)*cubicBernstein(bj, (u+1)*Tu)*K[bi+bj*4];
 
             samples[i] = p;
         }
@@ -227,7 +228,7 @@ void UVPatternPatch::onUpdate(){
             Point p;
             for(int bj = 0; bj<4; bj++)
                 for(int bi = 0; bi<4; bi++)
-                    p = p + cubicBernstein(bi, (v+1)*Tv)*cubicBernstein(bj, i*T)*_K[bi+bj*4];
+                    p = p + cubicBernstein(bi, (v+1)*Tv)*cubicBernstein(bj, i*T)*K[bi+bj*4];
 
             samples[i] = p;
         }
@@ -258,23 +259,24 @@ void UVPatternPatch::onUpdate(){
 */
     _pFace->update();
 
+    Point K[16];
     //init bezier surface points
     for(int i=0; i<4; i++)
     {
-        _K[i]= K(0,i);
-        _K[i+12]= K(2,i);
+        K[i]= KVal(0,i);
+        K[i+12]= KVal(2,i);
     }
 
-    _K[7] = K(1,1);
-    _K[11] = K(1,2);
+    K[7] = KVal(1,1);
+    K[11] = KVal(1,2);
 
-    _K[4] = K(3,1);
-    _K[8] = K(3,2);
+    K[4] = KVal(3,1);
+    K[8] = KVal(3,2);
 
-    _K[5]  = _K[1]  + _K[4]  - _K[0];
-    _K[6]  = _K[2]  + _K[7]  - _K[3];
-    _K[9]  = _K[13] + _K[8]  - _K[12];
-    _K[10] = _K[11] + _K[14] - _K[15];
+    K[5]  = K[1]  + K[4]  - K[0];
+    K[6]  = K[2]  + K[7]  - K[3];
+    K[9]  = K[13] + K[8]  - K[12];
+    K[10] = K[11] + K[14] - K[15];
 
     //bezier surface interpolation
     /*
@@ -283,7 +285,7 @@ void UVPatternPatch::onUpdate(){
             Point p;
             for(int bj = 0; bj<4; bj++)
                 for(int bi = 0; bi<4; bi++)
-                    p = p + cubicBernstein(bi, i*T)*cubicBernstein(bj, j*T)*_K[bi+bj*4];
+                    p = p + cubicBernstein(bi, i*T)*cubicBernstein(bj, j*T)*K[bi+bj*4];
             _ps[ind(i,j)] = p;
         }*/
 
@@ -298,8 +300,8 @@ void UVPatternPatch::onUpdate(){
             Point p0, p1;
             for(int bj = 0; bj<4; bj++)
                 for(int bi = 0; bi<4; bi++){
-                    p0 = p0 + cubicBernstein(bi, i*_Tu)*cubicBernstein(bj, (u+0.5)*Tu - Wu)*_K[bi+bj*4];
-                    p1 = p1 + cubicBernstein(bi, i*_Tu)*cubicBernstein(bj, (u+0.5)*Tu + Wu)*_K[bi+bj*4];
+                    p0 = p0 + cubicBernstein(bi, i*_Tu)*cubicBernstein(bj, (u+0.5)*Tu - Wu)*K[bi+bj*4];
+                    p1 = p1 + cubicBernstein(bi, i*_Tu)*cubicBernstein(bj, (u+0.5)*Tu + Wu)*K[bi+bj*4];
                 }
 
             _ps[ind(0,u,i,0)] = p0;
@@ -315,8 +317,8 @@ void UVPatternPatch::onUpdate(){
             Point p0, p1;
             for(int bj = 0; bj<4; bj++)
                 for(int bi = 0; bi<4; bi++){
-                    p0 = p0 + cubicBernstein(bi, (v+0.5)*Tv - Wv)*cubicBernstein(bj, i*_Tv)*_K[bi+bj*4];
-                    p1 = p1 + cubicBernstein(bi, (v+0.5)*Tv + Wv)*cubicBernstein(bj, i*_Tv)*_K[bi+bj*4];
+                    p0 = p0 + cubicBernstein(bi, (v+0.5)*Tv - Wv)*cubicBernstein(bj, i*_Tv)*K[bi+bj*4];
+                    p1 = p1 + cubicBernstein(bi, (v+0.5)*Tv + Wv)*cubicBernstein(bj, i*_Tv)*K[bi+bj*4];
                 }
 
             _ps[ind(1,v,i,0)] = p0;

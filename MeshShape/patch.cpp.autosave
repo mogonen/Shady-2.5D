@@ -379,6 +379,17 @@ void PatchN::onUpdate()
     for(int i = 0; i < nC; i++){
 
         for(int c = 0; c < ACTIVE_CHANNELS; c++){
+            
+            if (c == NORMAL_CHANNEL)
+                propateNormals(_ps);
+            else
+                propateMap(c);
+        
+            Map map = _maps[channel];
+            for(int j = 1; j<_sampleVi;j++)
+                for(int i = 1; i<_sampleUi; i++)
+                        map[ind(i,j)] = interpolateCoonz(i, j, map, _sampleU);
+            
         }
     }
 

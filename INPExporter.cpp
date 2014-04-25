@@ -26,7 +26,7 @@ int INPExporter::nodeIndex(GridPattern* patch, int i, int j){
             return  _nodeMap[pC->F()->id()*NODEPAGE + patch->ind(i,j) ];
 
         //now return the node from the neigbor
-        Patch* patch1 = (Patch*)pC->F()->pData;
+        Patch4* patch1 = (Patch4*)pC->F()->pData;
         return  _nodeMap[pC->F()->id()*NODEPAGE + patch1->edgeInd(pC->I(), 0)];
     }
 
@@ -38,7 +38,7 @@ int INPExporter::nodeIndex(GridPattern* patch, int i, int j){
         return  _nodeMap[pC->F()->id()*NODEPAGE + patch->ind(i,j)];
 
     //now return the node from the neigbor
-    Patch* patch1 = (Patch*)pC->F()->pData;
+    Patch4* patch1 = (Patch4*)pC->F()->pData;
     return _nodeMap[pC->F()->id()*NODEPAGE + patch1->edgeUInd(pC->I(), (pC->I()%2)?j:i)];
 }
 

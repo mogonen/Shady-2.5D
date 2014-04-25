@@ -119,6 +119,17 @@ Corner_p CurvedEdge::getCornerByTan(ShapeVertex_p pSV){
     return 0;
 }
 
+ShapeVertex_p CurvedEdge::getTangentSV(ShapeVertex_p pSV)
+{
+    if (pSV == _pE->C0()->V()->pData)
+        return _pTanSV[0];
+
+    if (pSV == _pE->C1()->V()->pData)
+        return _pTanSV[1];
+
+    return 0;
+}
+
 /*
 Vec2 CurvedEdge::evalT(double t) const{
 
@@ -135,11 +146,11 @@ Vec2 CurvedEdge::evalT(double t) const{
     return Point();// (evalP(t1) - evalP(t0)).normalize();
 }
 */
-
+/*
 ShapeVertex_p CurvedEdge::getTangentSV(ShapeVertex_p sv)
 {
     return (_pTanSV[0]->parent() == sv)? _pTanSV[0] : ((_pTanSV[1]->parent() == sv)? _pTanSV[1]:0);
-}
+}*/
 
 ShapeVertex_p CurvedEdge::getSV(int i) const{
     if (i==0)

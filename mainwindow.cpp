@@ -622,11 +622,6 @@ void MainWindow::keyPressEvent(QKeyEvent *event){
 
     int key = event->key();
 
-    if (key == Qt::Key_H)
-    {
-        Patch::flipH();
-    }
-
     if (key == Qt::Key_Escape){
 
         Session::get()->controller()->cancel();

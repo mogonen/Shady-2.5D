@@ -1,4 +1,7 @@
 #include "meshcommands.h"
+#include "cmesh.h"
+
+using namespace dlfl;
 
 MeshShape* MeshPrimitive::insertGrid(const Point& p, double nlen, double mlen, int n, int m, MeshShape *pMS){
 
@@ -31,6 +34,31 @@ MeshShape* MeshPrimitive::insertGrid(const Point& p, double nlen, double mlen, i
     return pMS;
 }
 
+MeshShape* MeshPrimitive::insertNGon(const Point& p, int n, int segv, double rad, MeshShape *pMS){
+
+    if (!pMS)
+        pMS = new MeshShape();
+
+    CLAMP(segv, 1, 4);
+    CLAMP(n, 2, 8);
+
+
+    Face_p pF =  pMS->mesh()->addFace(n);
+    for(int i=0; i<n; i++)
+    {
+        float ang = -2*PI/n*i;
+        Vertex_p v = pMS->addMeshVertex(Point(rad*cos(ang), rad*sin(ang)));
+        v->set(pF->C(i));
+    }
+
+    pMS->_control->buildEdges();
+    if (MeshShape::isSMOOTH)
+        pMS->makeSmoothTangents();
+    pMS->Renderable::update();
+    return pMS;
+
+}
+/*
 MeshShape* MeshPrimitive::insertNGon(const Point& p, int n, int segv, double rad, MeshShape *pMS){
 
     if (!pMS)
@@ -73,7 +101,7 @@ MeshShape* MeshPrimitive::insertNGon(const Point& p, int n, int segv, double rad
     pMS->Renderable::update();
     return pMS;
 
-}
+}*/
 
 MeshShape* MeshPrimitive::insertTorus(const Point& p, int n, int v, double rad_x, double rad_y, double w, double arc, MeshShape* pMS)
 {

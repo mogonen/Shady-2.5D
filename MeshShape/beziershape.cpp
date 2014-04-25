@@ -144,7 +144,8 @@ void MeshShape::makeSmoothCorners(Corner_p pC, bool isskipsharp, int tangenttype
         p0 = P0(c0->next());
 
         //return; //this is not a corner
-    }else if (vprev->isBorder() && vnext->isBorder()){
+    }
+    else if (vprev->isBorder() && vnext->isBorder()){
 
         sv_tan1 = c0->E()->pData->getTangentSV(c0);
         sv_tan0 = c0->prev()->E()->pData->getTangentSV(c0);
@@ -216,7 +217,10 @@ void onAddFace(Face_p pF)
 #ifdef MODELING_MODE
     pF->pData = (Patch*)new GridPattern(pF);//UVPatternPatch(pF);
 #else
-    pF->pData = (Patch*)new Patch4(pF);
+    if (pF->size()==4)
+        pF->pData = (Patch*)new Patch4(pF);
+    else
+        pF->pData = (Patch*)new PatchN(pF);
 #endif
 
 #endif

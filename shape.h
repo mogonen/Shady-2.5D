@@ -57,8 +57,13 @@ public:
     void restore();
 };
 
+struct ShapeData{
+    RGB     value[ACTIVE_CHANNELS];
+    Point   _P; //this could be a channel too?
+};
 
-typedef class ShapeBase {
+//should better have a ShapeData instead
+typedef class ShapeBase:public ShapeData{
 
     ControlNormal*       _pControlN;
     bool                 isN;
@@ -71,9 +76,11 @@ public:
 
     void                 dragNormal(const Vec2 &t);
     virtual void         outdate(){}
-    RGB                  value[ACTIVE_CHANNELS];
-    Point                _P; //this could be a channel too?
 
+    //ShapeData           data;
+
+    //RGB                  value[ACTIVE_CHANNELS];
+    //Point                _P; //this could be a channel too?
 
     inline Normal        N()    const {return  value[NORMAL_CHANNEL];}  //_N;}
     inline Normal_p      pN()   {return &value[NORMAL_CHANNEL];} //_N;}//;}
