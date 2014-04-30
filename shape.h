@@ -57,13 +57,8 @@ public:
     void restore();
 };
 
-struct ShapeData{
-    RGB     value[ACTIVE_CHANNELS];
-    Point   _P; //this could be a channel too?
-};
-
-//should better have a ShapeData instead
-typedef class ShapeBase:public ShapeData{
+//should better have a ShapeVec instead
+typedef class ShapeBase:public ShapeVec{
 
     ControlNormal*       _pControlN;
     bool                 isN;
@@ -77,7 +72,7 @@ public:
     void                 dragNormal(const Vec2 &t);
     virtual void         outdate(){}
 
-    //ShapeData           data;
+    //ShapeVec           data;
 
     //RGB                  value[ACTIVE_CHANNELS];
     //Point                _P; //this could be a channel too?

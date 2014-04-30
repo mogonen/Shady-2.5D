@@ -2,6 +2,43 @@
 #include "commands.h"
 #include "Renderer/layernormalcontrol.h"
 
+//ShapeVec
+ShapeVec& ShapeVec::operator= (const ShapeVec &v)
+{
+    // do the copy
+    //_P = v._P;
+    for(int i=0; i<ACTIVE_CHANNELS; i++)
+        value[i] = v.value[i];
+
+    return *this;
+}
+
+ShapeVec operator+(const ShapeVec& v1, const ShapeVec& v2){
+    ShapeVec v;
+    //v._P = v1._P + v2._P;
+    for(int i=0; i<ACTIVE_CHANNELS; i++)
+        v.value[i] = v1.value[i] + v2.value[i];
+    return v;
+}
+
+ShapeVec operator-(const ShapeVec& v1, const ShapeVec& v2){
+    ShapeVec v;
+    //v._P = v1._P - v2._P;
+    for(int i=0; i<ACTIVE_CHANNELS; i++)
+        v.value[i] = v1.value[i] - v2.value[i];
+    return v;
+}
+
+ShapeVec operator*(const ShapeVec& v, double s){
+    ShapeVec r;
+    //r._P = v._P*s;
+    for(int i=0; i<ACTIVE_CHANNELS; i++)
+        r.value[i] = v.value[i]*s;
+    return r;
+}
+
+
+
 //ShapeVertex///////////////////////////////////////////////////////////////////////////
 
 ShapeVertex::ShapeVertex(Shape_p pS, bool isP, bool isN):ControlPoint(&_P), ShapeBase(isN){

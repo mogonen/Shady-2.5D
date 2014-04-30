@@ -3,7 +3,7 @@
 
 #include "Patch.h"
 
-class PatternPatch:public Patch4{
+class PatternPatch:public Patch{
 
 protected:
 
@@ -19,13 +19,15 @@ public:
     int     V() const {return _nV;}
     int     UV(int uv = 0) const {return (uv==0) ? _nU:_nV;}
 
-    PatternPatch(Face_p pF):Patch4(pF){ _pattern = 0;}
+    PatternPatch(Face_p pF):Patch(pF){ _pattern = 0;}
     static  int NU, NV;
 
 };
 
 class GridPattern:public PatternPatch
 {
+
+    Point*  _ps;
 
 protected:
     void    onUpdate();
@@ -43,8 +45,9 @@ public:
 
 class UVPatternPatch:public PatternPatch
 {
-    int    _nU, _nV;
-    int    _W;
+    Point*  _ps;
+    int     _nU, _nV;
+    int     _W;
 
 protected:
 

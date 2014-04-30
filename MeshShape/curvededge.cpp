@@ -103,14 +103,15 @@ Point CurvedEdge::P(int i){
 
         //FIX THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         int ci = c->I();
-        Patch4* patch4 = dynamic_cast<Patch4*>(c->F()->pData);
+        Patch* patch4 = dynamic_cast<Patch*>(c->F()->pData);
         if (patch4 && c->F()->size()==3) ci++; //hack for triangle
-        return c->F()->pData->edgeP(ci, i);//c->F()->pData->edgeInd(ci, i));
+        return Point();//c->F()->pData->edgeP(ci, i);//c->F()->pData->edgeInd(ci, i));
     }
 }
 
 int CurvedEdge::size(){
-    return _size?_size:(_pE->C()->I()?_pE->C()->F()->pData->VSamples() : _pE->C()->F()->pData->USamples() );
+    return 0;
+    //return _size?_size:(_pE->C()->I()?_pE->C()->F()->pData->VSamples() : _pE->C()->F()->pData->USamples() );
 }
 
 Corner_p CurvedEdge::getCornerByTan(ShapeVertex_p pSV){

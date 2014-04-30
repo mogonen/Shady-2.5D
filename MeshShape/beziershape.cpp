@@ -211,23 +211,12 @@ void onAddFace(Face_p pF)
     if (pF->isBorder())
         return;
 
-    //pF->pData = new FaceData();
-
-#ifdef SHOW_DLFL
-    pF->pData  = (Patch*)new Rectangle(pF);
-#else
-
 #ifdef MODELING_MODE
     //pF->pData = (Surface*)(new GridPattern(pF));
-    pF->pData = (Surface*)(new UVPatternPatch(pF));
+    pF->pData = (Patch4*)(new UVPatternPatch(pF));
 #else
-    pF->pData = (Surface*)new Patch4(pF);
-    /*if (pF->size()<=4)
-        pF->pData = (Surface*)new Patch4(pF);
-    else
-        pF->pData = (Surface*)new PatchN(pF);*/
+    pF->pData = new Patch(pF);
 #endif
 
-#endif
 }
 

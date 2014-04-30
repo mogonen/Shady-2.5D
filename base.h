@@ -55,10 +55,23 @@ typedef Vec4    RGBA;
 typedef Vec4*   RGBA_p;
 
 
-typedef std::list<Point> PointList;
+
+
+typedef std::list<Point>   PointList;
 typedef std::list<Point_p> Point_pList;
 
-#define UI_BIT 31
+#define ACTIVE_CHANNELS 4
+
+typedef struct ShapeVec{
+    Point   _P; //this could be a channel too?
+    RGB     value[ACTIVE_CHANNELS];
+
+    ShapeVec& operator= (const ShapeVec &v);
+    friend ShapeVec operator+(const ShapeVec& v1, const ShapeVec& v2);//addition
+    friend ShapeVec operator-(const ShapeVec& v1, const ShapeVec& v2);//subtract
+    friend ShapeVec operator*(const ShapeVec& v, double s); // scalar mult
+}* ShapeVec_p;
+
 
 class Renderable{
 
@@ -275,8 +288,6 @@ bool isInRenderMode();
 
 enum SelectionMode {NOSELECT, SELECT_SHAPE, SELECT_VERTEX, SELECT_TANGENT, SELECT_VERTEX_TANGENT, SELECT_VERTEX_VERTEX, SELECT_EDGE, SELECT_FACE, SELECT_CORNER, SELECT_EDGE_EDGE};
 enum Channel       {NORMAL_CHANNEL, DARK_CHANNEL, BRIGHT_CHANNEL, DEPTH_CHANNEL, ALPHA_CHANNEL, DISP_CHANNEL, GL_SHADING, PREVIEW};
-
-#define ACTIVE_CHANNELS 4
 
 typedef class Command{
     int _id;

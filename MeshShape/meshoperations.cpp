@@ -27,7 +27,7 @@ void initCurve(Corner_p pC){
 #endif
 }
 
-RGB value_cache[ACTIVE_CHANNELS];
+ShapeVec VecCache;
 
 void computeSubdivisionCV(Corner_p pC, double t, Point newCP[], bool isfirst=false){
     bool isforward = !pC->isC1();
@@ -40,16 +40,14 @@ void computeSubdivisionCV(Corner_p pC, double t, Point newCP[], bool isfirst=fal
 
     pC->E()->pData->computeSubdivisionCV(isforward? t:(1-t), newCP);
 
-    Patch4* patch = dynamic_cast<Patch4*>(pC->F()->pData);
+    Patch* patch = dynamic_cast<Patch*>(pC->F()->pData);
     if (!patch)
         return;
     int ei = pC->I();
     if (!isfirst && isforward)
         ei--;
 
-    for(int c=0; c<ACTIVE_CHANNELS; c++){
-        value_cache[c] = patch->mapValue(c, ei, t);
-    }
+    VecCache = patch->mapValue(ei, t);
 }
 
 void applySubdivision(Corner_p pC, Point newCP[], bool haspair)
@@ -86,7 +84,7 @@ void applySubdivision(Corner_p pC, Point newCP[], bool haspair)
     curve1->pCV(2)->set(newCP[5]);
 
     for(int c=0; c<ACTIVE_CHANNELS; c++)
-        pC->V()->pData->value[c] = value_cache[c];
+        pC->V()->pData->value[c] = VecCache.value[c];
 }
 
 void onUnsplitEdge(Corner_p pC){

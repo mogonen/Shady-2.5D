@@ -21,7 +21,7 @@ class Patch;
 */
 class  ShapeVertex;
 class  CurvedEdge;
-class  Surface;
+class  Patch;
 
 //struct EdgeData;
 //struct FaceData;
@@ -30,7 +30,7 @@ namespace dlfl {
 
 typedef ShapeVertex         VertexData;
 typedef CurvedEdge          EdgeData;
-typedef Surface             FaceData;
+typedef Patch               FaceData;
 
 class Corner;
 class Edge;

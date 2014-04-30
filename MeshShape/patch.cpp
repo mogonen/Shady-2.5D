@@ -1,28 +1,27 @@
  #include "Patch.h"
 
-/*int     Patch::N;
-int     Patch::Ni;
-int     Patch::NN;
-int     Patch::NN2;
-double  Patch::T;*/
-//bool    Patch::isH = true;
 #define SAMPLES 11
 
 static const int FTABLE[] = {1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600};
-inline double cubicBernstein(int i, double t){
+inline double cubicBernstein(int i, double t)
+{
     return 6.0 / (FTABLE[3-i] * FTABLE[i]) * pow(1-t, 3-i) * pow(t,i);
 }
 
-Surface::Surface(Face_p pF):Selectable(false){
-    _ps = 0;
+Patch::Patch(Face_p pF):Selectable(false)
+{
     _pFace = pF;
     if (pF){
         _pFace->pData = this;
         setRef(pF);
     }
+#ifndef SHOW_DLFL
+    setSample(SAMPLES,SAMPLES);
+    _map = new ShapeVec[_sampleUV];
+#endif
 }
 
-void Surface::setSample(int u, int v){
+void Patch::setSample(int u, int v){
     u = (u<2)?2:u;
     v = (v<2)?2:v;
    _sampleU = u;
@@ -34,27 +33,14 @@ void Surface::setSample(int u, int v){
    _Tv = 1.0 / _sampleVi;
 }
 
-/*
-Corner*  Surface::C(int i) const {
-    //if (_pFace->size()==3 && i>0) i--;
-    return _pFace->C(i);
-}
-*/
-
-Normal Patch4::computeN(Corner_p c)
+Normal Patch::computeN(Corner_p c)
 {
-    /*
-    Point p = P(c);
-    Point p1 = c->E()->curve->CV(c->isC0()?1:2);                    //next
-    Point p0 = c->prev()->E()->curve->CV(c->prev()->isC0()?2:1);   //prev
-    Point p2 = p0 + (p1-p);
-    */
     Vec3 n = c->V()->pData->N();
     return n.z>0 ? c->V()->pData->N() : Vec3(n.x, n.y, N_MIN_Z);
 }
 
 
-Vec3 Patch4::decompose(const Vec3& v, const Vec3& nx)
+Vec3 Patch::decompose(const Vec3& v, const Vec3& nx)
 {
     Vec3 nnx = nx.normalize();
     Vec3 nz(0, 0, 1);
@@ -62,7 +48,7 @@ Vec3 Patch4::decompose(const Vec3& v, const Vec3& nx)
     return Vec3(v*nnx, v*ny, v*nz);
 }
 
-Vec3 Patch4::compose(const Vec3& v, const Vec3& nx)
+Vec3 Patch::compose(const Vec3& v, const Vec3& nx)
 {
     Vec3 nnx = nx.normalize();
     Vec3 nz(0,0,1);
@@ -70,99 +56,69 @@ Vec3 Patch4::compose(const Vec3& v, const Vec3& nx)
     return nnx*v.x + ny*v.y + nz*v.z;
 }
 
-Vec3 Patch4::mapValue(int channel, int ei, float t){
+ShapeVec Patch::mapValue(int ei, float t){
     float fi = ((ei%2) ? _sampleV : _sampleU)*t;
     int i = (int)fi;
     float ti = fi-i;    
-    int ei0 = edgeInd(ei, i);
-    int ei1 = edgeInd(ei, i+1);
-    RGB val0 = _maps[channel][ei0];
-    RGB val1 = _maps[channel][ei1];
-    return val0*(1-ti) + val1*ti;
+    return _map[edgeInd(ei, i)]*(1-ti) + _map[edgeInd(ei, i+1)]*ti;
 }
 
-void Patch4::propateNormals(Normal Ns[], int size)
+void Patch::propateNormals(Normal Ns[], int size)
 {
-
-    Map map = _maps[NORMAL_CHANNEL];
     for(int i=0; i<size; i++)
     {
         int Ni = (i%2)? _sampleVi : _sampleUi;
         Vec3 n0 = Ns[i];
         Vec3 n1 = Ns[(i+1)%size];
-        map[edgeInd(i, 0)] = n0;
-        map[edgeInd(i, Ni)] = n1;
+        _map[edgeInd(i, 0)].value[NORMAL_CHANNEL] = n0;
+        _map[edgeInd(i, Ni)].value[NORMAL_CHANNEL] = n1;
 
-        Vec2 tan0 = (_ps[edgeInd(i, 1)] - _ps[edgeInd(i, 0)]);
-        Vec2 tan1 = (_ps[edgeInd(i, Ni)] - _ps[edgeInd(i, Ni-1)]);
+        Vec2 tan0 = (_map[edgeInd(i, 1)]._P - _map[edgeInd(i, 0)]._P);
+        Vec2 tan1 = (_map[edgeInd(i, Ni)]._P - _map[edgeInd(i, Ni-1)]._P);
 
-        Vec3 n0_d = Patch4::decompose(n0, Vec3(tan0));
-        Vec3 n1_d = Patch4::decompose(n1, Vec3(tan1));
+        Vec3 n0_d = Patch::decompose(n0, Vec3(tan0));
+        Vec3 n1_d = Patch::decompose(n1, Vec3(tan1));
 
         for(int j=1; j<Ni; j++)
         {
             //hack
             if (face() && face()->size()==3 && i ==0){
-                map[edgeInd(i, j)] = Ns[0];
+                _map[edgeInd(i, j)].value[NORMAL_CHANNEL]  = Ns[0];
                 continue;
             }
 
             double t = j*(1.0/Ni);
             Vec3 n_d = n0_d*(1-t) + n1_d*(t);
-            Vec3 tan = (_ps[edgeInd(i, j+1)] - _ps[edgeInd(i, j-1)]);
-            map[edgeInd(i, j)] = compose(n_d, tan);
+            Vec3 tan = (_map[edgeInd(i, j+1)]._P - _map[edgeInd(i, j-1)]._P);
+            _map[edgeInd(i, j)].value[NORMAL_CHANNEL] = compose(n_d, tan);
         }
     }
 }
 
-void Patch4::propateMap(int channel, RGB val[], int size){
+void Patch::propateMap(ShapeVec vec[], int size){
 
-    Map map = _maps[channel];
     for(int i=0; i<size; i++)
     {
         int Ni = (i%2)? _sampleVi : _sampleUi;
-        RGB c0 = val[i];
-        RGB c1 = val[(i+1)%size];
-        map[edgeInd(i, 0)]  = c0;
-        map[edgeInd(i, Ni)] = c1;
+        ShapeVec v0 = vec[i];
+        ShapeVec v1 = vec[(i+1)%size];
+        _map[edgeInd(i, 0)]  = v0;
+        _map[edgeInd(i, Ni)] = v1;
 
         for(int j=1; j<Ni; j++)
         {
             double t = j*(1.0/Ni);
-            map[edgeInd(i, j)] = c0*(1-t) + c1*t;
+            _map[edgeInd(i, j)] = v0*(1-t) + v1*t;
         }
     }
 }
 
-Corner*  Patch4::C(int i) const {
+Corner*  Patch::C(int i) const {
     if (_pFace->size()==3 && i>0) i--;
     return _pFace->C(i);
 }
 
-
-Patch4::Patch4(Face_p pF):Surface(pF)
-{
-    setSample(SAMPLES,SAMPLES);
-    _ps = new Point[_sampleUV];
-
-    for(int i=0; i<ACTIVE_CHANNELS; i++){
-        Map map = new RGB[_sampleUV];
-        _maps.push_back(map);
-    }
-}
-
-Patch4::Patch4(int u, int v):Surface(0)
-{
-    setSample(u, v);
-    _ps = new Point[_sampleUV];
-
-    for(int i=0; i<ACTIVE_CHANNELS; i++){
-        Map map = new RGB[_sampleUV];
-        _maps.push_back(map);
-    }
-}
-
-void Patch4::updateBezierPatch(){
+void Patch::updateBezierPatch(){
     Point K[16];
 
     //init bezier surface points
@@ -187,42 +143,42 @@ void Patch4::updateBezierPatch(){
     computeBezierPatch(K);
 }
 
-void Patch4::onUpdate()
+void Patch::onUpdate()
 {
     _pFace->update();
+#ifndef SHOW_DLFL
     updateBezierPatch();
     //int channel = Session::get()->channel();
-    for(int c = 0; c<ACTIVE_CHANNELS; c++){
-        if (c == NORMAL_CHANNEL){
-            Normal Ns[4];
-            for(int i=0; i<4; i++)
-                Ns[i] = computeN(C(i));
-            propateNormals(Ns);
-        }else{
-            RGB val[4];
-            for(int i=0; i<4; i++)
-                val[i] = C(i)->V()->pData->value[c];
 
-            propateMap(c,val);
-        }
-            interpolateMap(c);
+    Normal Ns[4];
+    for(int i=0; i<4; i++)
+        Ns[i] = computeN(C(i));
+    propateNormals(Ns);
+
+    ShapeVec vec[4];
+    for(int i=0; i<4; i++){
+        vec[i] = *C(i)->V()->pData;
     }
+
+    propateMap(vec);
+    interpolateMap();
+#endif
 }
 
-RGB Patch4::interpolateCoonz(int i, int j, Map map, int U)
+ShapeVec Patch::interpolateCoonz(int i, int j, int U)
 {
     int Ui =  U-1;
 
     double t =  H(i*1.0 / Ui); //isH? H(i*1.0 / Ui) : (i*1.0 / Ui);
     double s =  H(j*1.0 / Ui); //isH? H(j*1.0 / Ni) : (j*1.0 / Ni);
 
-    RGB val = map[i]*(1.0-s) + map[i + Ui*U]*s;
-    val = val + map[0 + j*U]*(1.0 - t) + map[Ui + j*U]*t;
-    val = val - map[0]*(1-s)*(1.0-t) - map[Ui]*(1-s)*t - map[Ui + Ui*U]*s*t - map[Ui*U]*s*(1-t);
+    ShapeVec val = _map[i]*(1.0 - s) + _map[i + Ui*U]*s;
+    val = val + _map[0 + j*U]*(1.0 - t) + _map[Ui + j*U]*t;
+    val = val - _map[0]*(1-s)*(1.0 - t) - _map[Ui]*(1-s)*t - _map[Ui + Ui*U]*s*t - _map[Ui*U]*s*(1 - t);
     return val;
 }
 
-void Patch4::computeBezierPatch(Point K[])
+void Patch::computeBezierPatch(Point K[])
 {
     int U = _sampleU;
     int V = _sampleV;
@@ -238,20 +194,19 @@ void Patch4::computeBezierPatch(Point K[])
             for(int bj = 0; bj<4; bj++)
                 for(int bi = 0; bi<4; bi++)
                     p = p + cubicBernstein(bi, i*tu)*cubicBernstein(bj, j*tv)*K[bi+bj*4];
-            _ps[i + j*U] = p;
+            _map[i + j*U]._P = p;
         }
     }
 }
 
-void Patch4::interpolateMap(int channel)
+void Patch::interpolateMap()
 {
-    Map map = _maps[channel];
     for(int j = 1; j<_sampleVi;j++)
         for(int i = 1; i<_sampleUi; i++)
-                map[ind(i,j)] = interpolateCoonz(i, j, map, _sampleU);
+            _map[ind(i,j)] = interpolateCoonz(i, j, _sampleU);
 }
 
-int Patch4::edgeInd(int ei, int i) const{
+int Patch::edgeInd(int ei, int i) const{
 
     int N = (ei%2) ? _sampleV : _sampleU;
     int Ni  = N-1;
@@ -273,7 +228,7 @@ int Patch4::edgeInd(int ei, int i) const{
     return -1;
 }
 
-int Patch4::edgeUInd(int ei, int i) const{
+int Patch::edgeUInd(int ei, int i) const{
 
     int N = (ei%2) ? _sampleV : _sampleU;
     int Ni  = N-1;
@@ -295,7 +250,7 @@ int Patch4::edgeUInd(int ei, int i) const{
     return -1;
 }
 
-int Patch4::edgeI(int i, int j)
+int Patch::edgeI(int i, int j)
 {
 
     //make i U dominant
@@ -315,7 +270,7 @@ int Patch4::edgeI(int i, int j)
     return -1;
 }
 
-int Patch4::cornerI(int i, int j)
+int Patch::cornerI(int i, int j)
 {
     if (j == 0 && i == 0)
         return 0;
@@ -331,7 +286,7 @@ int Patch4::cornerI(int i, int j)
     return -1;
 }
 
-Point Patch4::KVal(int ei, int i){        
+Point Patch::KVal(int ei, int i){
 
     Corner* ci = C(ei);
     if (face()->size() == 3){
@@ -345,8 +300,8 @@ Point Patch4::KVal(int ei, int i){
     return (rev)?c->CV(3-i):c->CV(i);
 }
 
-Point Patch4::edgeP(int ei, int i) const{
-    return _ps[edgeInd(ei, i)];
+Point Patch::edgeP(int ei, int i) const{
+    return _map[edgeInd(ei, i)]._P;
 }
 
 

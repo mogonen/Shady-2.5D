@@ -311,7 +311,7 @@ void UVPatternPatch::onUpdate(){
 void UVPatternPatch::render(int mode)
 {
     if (!Session::isRender(DRAG_ON))
-        Surface::render(mode);
+        Patch::render(mode);
 
     if (isTHICK){
 
