@@ -103,7 +103,7 @@ void Vertex::set(Corner_p c){
 }
 
 Corner_p Vertex::to(Vertex_p v){
-    if (!_c)
+    if (!_c || !_c->next())
         return 0;
     Corner_p c = _c;
     while(c->next()->V()!= v){
@@ -115,7 +115,7 @@ Corner_p Vertex::to(Vertex_p v){
 }
 
 Corner_p Vertex::from(Vertex_p v){
-    if (!_c)
+    if (!_c || !_c->prev())
         return 0;
     Corner_p c = _c;
     while(c->prev()->V()!= v){

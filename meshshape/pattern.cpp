@@ -1,5 +1,5 @@
 #include "meshcommands.h"
-#include "patch.h"
+#include "pattern.h"
 
 int         PatternOperation::FOLD_N           = 8;
 double      PatternOperation::FOLD_W           = 0;

@@ -27,7 +27,8 @@ HEADERS += glwidget.h \
     fileio.h \
     commands.h \
     ref.h \
-    meshshape/curvededge.h
+    meshshape/curvededge.h \
+    meshshape/pattern.h
 
 SOURCES += glwidget.cpp \
     main.cpp \

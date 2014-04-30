@@ -1,5 +1,5 @@
 #include "fileio.h"
-#include "MeshShape/patch.h"
+#include "MeshShape/pattern.h"
 #include "MeshShape/meshshape.h"
 #include <sstream>
 

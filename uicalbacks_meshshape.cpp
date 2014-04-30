@@ -56,7 +56,7 @@ void createSpine()
     SpineShape* spine = dynamic_cast<SpineShape*>(shape);
     if (spine==0)
         return;
-    Shape_p pMS = spine->buildMeshShape();
+    Shape_p pMS = spine->buildMeshShape(SpineShape::isTRIANGULATE_JOINTS);
     Session::get()->removeShape(spine);
     Session::get()->mainWindow()->addAttrWidget(createAttrWidget(pMS), (void*)pMS);
     Session::get()->insertShape(pMS);
@@ -192,6 +192,7 @@ QWidget* createGridOptions()
 QWidget* createNgonOptions()
 {
     CustomDialog * widget = new CustomDialog("2NGon Options", 0, "Insert", createNGon);
+    widget->addRadioGrp("Policy:","Subdiv|Pie|Polygon", (int*)(&MeshPrimitive::NGON_HANDLING));
     widget->addSpinBox("Sides:", 1, 8, &MeshPrimitive::NGON_N, 1, "Sides of 2NGon");
     widget->addSpinBox("Segments:", 1, 4, &MeshPrimitive::NGON_SEG_V, 1, "Rows");
     widget->addDblSpinBoxF("Radius:", 0.01, 0.75, &MeshPrimitive::NGON_RAD, 2, 0.01, "");
@@ -207,7 +208,7 @@ QWidget* createTorusOptions()
     widget->addCheckBox ("Keep Tangents Smooth", &MeshShape::isSMOOTH,"");
     widget->addDblSpinBoxF("Radius:", 0.01, 1.0, &MeshPrimitive::TORUS_RAD_X, 2, 0.01, "");
     widget->addDblSpinBoxF("Radius:", 0.01, 1.0, &MeshPrimitive::TORUS_RAD_Y, 2, 0.01, "");
-    widget->addDblSpinBoxF("Width%:", 0.01, 0.99, &MeshPrimitive::TORUS_W, 2, 0.01, "");
+    widget->addDblSpinBoxF("Width%:", 0.01, 1.0, &MeshPrimitive::TORUS_W, 2, 0.01, "");
     widget->addDblSpinBoxF("Arc:", 0., 1.0, &MeshPrimitive::TORUS_ARC, 2, 0.01, "");
     return widget;
 }
@@ -216,6 +217,7 @@ QWidget* createSpineOptions()
 {
     CustomDialog * widget = new CustomDialog("Spine Options",0, "Insert", createSpine);
     widget->addDblSpinBoxF("Radius:", 0.01, 0.75, &SpineShape::RAD, 2, 0.01, "");
+    widget->addCheckBox ("Triangulate Joints", &SpineShape::isTRIANGULATE_JOINTS,"");
     widget->addCheckBox ("Keep Tangents Smooth", &MeshShape::isSMOOTH,"");
     return widget;
 }
@@ -241,6 +243,7 @@ QWidget* createExtrudeOptions()
     widget->addDblSpinBoxF("Extrusion Amount:", 0, 0.5, &MeshOperation::EXTRUDE_T, 2, 0.01, "");
     widget->addCheckBox ("Keep Tangents Smooth", &MeshShape::isSMOOTH,"");
     widget->addCheckBox ("Keep Faces Together", &MeshOperation::isKEEP_TOGETHER,"");
+    widget->addCheckBox ("Cap Extrusion", &MeshOperation::EXTRUDE_CAP,"");
     // We want our custom dialog called "Registration".
     /*d.addLineEdit (input1+"  ", &Value0, "No middle name!");             // Here's a line edit.
     d.addCheckBox (input2+"  ", &Value1, "my tooltip");       // Here's a checkbox with a tooltip (optional last argument).

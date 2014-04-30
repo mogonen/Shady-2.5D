@@ -47,12 +47,13 @@ public:
     static bool             EXEC_ONCLICK;
     static double           EXTRUDE_T;
     static bool             isKEEP_TOGETHER;
+    static bool             EXTRUDE_CAP;
 
 
     static void             insertSegment(Edge_p, const Point&);
     static void             diagonalDivide(Corner_p);
     static Face_p           extrude(Face_p, double);
-    static Edge_p           extrude(Edge_p, double, bool isSmooth, VertexMap* vmap=0);
+    static Edge_p           extrude(Edge_p, double, bool iscap, bool isSmooth, VertexMap* vmap=0);
     static void             deleteFace(Face_p);
 
 private:
@@ -76,7 +77,8 @@ protected:
 
 public:
 
-    enum Primitive {GRID, TWO_NGON, TORUS, SPINE};
+    enum Primitive      {GRID, TWO_NGON, TORUS, SPINE};
+    enum NgonHandling   {SUBDIV, PIE, POLYGON};
 
     MeshPrimitive(Primitive p){
         _primitive = p;
@@ -100,6 +102,7 @@ public:
     static int              NGON_N;
     static int              NGON_SEG_V;
     static double           NGON_RAD;
+    static NgonHandling     NGON_HANDLING;
 
     static int              TORUS_N;
     static int              TORUS_V;

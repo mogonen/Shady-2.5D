@@ -1,9 +1,10 @@
 #include <qgl.h>
-#include "Patch.h"
+#include "pattern.h"
 #include "../curve.h"
 
 int     PatternPatch::NU = 6;
 int     PatternPatch::NV = 6;
+bool    UVPatternPatch::isTHICK = false;
 //double  Patch::T;
 
 #define FOLD_W 10
@@ -76,34 +77,7 @@ int GridPattern::getPattern(int i, int j) const{
 
 void GridPattern::onUpdate(){
     _pFace->update();
-
-    Point K[16];
-    //init bezier surface points
-    for(int i=0; i<4; i++){
-        K[i]= KVal(0,i);
-        K[i+12]= KVal(2,i);
-    }
-    K[7] = KVal(1,1);
-    K[11] = KVal(1,2);
-
-    K[4] = KVal(3,1);
-    K[8] = KVal(3,2);
-
-    K[5]  = K[1]  + K[4]  - K[0];
-    K[6]  = K[2]  + K[7]  - K[3];
-    K[9]  = K[13] + K[8]  - K[12];
-    K[10] = K[11] + K[14] - K[15];
-
-    //bezier surface interpolation
-    for(int j=0; j<_sampleV;j++)
-        for(int i=0; i<_sampleU; i++){
-            Point p;
-            for(int bj = 0; bj<4; bj++)
-                for(int bi = 0; bi<4; bi++)
-                    p = p + cubicBernstein(bi, i*_Tu)*cubicBernstein(bj, j*_Tv)*K[bi+bj*4];
-            _ps[ind(i,j)] = p;
-
-        }
+    updateBezierPatch();
 }
 
 void GridPattern::render(int mode){
@@ -164,8 +138,9 @@ void UVPatternPatch::init(int nu, int nv)
     if (_ps)
         delete _ps;
 
+    _W = (isTHICK?2:1);
     //setN(75);
-    _ps = new Point[(_nU*_sampleU + _nV*_sampleV)*2];
+    _ps = new Point[(_nU*_sampleU + _nV*_sampleV)*_W];//
 }
 
 /*
@@ -257,7 +232,7 @@ void UVPatternPatch::onUpdate(){
     /*if (_nU != NU || _nV != NV)
         init(NU, NV);
 */
-    _pFace->update();
+    face()->update();
 
     Point K[16];
     //init bezier surface points
@@ -301,11 +276,13 @@ void UVPatternPatch::onUpdate(){
             for(int bj = 0; bj<4; bj++)
                 for(int bi = 0; bi<4; bi++){
                     p0 = p0 + cubicBernstein(bi, i*_Tu)*cubicBernstein(bj, (u+0.5)*Tu - Wu)*K[bi+bj*4];
-                    p1 = p1 + cubicBernstein(bi, i*_Tu)*cubicBernstein(bj, (u+0.5)*Tu + Wu)*K[bi+bj*4];
+                    if (isTHICK)
+                        p1 = p1 + cubicBernstein(bi, i*_Tu)*cubicBernstein(bj, (u+0.5)*Tu + Wu)*K[bi+bj*4];
                 }
 
             _ps[ind(0,u,i,0)] = p0;
-            _ps[ind(0,u,i,1)] = p1;
+            if (isTHICK)
+                _ps[ind(0,u,i,1)] = p1;
         }
 
     }
@@ -318,11 +295,14 @@ void UVPatternPatch::onUpdate(){
             for(int bj = 0; bj<4; bj++)
                 for(int bi = 0; bi<4; bi++){
                     p0 = p0 + cubicBernstein(bi, (v+0.5)*Tv - Wv)*cubicBernstein(bj, i*_Tv)*K[bi+bj*4];
-                    p1 = p1 + cubicBernstein(bi, (v+0.5)*Tv + Wv)*cubicBernstein(bj, i*_Tv)*K[bi+bj*4];
+                    if (isTHICK)
+                        p1 = p1 + cubicBernstein(bi, (v+0.5)*Tv + Wv)*cubicBernstein(bj, i*_Tv)*K[bi+bj*4];
                 }
 
             _ps[ind(1,v,i,0)] = p0;
-            _ps[ind(1,v,i,1)] = p1;
+
+            if (isTHICK)
+                _ps[ind(1,v,i,1)] = p1;
         }
 
     }
@@ -331,55 +311,114 @@ void UVPatternPatch::onUpdate(){
 void UVPatternPatch::render(int mode)
 {
     if (!Session::isRender(DRAG_ON))
-        Patch::render(mode);
+        Surface::render(mode);
 
-    for(int u=0; u < _nU; u++)
-    {
-        if (_pattern[u] == 1)
-            glColor3f(0, 1.0 ,0);
-        else if (_pattern[u] == 2)
-            glColor3f(1.0, 0 ,0);
-        else
-            glColor3f(0.8, 0.8, 0.8);
+    if (isTHICK){
 
-        for(int i = 0; i< _sampleUi; i++)
+        for(int u=0; u < _nU; u++)
         {
-            Point p[4] = {P(0, u, i), P(0, u, i,1), P(0, u, i+1, 1), P(0, u, i+1, 0)};
-            if (Session::isRender(WIREFRAME_ON))
-                glBegin(GL_LINE_LOOP);
+            if (_pattern[u] == 1)
+                glColor3f(0, 1.0 ,0);
+            else if (_pattern[u] == 2)
+                glColor3f(1.0, 0 ,0);
             else
-                glBegin(GL_POLYGON);
-            for(int k = 0; k<4; k++ ){
-                glVertex3f(p[k].x, p[k].y, 0);
+                glColor3f(0.8, 0.8, 0.8);
+
+            for(int i = 0; i< _sampleUi; i++)
+            {
+                Point p[4] = {P(0, u, i), P(0, u, i,1), P(0, u, i+1, 1), P(0, u, i+1, 0)};
+                if (Session::isRender(WIREFRAME_ON))
+                    glBegin(GL_LINE_LOOP);
+                else
+                    glBegin(GL_POLYGON);
+                for(int k = 0; k<4; k++ ){
+                    glVertex3f(p[k].x, p[k].y, 0);
+                }
+                glEnd();
+            }
+
+        }
+
+        //glColor3f(1.0, 0, 0);
+
+        for(int v=0; v < _nV; v++)
+        {
+            if (_pattern[_nU + v] == 1)
+                glColor3f(0, 1.0 ,0);
+            else if (_pattern[_nU + v] == 2)
+                glColor3f(1.0, 0 ,0);
+            else
+                glColor3f(0.8, 0.8, 0.8);
+
+            for(int i = 0; i< _sampleVi; i++)
+            {
+                Point p[4] = {P(1, v, i), P(1, v, i, 1), P(1, v, i+1, 1), P(1, v, i+1, 0)};
+                if (Session::isRender(WIREFRAME_ON))
+                    glBegin(GL_LINE_LOOP);
+                else
+                    glBegin(GL_POLYGON);
+                for(int k = 0; k<4; k++ ){
+                    glVertex3f(p[k].x, p[k].y, 0);
+                }
+                glEnd();
+            }
+        }
+    }else{
+
+        for(int u=0; u < _nU; u++)
+        {
+            if (_pattern[u] == 1)
+                glColor3f(0, 1.0 ,0);
+            else if (_pattern[u] == 2)
+                glColor3f(1.0, 0 ,0);
+            else
+                glColor3f(0.8, 0.8, 0.8);
+
+            glBegin(GL_LINE_STRIP);
+            for(int i = 0; i< _sampleU; i++)
+            {
+                Point p = P(0, u, i);
+                glVertex3f(p.x, p.y, 0);
+            }
+            glEnd();
+
+            glBegin(GL_LINE_STRIP);
+            for(int i = 0; i< _sampleU; i++)
+            {
+                Point p = P(0, u, i, 1);
+                glVertex3f(p.x, p.y, 0);
             }
             glEnd();
         }
 
-    }
+        //glColor3f(1.0, 0, 0);
 
-    //glColor3f(1.0, 0, 0);
-
-    for(int v=0; v < _nV; v++)
-    {
-        if (_pattern[_nU + v] == 1)
-            glColor3f(0, 1.0 ,0);
-        else if (_pattern[_nU + v] == 2)
-            glColor3f(1.0, 0 ,0);
-        else
-            glColor3f(0.8, 0.8, 0.8);
-
-        for(int i = 0; i< _sampleVi; i++)
+        for(int v=0; v < _nV; v++)
         {
-            Point p[4] = {P(1, v, i), P(1, v, i, 1), P(1, v, i+1, 1), P(1, v, i+1, 0)};
-            if (Session::isRender(WIREFRAME_ON))
-                glBegin(GL_LINE_LOOP);
+            if (_pattern[_nU + v] == 1)
+                glColor3f(0, 1.0 ,0);
+            else if (_pattern[_nU + v] == 2)
+                glColor3f(1.0, 0 ,0);
             else
-                glBegin(GL_POLYGON);
-            for(int k = 0; k<4; k++ ){
-                glVertex3f(p[k].x, p[k].y, 0);
+                glColor3f(0.8, 0.8, 0.8);
+
+            glBegin(GL_LINE_STRIP);
+            for(int i = 0; i < _sampleV; i++)
+            {
+                Point p = P(1, v, i);
+                glVertex3f(p.x, p.y, 0);
+            }
+            glEnd();
+
+            glBegin(GL_LINE_STRIP);
+            for(int i = 0; i < _sampleV; i++)
+            {
+                Point p = P(1, v, i, 1);
+                glVertex3f(p.x, p.y, 0);
             }
             glEnd();
         }
+
     }
 
 }

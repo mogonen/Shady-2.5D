@@ -100,7 +100,12 @@ Point CurvedEdge::P(int i){
         return _pts[i];
     }else{
         Corner_p  c = _pE->C();
-        return c->F()->pData->P(c->F()->pData->edgeInd(c->I(), i));
+
+        //FIX THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        int ci = c->I();
+        Patch4* patch4 = dynamic_cast<Patch4*>(c->F()->pData);
+        if (patch4 && c->F()->size()==3) ci++; //hack for triangle
+        return c->F()->pData->edgeP(ci, i);//c->F()->pData->edgeInd(ci, i));
     }
 }
 

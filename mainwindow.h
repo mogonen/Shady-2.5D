@@ -112,6 +112,7 @@ private slots:
     void    newGrid();
     void    new2NGon();
     void    newTorus();
+    //void    newPie();
     void    newSpine();
     void    newFacial();
     void    newImageShape();
@@ -242,10 +243,12 @@ private:
     QAction *       shapeInsertTorusAct;
     QAction *       shapeInsertEllipseAct;
     QAction *       shapeInsert2NGonAct;
+    QAction *       shapeInsertPieAct;
     QAction *       shapeInsertSpineAct;
     QAction *       shapeInsertGridAct;
     QAction *       shapeInsertFacialAct;
     QAction *       shapeInsertImageShapeAct;
+
 
     QAction *       shapeLockAct;
     QAction *       shapeMoveFrontAct;
@@ -274,7 +277,7 @@ private:
     //need to improve this
     struct Options
     {
-        enum OptionWidget_e {NONE, DRAG, ELLIPSE, GRID, NGON, TORUS, SPINE, IMAGE_SHAPE, EXTRUDE, INSERT_SEGMENT, DELETE_FACE, ASSIGN_PATTERN, SET_FOLDS, SET_COLOR, SEW};
+        enum OptionWidget_e {NONE, DRAG, ELLIPSE, GRID, NGON, TORUS, PIE, SPINE, IMAGE_SHAPE, EXTRUDE, INSERT_SEGMENT, DELETE_FACE, ASSIGN_PATTERN, SET_FOLDS, SET_COLOR, SEW};
     };
 };
 

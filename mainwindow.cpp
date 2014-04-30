@@ -432,7 +432,7 @@ void MainWindow::createActions()
     shapeInsertGridAct = new QAction(tr("Grid"), this);
     connect(shapeInsertGridAct, SIGNAL(triggered()), this, SLOT(newGrid()));
 
-    shapeInsert2NGonAct = new QAction(tr("2NGon"), this);
+    shapeInsert2NGonAct = new QAction(tr("Polygon"), this);
     connect(shapeInsert2NGonAct, SIGNAL(triggered()), this, SLOT(new2NGon()));
 
     shapeInsertSpineAct = new QAction(tr("Spine"), this);

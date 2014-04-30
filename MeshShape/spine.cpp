@@ -3,6 +3,7 @@
 typedef dlfl::Vertex*** OutlineMap;
 
 double SpineShape::RAD = 0.1;
+bool   SpineShape::isTRIANGULATE_JOINTS = false;
 
 void SpineShape::onClick(const Click& click){
 
@@ -48,7 +49,7 @@ dlfl::Vertex_p* SpineShape::getOutlineVerts(const Point& o, const Point& tan, Me
 }
 
 
-MeshShape* SpineShape::buildMeshShape(MeshShape* pMS){
+MeshShape* SpineShape::buildMeshShape(bool istrianglejoints, MeshShape* pMS){
 
     if (!pMS)
         pMS = new MeshShape();
@@ -75,20 +76,35 @@ MeshShape* SpineShape::buildMeshShape(MeshShape* pMS){
             SVertex_p* branches = sortLinks(v); //bok ye
 
             int sz = v->val();
-            Face_p fmid = omesh->addFace(sz);
+            Face_p fmid = istrianglejoints ? 0 : omesh->addFace(sz);
+            Vertex_p vside[16];
 
+            Point pmid;
             for(int i = 0; i < sz; i++){
                 Point n = (branches[i]->P() - v->P()).normalize()*0.5 + (branches[(i-1+sz)%sz]->P() - v->P()).normalize()*0.5;
-                Vertex_p vn = pMS->addMeshVertex(v->P() + n*RAD*2);//fix it !!
-                fmid->set(vn, i);
+                vside[i] = pMS->addMeshVertex(v->P() + n*RAD*2);//fix it !!
+                pmid = pmid + vside[i]->pData->P();
+                if (fmid)
+                    vside[i]->set(fmid->C(i));
             }
 
-            fmid->update();
+            if (istrianglejoints)
+            {
+                pmid = pmid*(1.0/sz);
+                Vertex_p vmid = pMS->addMeshVertex(pmid);
+                for(int i=0; i <sz; i++)
+                    omesh->addTriangle(vmid, vside[i], vside[(i+1)%sz]);
+            }else{
+                //FIX THIS!!!
+                //delete fmid->pData; fmid->pData = new PatchN(fmid);
+
+                //subdiv here
+            }
 
             //now update omesh
             for(int i = 0; i< sz; i++ ){
-                Vertex_p v0 = fmid->V(i);
-                Vertex_p v1 = fmid->V(i+1);
+                Vertex_p v0 = vside[i];
+                Vertex_p v1 = vside[(i+1)%sz];
                 if (Vertex_p* vs1 = omap[edgeId(branches[i],v)])
                     omesh->addQuad(v0, vs1[1], vs1[0], v1);
                 else{

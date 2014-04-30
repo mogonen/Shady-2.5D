@@ -47,6 +47,16 @@ Face_p Mesh::addQuad(Vertex* v0, Vertex* v1, Vertex* v2, Vertex* v3, bool isedge
     return f;
 }
 
+Face_p Mesh::addTriangle(Vertex* v0, Vertex* v1, Vertex* v2){
+
+    Face_p f = addFace(3);
+    f->set(v0, 0);
+    f->set(v1, 1);
+    f->set(v2, 2);
+    f->update();
+    return f;
+}
+
 Face_p Mesh::addQuad(Corner_p c0, Corner_p c1, Corner_p c2, Corner_p c3)
 {
     Corner_p corns[4] = {c0, c1, c2, c3};
@@ -54,6 +64,19 @@ Face_p Mesh::addQuad(Corner_p c0, Corner_p c1, Corner_p c2, Corner_p c3)
     for(int i=0; i <4; i++){
         if (corns[i]->next() != corns[(i+1)%4])
             e = insertEdge(corns[i], corns[(i+1)%4]);
+    }
+    Face_p f =  e->C0()->F();
+    return f;
+}
+
+Face_p Mesh::addTriangle(Corner_p c0, Corner_p c1, Corner_p c2)
+{
+    Corner_p corns[3] = {c0, c1, c2};
+    Edge_p e = 0;
+    for(int i=0; i <3; i++){
+        //if (corns[i]->next() != corns[(i+1)%3])
+        if (!corns[i]->V()->to(corns[(i+1)%3]->V()))
+            e = insertEdge(corns[i], corns[(i+1)%3]);
     }
     Face_p f =  e->C0()->F();
     return f;

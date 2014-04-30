@@ -31,29 +31,29 @@ public:
     CurvedEdge(Edge_p, int sz = 0);
     ~CurvedEdge();
 
-    Edge_p edge()const {return _pE;}
+    Edge_p          edge()const {return _pE;}
 
-    void init(ShapeVertex_p sv0=0, ShapeVertex_p sv1=0);
-    void set(Edge_p);
-    void discard();
-    void setRef(Referable_p pRef);
+    void            init(ShapeVertex_p sv0=0, ShapeVertex_p sv1=0);
+    void            set(Edge_p);
+    void            discard();
+    void            setRef(Referable_p pRef);
 
-    ShapeVertex_p getSV(int i) const;
-    ShapeVertex_p getTangentSV(int i) const {return _pTanSV[i];}
-    ShapeVertex_p getTangentSV(ShapeVertex_p sv);
-    ShapeVertex_p getTangentSV(Corner_p pC);
+    ShapeVertex_p   getSV(int i) const;
+    ShapeVertex_p   getTangentSV(int i) const {return _pTanSV[i];}
+    ShapeVertex_p   getTangentSV(ShapeVertex_p sv);
+    ShapeVertex_p   getTangentSV(Corner_p pC);
 
-    Corner_p      getCornerByTan(ShapeVertex_p pC);
+    Corner_p        getCornerByTan(ShapeVertex_p pC);
 
-    double        computeDistance(const Point&, double &);
-    void          computeSubdivisionCV(double t, Point[]);
-    void          render(int mode = 0);
+    double          computeDistance(const Point&, double &);
+    void            computeSubdivisionCV(double t, Point[]);
+    void            render(int mode = 0);
 
-    Point CV(int i);
-    Point_p pCV(int i);
+    Point           CV(int i);
+    Point_p         pCV(int i);
 
-    Point P(int i);
-    int size();
+    Point           P(int i);
+    int             size();
 
 };
 

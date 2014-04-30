@@ -41,9 +41,10 @@ public:
     void render(int mode = 0);
     ShapeType   type() const {return SPINE_SHAPE;}
 
-    MeshShape*      buildMeshShape(MeshShape* pMS=0);
+    MeshShape*      buildMeshShape( bool istrianglejoints, MeshShape* pMS=0);
 
-    static double RAD;
+    static double       RAD;
+    static bool         isTRIANGULATE_JOINTS;
 
 };
 

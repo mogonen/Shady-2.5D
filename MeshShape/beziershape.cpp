@@ -1,7 +1,10 @@
 #include "meshshape.h"
 #include "../curve.h"
 #include "Patch.h"
-//#include "MeshData.h"
+
+#ifdef MODELING_MODE
+#include "pattern.h"
+#endif
 
 void  MeshShape::outdate(ShapeVertex_p sv){
 
@@ -215,12 +218,14 @@ void onAddFace(Face_p pF)
 #else
 
 #ifdef MODELING_MODE
-    pF->pData = (Patch*)new GridPattern(pF);//UVPatternPatch(pF);
+    //pF->pData = (Surface*)(new GridPattern(pF));
+    pF->pData = (Surface*)(new UVPatternPatch(pF));
 #else
-    if (pF->size()==4)
-        pF->pData = (Patch*)new Patch4(pF);
+    pF->pData = (Surface*)new Patch4(pF);
+    /*if (pF->size()<=4)
+        pF->pData = (Surface*)new Patch4(pF);
     else
-        pF->pData = (Patch*)new PatchN(pF);
+        pF->pData = (Surface*)new PatchN(pF);*/
 #endif
 
 #endif

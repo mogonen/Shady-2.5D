@@ -14,7 +14,7 @@ bool        MeshShape::isSMOOTH             = true;
 double          MeshOperation::EXTRUDE_T        = 0.25;
 bool            MeshOperation::isKEEP_TOGETHER  = false;
 bool            MeshOperation::EXEC_ONCLICK     = true;
-
+bool            MeshOperation::EXTRUDE_CAP      = false;
 
 double          MeshPrimitive::GRID_N_LEN       = 0.2;
 double          MeshPrimitive::GRID_M_LEN       = 0.2;
@@ -24,6 +24,9 @@ int             MeshPrimitive::GRID_M           = 2;
 int             MeshPrimitive::NGON_N           = 3;
 int             MeshPrimitive::NGON_SEG_V       = 1;
 double          MeshPrimitive::NGON_RAD         = 0.2;
+
+MeshPrimitive::NgonHandling         MeshPrimitive::NGON_HANDLING = MeshPrimitive::SUBDIV;
+
 
 int             MeshPrimitive::TORUS_N          = 4;
 int             MeshPrimitive::TORUS_V          = 1;
@@ -48,7 +51,7 @@ void MeshOperation::execOP(){
 
         _pairs[0] = _pE->pData->getTangentSV(0)->pair();
         _pairs[1] = _pE->pData->getTangentSV(1)->pair();
-        extrude(_pE, EXTRUDE_T, MeshShape::isSMOOTH, isKEEP_TOGETHER?&vertexToCornerMap:0);
+        extrude(_pE, EXTRUDE_T, EXTRUDE_CAP, MeshShape::isSMOOTH, isKEEP_TOGETHER?&vertexToCornerMap:0);
     }
         break;
 

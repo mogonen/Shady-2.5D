@@ -21,7 +21,7 @@ class Patch;
 */
 class  ShapeVertex;
 class  CurvedEdge;
-class  Patch;
+class  Surface;
 
 //struct EdgeData;
 //struct FaceData;
@@ -30,7 +30,7 @@ namespace dlfl {
 
 typedef ShapeVertex         VertexData;
 typedef CurvedEdge          EdgeData;
-typedef Patch               FaceData;
+typedef Surface             FaceData;
 
 class Corner;
 class Edge;
@@ -219,6 +219,7 @@ public:
     Face_p      addFace(int, bool isborder = false);
     Face_p      addQuad(Vertex_p, Vertex_p, Vertex_p, Vertex_p, bool isedges = false); //strickly clock-wise
     Face_p      addQuad(Corner_p, Corner_p, Corner_p, Corner_p); //strickly clock-wise
+    Face_p      addTriangle(Corner_p c0, Corner_p c1, Corner_p c2);
     Face_p      addTriangle(Vertex_p, Vertex_p, Vertex_p);
     Edge_p      addEdge(Corner_p c0, Corner_p c1=0);
 

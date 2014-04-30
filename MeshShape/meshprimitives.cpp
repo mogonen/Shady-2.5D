@@ -33,7 +33,7 @@ MeshShape* MeshPrimitive::insertGrid(const Point& p, double nlen, double mlen, i
     pMS->Renderable::update();
     return pMS;
 }
-
+/*
 MeshShape* MeshPrimitive::insertNGon(const Point& p, int n, int segv, double rad, MeshShape *pMS){
 
     if (!pMS)
@@ -57,8 +57,8 @@ MeshShape* MeshPrimitive::insertNGon(const Point& p, int n, int segv, double rad
     pMS->Renderable::update();
     return pMS;
 
-}
-/*
+}*/
+
 MeshShape* MeshPrimitive::insertNGon(const Point& p, int n, int segv, double rad, MeshShape *pMS){
 
     if (!pMS)
@@ -67,13 +67,13 @@ MeshShape* MeshPrimitive::insertNGon(const Point& p, int n, int segv, double rad
     CLAMP(segv, 1, 4);
     CLAMP(n, 2, 8);
 
-    int nn = 2*n;
-    Vertex_p vmid = pMS->addMeshVertex();
+    int nn = (NGON_HANDLING == SUBDIV)? 2*n : n;
+    Vertex_p vmid = (NGON_HANDLING == POLYGON) ? 0: pMS->addMeshVertex();
     Vertex_p* vs = new Vertex_p[nn*segv];
 
     for(int j=0; j<segv; j++){
         for(int i=0; i<nn; i++){
-            double ang = -i*PI/n;
+            double ang = -i*PI/n*(NGON_HANDLING == SUBDIV ? 1:2);
             double angv = j*PI/(2*segv);
             vs[i + j*nn] = pMS->addMeshVertex(p + Point(rad*cos(ang), rad*sin(ang))*cos(angv));
         }
@@ -84,14 +84,19 @@ MeshShape* MeshPrimitive::insertNGon(const Point& p, int n, int segv, double rad
             for(int i=0; i<nn; i++){
                 pMS->_control->addQuad(vs[i + j*nn], vs[(i+1)%nn + j*nn], vs[(i+1)%nn + (j+1)*nn], vs[i + (j+1)*nn] );
             }
-
         }
     }
 
     int mid_off = (segv-1)*nn;
+    Face_p fmid = (NGON_HANDLING == POLYGON)? pMS->_control->addFace(nn) : 0;
     for(int i=0; i<n; i++){
-        Face_p f = pMS->_control->addQuad(vmid, vs[i*2+mid_off], vs[i*2+1+mid_off], vs[(i*2+2)%nn+mid_off]);
-        f->reoffset(i%4);
+        if (NGON_HANDLING == SUBDIV){
+            Face_p f = pMS->_control->addQuad(vmid, vs[i*2+mid_off], vs[i*2+1+mid_off], vs[(i*2+2)%nn+mid_off]);
+            f->reoffset(i%4);
+        }else if (NGON_HANDLING == PIE){
+            Face_p f = pMS->_control->addTriangle(vmid, vs[i+mid_off], vs[(i+1)%nn+mid_off]);
+        }else if (NGON_HANDLING == POLYGON)
+            vs[i]->set(fmid->C(i));
     }
     delete vs;
 
@@ -101,7 +106,7 @@ MeshShape* MeshPrimitive::insertNGon(const Point& p, int n, int segv, double rad
     pMS->Renderable::update();
     return pMS;
 
-}*/
+}
 
 MeshShape* MeshPrimitive::insertTorus(const Point& p, int n, int v, double rad_x, double rad_y, double w, double arc, MeshShape* pMS)
 {
@@ -114,6 +119,7 @@ MeshShape* MeshPrimitive::insertTorus(const Point& p, int n, int v, double rad_x
         pMS = new MeshShape();
 
     bool isarc = arc < 0.9999;
+    bool ispie = (w>0.999);
 
     int segU = n;
     int nV = (v+1);
@@ -134,13 +140,21 @@ MeshShape* MeshPrimitive::insertTorus(const Point& p, int n, int v, double rad_x
             }else{
                 pp = p*(1.0 - w/(nV-1)*j );
             }
-            vs[i+j*nU] = pMS->addMeshVertex(pp);
+            if (ispie && j == v){
+                if (i==0)
+                    vs[v*nU] = pMS->addMeshVertex(pp);
+            }else
+                vs[i+j*nU] = pMS->addMeshVertex(pp);
         }
     }
 
     FOR_ALL_J(nV-1){
         FOR_ALL_I(segU){
-            pMS->_control->addQuad(vs[i+j*nU] , vs[(i+1)%nU + j*nU], vs[(i+1)%nU + (j+1)*nU], vs[i + (j+1)*nU]);
+
+            if (ispie && j == (v-1))
+                pMS->_control->addTriangle(vs[v*nU], vs[i+j*nU], vs[(i+1)%nU + j*nU]);
+            else
+                pMS->_control->addQuad(vs[i+j*nU] , vs[(i+1)%nU + j*nU], vs[(i+1)%nU + (j+1)*nU], vs[i + (j+1)*nU]);
         }
     }
 

@@ -12,7 +12,7 @@ using namespace dlfl;
 typedef RGB*                Map;
 typedef std::vector<Map>    MapList;
 
-class Patch:public Selectable
+class Surface:public Selectable
 {
 
 protected:
@@ -21,26 +21,19 @@ protected:
    MapList          _maps;
    Face_p           _pFace;
 
-   int             _sampleU, _sampleV, _sampleUi, _sampleVi, _sampleUV;
-   double          _Tu, _Tv;
-
-   static Vec3     decompose(const Vec3& v, const Vec3& nx);
-   static Vec3     compose(const Vec3& v, const Vec3& nx);
+   int              _sampleU, _sampleV, _sampleUi, _sampleVi, _sampleUV;
+   double           _Tu, _Tv;
 
 public:
 
+    Surface(Face_p);
 
-    Patch(Face_p);
+    //virtual Corner* C(int i) const;
 
-    Corner*         C(int i) const {return _pFace->C(i);}
-
-    Normal          computeN(Corner_p);
-    Normal          computeN(Corner_p, double);
-    void            propateNormals(Point_p);
-    void            propateMap(int);
-
-    Point           P(int i)const {return _ps[i];}
+    virtual Point   P(int i) const {return _ps[i];}
     Face_p face()   const {return _pFace;}
+
+    virtual Point  edgeP(int ei, int i) const {}
 
     virtual int     edgeInd(int ei, int i){return -1;}
     virtual int     edgeUInd(int ei, int i){return -1;}
@@ -51,7 +44,7 @@ public:
 
 };
 
-class Patch4:public Patch
+class Patch4:public Surface
 {
 
     inline Point P(int i, int j)const{ return _ps[i + j*_sampleU];}
@@ -61,29 +54,67 @@ protected:
     Point           KVal(int ei, int i);
 
     static RGB      interpolateCoonz(int i, int j, Map map, int U); //coonz
-    void            interpolateMap(int channel);
+    void            updateBezierPatch();
+
     void            onUpdate();
 
 public:
 
     Patch4(Face_p);
+    Patch4(int u, int v);
 
     virtual void    render(int mode = 0);
 
-    int             edgeInd(int ei, int i);
-    int             edgeUInd(int ei, int i);
+    Corner*         C(int i) const;
+    int             edgeInd(int ei, int i) const;
+    int             edgeUInd(int ei, int i) const;
     int             edgeI(int i,int j);
     int             cornerI(int i, int j);
+    RGB             mapValue(int channel, int ei, float t);
+
+    Point           edgeP(int ei, int i) const;
     inline int      ind(int i, int j){return i + j*_sampleU;}
 
-    static void     computeBezierPatch(Point *ps, Point K[], int U, int V);
+
+
+    void            computeBezierPatch(Point K[]);
+    void            interpolateMap(int channel);
+    void            propateNormals(Normal[], int size=4);
+    void            propateMap(int, RGB[], int size = 4);
+
+
+    static Vec3     decompose(const Vec3& v, const Vec3& nx);
+    static Vec3     compose(const Vec3& v, const Vec3& nx);
+
+    Normal          computeN(Corner_p);
+    Normal          computeN(Corner_p, double);
 
 };
 
-//for non quad faces
-class PatchN:public Patch{
+static double H(double t)
+{
+    return 3*t*t - 2*t*t;
+}
 
-    Point _K[16];
+class Rectangle:public Surface
+{
+
+public:
+
+    Rectangle(Face_p pF):Surface(pF){}
+    void render(int mode = 0);
+    void interpolateNormals(){}
+};
+
+
+
+#if 0 //DEPRICATED
+typedef std::vector<Patch4*> Patch4List;
+//for non quad faces
+class PatchN:public Surface{
+
+    Patch4List _patches;
+
 protected:
     void    onUpdate();
 
@@ -93,86 +124,15 @@ public:
     PatchN(Face_p);
 
     Point   P(int n, int i, int j) {return _ps[i + j*_sampleU + n*_sampleUV];}
+    Point edgeP(int ei, int i) const;
 
 };
-
-class PatternPatch:public Patch4{
-
-protected:
-
-    int*   _pattern;
-    int    _nU, _nV;
-
-public:
-
-    virtual void assignPattern(int uv, int off, int len, int * data);
-    virtual void init(int nu, int nv)=0;
-
-    int     U() const {return _nU;}
-    int     V() const {return _nV;}
-    int     UV(int uv = 0) const {return (uv==0) ? _nU:_nV;}
-
-    PatternPatch(Face_p pF):Patch4(pF){ _pattern = 0;}
-    static  int NU, NV;
-
-};
-
-class GridPattern:public PatternPatch
-{
-
-protected:
-    void    onUpdate();
-
-public:
-
-    GridPattern(Face_p pF);
-    void    render(int mode = 0);
-    void    init(int nu, int nv);
-
-    int     getPattern(int i, int j) const;
-
-    inline  Point P(int i, int j)const {return _ps[i + j*_sampleU];}
-};
-
-class UVPatternPatch:public PatternPatch
-{
-
-    int    _nU, _nV;
-
-protected:
-
-    void onUpdate();
-
-public:
-
-    void    render(int mode = 0);
-    void    init(int nu, int nv);
-
-    inline  int ind(int uv, int n, int i, int j=0) const {return i + (j*_sampleU) + uv*(_nU*_sampleU)*2 + n*_sampleU*2;}
-    inline  Point P(int uv, int n, int i, int j=0) const {return _ps[i + (j*_sampleU) + uv*(_nU*_sampleU)*2 + n*_sampleU*2];}
-    inline  Point Pu(int n, int i, int j=0) const {return P(0,n,i,j);}
-    inline  Point Pv(int n, int i, int j=0) const {return P(1,n,i,j);}
-
-    UVPatternPatch(Face_p);
-    //~Patch4();
-
-     static int NU, NV;
-};
+#endif
 
 
-static double H(double t)
-{
-    return 3*t*t - 2*t*t;
-}
 
-class Rectangle:public Patch
-{
 
-public:
 
-    Rectangle(Face_p pF):Patch(pF){}
-    void render(int mode = 0);
-    void interpolateNormals(){}
-};
+
 
 #endif // PATCH_H

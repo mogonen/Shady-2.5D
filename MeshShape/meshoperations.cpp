@@ -1,5 +1,6 @@
 #include "meshcommands.h"
 #include "curvededge.h"
+#include "Patch.h"
 
 void initCurve(Corner_p pC){
 
@@ -26,7 +27,9 @@ void initCurve(Corner_p pC){
 #endif
 }
 
-void computeSubdivisionCV(Corner_p pC, double t, Point newCP[]){
+RGB value_cache[ACTIVE_CHANNELS];
+
+void computeSubdivisionCV(Corner_p pC, double t, Point newCP[], bool isfirst=false){
     bool isforward = !pC->isC1();
     pC = pC->E()->C0();
 
@@ -36,6 +39,17 @@ void computeSubdivisionCV(Corner_p pC, double t, Point newCP[]){
         pC->other()->F()->Face::update(true);
 
     pC->E()->pData->computeSubdivisionCV(isforward? t:(1-t), newCP);
+
+    Patch4* patch = dynamic_cast<Patch4*>(pC->F()->pData);
+    if (!patch)
+        return;
+    int ei = pC->I();
+    if (!isfirst && isforward)
+        ei--;
+
+    for(int c=0; c<ACTIVE_CHANNELS; c++){
+        value_cache[c] = patch->mapValue(c, ei, t);
+    }
 }
 
 void applySubdivision(Corner_p pC, Point newCP[], bool haspair)
@@ -70,6 +84,9 @@ void applySubdivision(Corner_p pC, Point newCP[], bool haspair)
     CurvedEdge* curve1 = pC->E()->pData;
     curve1->pCV(1)->set(newCP[4]);
     curve1->pCV(2)->set(newCP[5]);
+
+    for(int c=0; c<ACTIVE_CHANNELS; c++)
+        pC->V()->pData->value[c] = value_cache[c];
 }
 
 void onUnsplitEdge(Corner_p pC){
@@ -120,11 +137,10 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p){
     Mesh_p pMesh = e->mesh();
     MeshShape* pMS = (MeshShape*)pMesh->caller();
 
-
     double t;
     e->pData->computeDistance(p, t);
-    computeSubdivisionCV(e->C0(), t, CV);
-    Point tan0 = computeVerticalTangent(t, e);
+    computeSubdivisionCV(e->C0(), t, CV, true);
+    Point tan0 = computeVerticalTangent(t, e);    
     Corner_p c0 = pMesh->splitEdge(e->C0(), pMS->addMeshVertex());
     applySubdivision(c0, CV, 0);
 
@@ -138,7 +154,6 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p){
         Point tan00 = computeVerticalTangent(t, c0->next()->next()->E(), c0->next()->next()->vNext()->F());
         computeSubdivisionCV(c0->next()->next(), 1-t, CV);
         Corner* c01 = pMesh->splitEdge(c0->next()->next(), pMS->addMeshVertex());
-
         applySubdivision(c01, CV, 0);
 
         Corner* c0n = c01->vNext();
@@ -184,19 +199,20 @@ Face_p MeshOperation::extrude(Face_p f0, double t){
     Mesh_p pMesh = f0->mesh();
     MeshShape* pMS = (MeshShape*)pMesh->caller();
     f0->update();
+    int size = f0->size();
 
     Point pmid;//init as centroid of P
-    Corner_p corns[8];
-    for(int i=0; i<f0->size(); i++){
+    Corner_p corns[12];
+    for(int i=0; i<size; i++){
         pmid = pmid + P0(f0->C(i));
         corns[i] = f0->C(i);
     }
 
-    pmid = pmid*(1.0/f0->size());
+    pmid = pmid*(1.0/size);
 
     Edge_p e0, e00;
     e0 = e00 = 0;
-    for(int i=0; i <f0->size(); i++)
+    for(int i=0; i <size; i++)
     {
         Point p = P0(corns[i]) * (1-t) + pmid * t;
         Vertex_p vnew = pMS->addMeshVertex(p);
@@ -209,10 +225,11 @@ Face_p MeshOperation::extrude(Face_p f0, double t){
     }
 
     Edge_p e = pMesh->insertEdge(e0->C1(), e00->C0()->next());
+
     return e->C0()->F();
 }
 
-Edge_p MeshOperation::extrude(Edge_p e0, double t, bool isSmooth, VertexMap *pVMap)
+Edge_p MeshOperation::extrude(Edge_p e0, double t,  bool iscap,  bool isSmooth, VertexMap *pVMap)
 {
     if (!e0 || !e0->isBorder())
         return 0;
@@ -228,17 +245,26 @@ Edge_p MeshOperation::extrude(Edge_p e0, double t, bool isSmooth, VertexMap *pVM
     //set verts
     Vec2 n = -( Vec3(0,0,1) % Vec3(p1-p0).normalize())*t;
 
-    Vertex_p v0 = pMS->addMeshVertex(p0+n);
-    Vertex_p v1 = pMS->addMeshVertex(p1+n);
-
-    Face_p f = pMesh->addQuad(c0, c0->next(),  new Corner(v1), new Corner(v0));
-    f->update(true);
-    f->reoffset(e0->C()->I() + 2 - e0->C()->other()->I());
-
-
-    if (isSmooth && !pVMap)
+    Face_p f = 0;
+    if (iscap)
     {
-        for(int i=0; i<4; i++)
+        Vertex_p v0 = pMS->addMeshVertex((p0+p1)*0.5 + n);
+        Corner_p c0n = c0->next();
+        f = pMesh->addTriangle(new Corner(v0), c0, c0n);
+        f->set(c0n->next()); //this is to keep #0 in place for sure
+        f->update(true);
+    }else{
+        Vertex_p v0 = pMS->addMeshVertex(p0+n);
+        Vertex_p v1 = pMS->addMeshVertex(p1+n);
+
+        f = pMesh->addQuad(c0, c0->next(),  new Corner(v1), new Corner(v0));
+        f->update(true);
+        f->reoffset(e0->C()->I() + 2 - e0->C()->other()->I());
+    }
+
+    if (f && isSmooth && !pVMap)
+    {
+        for(int i=0; i<f->size(); i++)
             MeshShape::makeSmoothCorners(f->C(i),true, 1);
     }
 
