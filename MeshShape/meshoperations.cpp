@@ -38,16 +38,8 @@ void computeSubdivisionCV(Corner_p pC, double t, Point newCP[], bool isfirst=fal
     if (pC->other()->F())
         pC->other()->F()->Face::update(true);
 
-    pC->E()->pData->computeSubdivisionCV(isforward? t:(1-t), newCP);
+    pC->E()->pData->computeSubdivisionCV(isforward? t:(1-t), newCP, VecCache);
 
-    Patch* patch = dynamic_cast<Patch*>(pC->F()->pData);
-    if (!patch)
-        return;
-    int ei = pC->I();
-    if (!isfirst && isforward)
-        ei--;
-
-    VecCache = patch->mapValue(ei, t);
 }
 
 void applySubdivision(Corner_p pC, Point newCP[], bool haspair)

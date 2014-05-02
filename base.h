@@ -93,9 +93,10 @@ public:
 ////        render();
 //    }
 
-    void outdate(){
+    void outdate(bool isOnOutdate = true){
         _upToDate = false;
-        onOutdate();
+        if (isOnOutdate)
+            onOutdate();
     }
 
     void ensureUpToDate(){

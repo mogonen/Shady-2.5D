@@ -5,8 +5,6 @@
 #include "cmesh.h"
 #include "curvededge.h"
 
-#define N_MIN_Z 0.35
-
 using namespace dlfl;
 
 class Patch:public Selectable
@@ -22,17 +20,16 @@ protected:
 
 
     Point           KVal(int ei, int i);
-    inline Point    P(int i, int j)const{ return _map[i + j*_sampleU]._P;}
+    Point           P(int i, int j);
 
-    ShapeVec        interpolateCoonz(int i, int j, int U);
     void            updateBezierPatch();
-
     void            onUpdate();
 
 public:
 
     Patch(Face_p);
     Patch(int u, int v);
+    ~Patch();
 
     virtual void    render(int mode = 0);
 
@@ -41,29 +38,20 @@ public:
     int             edgeUInd(int ei, int i) const;
     int             edgeI(int i,int j);
     int             cornerI(int i, int j);
-    ShapeVec        mapValue(int ei, float t);
+    ShapeVec        CVec(int i);
+    ShapeVec        get(int, int);
 
     Point           P(int i) const {return _map[i]._P;}
     Point           edgeP(int ei, int i) const;
-    inline int      ind(int i, int j){return i + j*_sampleU;}
+    inline int      ind(int i, int j){return (i-1) + (j-1)*_sampleUi;}
 
     Face_p          face() const {return _pFace;}
     void            setSample(int u, int v);
     int             USamples(){return _sampleU;}
     int             VSamples(){return _sampleV;}
 
-
     void            computeBezierPatch(Point K[]);
     void            interpolateMap();
-    void            propateNormals(Normal[], int size=4);
-    void            propateMap(ShapeVec[], int size = 4);
-
-
-    static Vec3     decompose(const Vec3& v, const Vec3& nx);
-    static Vec3     compose(const Vec3& v, const Vec3& nx);
-
-    Normal          computeN(Corner_p);
-    Normal          computeN(Corner_p, double);
 
 };
 

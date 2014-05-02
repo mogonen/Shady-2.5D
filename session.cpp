@@ -28,6 +28,7 @@ void Session::init(MainWindow * pMW){
     _pSession->_channel         = NORMAL_CHANNEL;
 
     _pSession->_pExporters[0]   = new INPExporter();
+    _pSession->_pExporters[1]   = new EPSExporter();
 }
 
 void Session::activate(Shape_p sp){

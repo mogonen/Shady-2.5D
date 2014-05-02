@@ -233,6 +233,9 @@ void MainWindow::createActions()
     fileExportINPAct = new QAction(tr("Export INP"), this);
     connect(fileExportINPAct, SIGNAL(triggered()), this, SLOT(exportINP()));
 
+    fileExportEPSAct = new QAction(tr("Export EPS"), this);
+    connect(fileExportEPSAct, SIGNAL(triggered()), this, SLOT(exportEPS()));
+
     fileSetBGImageAct = new QAction(tr("Set Background Image"), this);
     connect(fileSetBGImageAct, SIGNAL(triggered()), this, SLOT(setBackgroundImage()));
     //fileSetBGImageAct->setShortcut(Qt::CTRL + Qt::Key_B);
@@ -495,6 +498,7 @@ void MainWindow::createMenus()
     fileMenu->addSeparator();
     fileMenu->addAction("Import");
     fileMenu->addAction(fileExportINPAct);
+    fileMenu->addAction(fileExportEPSAct);
 
     fileMenu->addAction(fileSetBGImageAct);
 
@@ -666,6 +670,12 @@ void MainWindow::exportINP(){
     QString fname = QFileDialog::getSaveFileName(this,"Export INP");
     Session::get()->exportShape(fname.toUtf8().constData(), 0);
 }
+
+void MainWindow::exportEPS(){
+    QString fname = QFileDialog::getSaveFileName(this,"Export EPS");
+    Session::get()->exportShape(fname.toUtf8().constData(), 1);
+}
+
 
 void MainWindow::undo(){
     Session::get()->undo();

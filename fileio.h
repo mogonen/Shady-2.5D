@@ -67,4 +67,11 @@ public:
     bool exportShape(Shape *, const char *fname);
 };
 
+class EPSExporter:public Exporter{
+
+public:
+    bool exportShape(Shape *, const char *fname);
+};
+
+
 #endif // FILEIO_H

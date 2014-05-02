@@ -16,6 +16,7 @@ void PatternPatch::assignPattern(int uv, int off, int len, int * data)
         int p =  data[(off + i)%len];
         _pattern[i + uv*_nU] = p;
     }
+ int i = 5;
 }
 
 GridPattern::GridPattern(Face_p pF):PatternPatch(pF){
@@ -119,6 +120,7 @@ void GridPattern::render(int mode){
 
 
 UVPatternPatch::UVPatternPatch(Face_p pF):PatternPatch(pF){
+    setSample(20,20);
     _pattern = 0;
     init(PatternPatch::NU, PatternPatch::NV);
 }
@@ -141,6 +143,10 @@ void UVPatternPatch::init(int nu, int nv)
     _W = (isTHICK?2:1);
     //setN(75);
     _ps = new Point[(_nU*_sampleU + _nV*_sampleV)*_W];//
+}
+
+int  UVPatternPatch::getPattern(int i, int uv) const{
+    return _pattern[i + uv*_nU];
 }
 
 /*
@@ -311,7 +317,7 @@ void UVPatternPatch::onUpdate(){
 void UVPatternPatch::render(int mode)
 {
     if (!Session::isRender(DRAG_ON))
-        Patch::render(mode);
+        Selectable::render(mode);
 
     if (isTHICK){
 
@@ -382,13 +388,6 @@ void UVPatternPatch::render(int mode)
             }
             glEnd();
 
-            glBegin(GL_LINE_STRIP);
-            for(int i = 0; i< _sampleU; i++)
-            {
-                Point p = P(0, u, i, 1);
-                glVertex3f(p.x, p.y, 0);
-            }
-            glEnd();
         }
 
         //glColor3f(1.0, 0, 0);
@@ -410,13 +409,6 @@ void UVPatternPatch::render(int mode)
             }
             glEnd();
 
-            glBegin(GL_LINE_STRIP);
-            for(int i = 0; i < _sampleV; i++)
-            {
-                Point p = P(1, v, i, 1);
-                glVertex3f(p.x, p.y, 0);
-            }
-            glEnd();
         }
 
     }

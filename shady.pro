@@ -1,8 +1,8 @@
 CONFIG +=
 
 #DEFINES += SHOW_DLFL
-#DEFINES += MODELING_MODE
-DEFINES += RENDERING_MODE
+DEFINES += MODELING_MODE
+#DEFINES += RENDERING_MODE
 
 HEADERS += glwidget.h \
     mainwindow.h \
@@ -28,7 +28,8 @@ HEADERS += glwidget.h \
     commands.h \
     ref.h \
     meshshape/curvededge.h \
-    meshshape/pattern.h
+    meshshape/pattern.h \
+    EPSPlot.h
 
 SOURCES += glwidget.cpp \
     main.cpp \
@@ -62,7 +63,8 @@ SOURCES += glwidget.cpp \
     meshshape/curvededge.cpp \
     fileio_write.cpp \
     fileio_read.cpp \
-    MeshShape/patch.cpp
+    meshshape/patch.cpp \
+    EPSExporter.cpp
 
 
 QT           += opengl widgets
@@ -103,7 +105,7 @@ HEADERS +=
 SOURCES +=
 #}
 
-#RENDERING_MODE{
+RENDERING_MODE{
 
     HEADERS +=  Renderer/shaderprogram.h \
     Renderer/shaderparameters.h \
@@ -120,7 +122,7 @@ SOURCES +=
     Renderer/imageshape.cpp \
     Renderer/layernormalcontrol.cpp \
     Renderer/framebufferwrapper.cpp
-#}
+}
 
 RESOURCES += \
     Renderer/Shaders.qrc

@@ -213,7 +213,7 @@ void onAddFace(Face_p pF)
 
 #ifdef MODELING_MODE
     //pF->pData = (Surface*)(new GridPattern(pF));
-    pF->pData = (Patch4*)(new UVPatternPatch(pF));
+    pF->pData = (Patch*)(new UVPatternPatch(pF));
 #else
     pF->pData = new Patch(pF);
 #endif

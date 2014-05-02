@@ -46,7 +46,6 @@ public:
 class UVPatternPatch:public PatternPatch
 {
     Point*  _ps;
-    int     _nU, _nV;
     int     _W;
 
 protected:
@@ -58,10 +57,14 @@ public:
     void    render(int mode = 0);
     void    init(int nu, int nv);
 
+    int     getPattern(int i, int uv=0) const;
+
     inline  int ind(int uv, int n, int i, int j=0) const {return i + (j*_sampleU) + uv*(_nU*_sampleU)*_W + n*_sampleU*_W;}
     inline  Point P(int uv, int n, int i, int j=0) const {return _ps[i + (j*_sampleU) + uv*(_nU*_sampleU)*_W + n*_sampleU*_W];}
     inline  Point Pu(int n, int i, int j=0) const {return P(0,n,i,j);}
     inline  Point Pv(int n, int i, int j=0) const {return P(1,n,i,j);}
+
+
 
     UVPatternPatch(Face_p);
     //~Patch4();

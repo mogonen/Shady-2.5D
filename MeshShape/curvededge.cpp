@@ -1,23 +1,167 @@
 #include "curvededge.h"
 #include "Patch.h"
+#define N_MIN_Z 0.35
+#define SAMPLE_DIST 0.01
+
+static const int FTABLE[] = {1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600};
+inline double cubicBernstein(int i, double t)
+{
+    return 6.0 / (FTABLE[3-i] * FTABLE[i]) * pow(1-t, 3-i) * pow(t,i);
+}
+
+inline int lodToSize(int lod){return lod*4+1;}
+inline int sizeToLod(int size){return (size-1)/4;}
 
 CurvedEdge::CurvedEdge(Edge_p pE, int sz):Selectable(false)
 {
-    _size = sz; // change later
-    if (sz)
-        _pts = new Point[_size];
-    else
-        _pts = 0;
+    _map = 0;
+    _pts = 0;
     _pE = pE;
-    _pTanSV[0] = _pTanSV[1] =0;
+    _pTanSV[0] = _pTanSV[1] = 0;
     setRef(_pE);
+    _size = 0;
+    //resize(11);
 }
 
 CurvedEdge::~CurvedEdge(){
     if (_pts)
-    delete [] _pts;
+        delete [] _pts;
+
+    if (_map)
+        delete _map;
 }
 
+void CurvedEdge::onOutdate(){
+/*
+    int maxlod =  traverseEdges(_pE->C());
+    if (maxlod > sizeToLod(_size))
+        traverseEdges(_pE->C(),maxlod);*/
+}
+
+void CurvedEdge::onUpdate(){
+
+    if (_size<2)
+    {
+        //resize(11);
+        int maxlod = traverseEdges(_pE->C());
+        traverseEdges(_pE->C(), maxlod);
+    }
+
+    Point K[4]{CV(0),CV(1), CV(2), CV(3)};
+    double T = 1.0 / (_size-1);
+
+    ShapeVec v0 = *_pE->C0()->V()->pData;
+    ShapeVec v1 = *_pE->C1()->V()->pData;
+    v0.value[NORMAL_CHANNEL] = computeN(_pE->C0());
+    v1.value[NORMAL_CHANNEL] = computeN(_pE->C1());
+
+    for(int i=0; i<_size; i++){
+        double t = T*i;
+        _map[i] = v0*(1-t) + v1*t;
+
+        //compute P
+        Point p;
+        FOR_ALL_J(4) p = p + cubicBernstein(j, T*i)*K[j];
+        _map[i]._P = p;
+    }
+
+    //propogate normals
+    Vec2 tan0 = (_map[1]._P - _map[0]._P);
+    Vec2 tan1 = (_map[_size-1]._P - _map[_size-2]._P);
+
+    Vec3 n0_d = CurvedEdge::decompose(_map[0].value[NORMAL_CHANNEL], Vec3(tan0));
+    Vec3 n1_d = CurvedEdge::decompose(_map[_size-1].value[NORMAL_CHANNEL], Vec3(tan1));
+
+    for(int j=1; j<_size-1; j++)
+    {
+        double t = j*(1.0/(_size-1));
+        Vec3 n_d = n0_d*(1-t) + n1_d*(t);
+        Vec3 tan = (_map[j+1]._P - _map[j-1]._P);
+        _map[j].value[NORMAL_CHANNEL] = CurvedEdge::compose(n_d, tan);
+    }
+}
+
+int CurvedEdge::traverseEdges(Corner_p pC, int lod){
+
+    int maxlod = 0;
+    Corner* c0 = pC;
+
+    for(int i=0; i<2; i++){
+        do{
+
+            if (lod>-1){
+                c0->E()->pData->resize(lodToSize(lod));
+            }else{
+                int lod_i = c0->E()->pData->computeLOD();
+                if (lod_i >  maxlod) maxlod = lod_i;
+                //int size_i = c0->E()->pData->idealSize();
+                //if (maxsize<size_i) maxsize = size_i;
+            }
+
+            if (c0->isBorder())
+                break;
+
+            c0 = c0->prev()->vPrev();
+        }while(c0!=pC);
+
+        if (c0==pC)
+            return maxlod;
+
+        c0 = pC->other();
+    }
+    return maxlod;
+}
+
+void CurvedEdge::resize(int size){
+
+    if (size==_size)
+        return;
+
+    if (_map)
+        delete _map;
+
+    _size = size;
+    if (_size){
+        _map = new ShapeVec[_size];
+    }
+    outdate(false);
+    if (_pE->C0()->F()->pData)
+        _pE->C0()->F()->pData->outdate();
+
+    if (_pE->C1()->F()->pData)
+        _pE->C1()->F()->pData->outdate();
+}
+
+int CurvedEdge::idealSize(){
+    Point K[4]={CV(0),CV(1), CV(2), CV(3)};
+    double a = ((Vec3(K[1]- K[0])%Vec3(K[2]- K[0])).norm() + (Vec3(K[1]- K[3])%Vec3(K[2]- K[3])).norm());
+    int  size = a / (SAMPLE_DIST*SAMPLE_DIST) + 1;
+    size = pow(size, 0.5);
+    return size>2 ? size : 2;
+}
+
+int CurvedEdge::computeLOD(){
+    return 2;
+    Point K[4]={CV(0),CV(1), CV(2), CV(3)};
+    //double a = ((Vec3(K[1]- K[0])%Vec3(K[2]- K[0])).norm() + (Vec3(K[1]- K[3])%Vec3(K[2]- K[3])).norm());
+    double l = (CV(0) - CV(3)).norm();
+    return (int) pow(l/SAMPLE_DIST, 0.5);
+}
+
+/*
+void CurvedEdge::propagateSize(dlfl::Corner_p pC, int size){
+    Corner* c0 = pC;
+    do{
+        if (c0->E()->pData->size()!= size)
+            c0->E()->pData->resize(size);
+
+        if (c0->isBorder())
+            break;
+
+        c0 = c0->prev()->vPrev();
+    }while(c0 !=pC);
+}
+*/
 void  CurvedEdge::set(Edge_p pE){
     _pE = pE;
     _pE->pData = this;
@@ -41,20 +185,6 @@ void CurvedEdge::discard(){
     if (_pTanSV[1])
         _pTanSV[1]->_isDeleted = true;
 }
-
-static const int FTABLE[] = {1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600};
-/*
-void CurvedEdge::onUpdate(){
-    if (!_pts)
-        return;
-    Point CV[4] = {_pE->C0()->V()->pData->P(), _pTanSV[0]->P(), _pTanSV[1]->P(),_pE->C0()->next()->V()->pData->P()};
-    for(int j=0; j<_size; j++){
-        Point p;
-        double t = j*1.0 / (_size-1);
-        FOR_ALL_I(4) p = p + (6.0 / (FTABLE[3-i] * FTABLE[i]) * pow(1-t, 3-i) * pow(t,i))*CV[i];
-        _pts[j] = p;
-    }
-}*/
 
 void CurvedEdge::setRef(Referable_p pRef){
     if (ref()){
@@ -99,19 +229,8 @@ Point CurvedEdge::P(int i){
     if (_pts){
         return _pts[i];
     }else{
-        Corner_p  c = _pE->C();
-
-        //FIX THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        int ci = c->I();
-        Patch* patch4 = dynamic_cast<Patch*>(c->F()->pData);
-        if (patch4 && c->F()->size()==3) ci++; //hack for triangle
-        return Point();//c->F()->pData->edgeP(ci, i);//c->F()->pData->edgeInd(ci, i));
+        return _map[i]._P;
     }
-}
-
-int CurvedEdge::size(){
-    return 0;
-    //return _size?_size:(_pE->C()->I()?_pE->C()->F()->pData->VSamples() : _pE->C()->F()->pData->USamples() );
 }
 
 Corner_p CurvedEdge::getCornerByTan(ShapeVertex_p pSV){
@@ -135,6 +254,37 @@ ShapeVertex_p CurvedEdge::getTangentSV(ShapeVertex_p pSV)
 
     return 0;
 }
+
+
+Point CurvedEdge::evalP(double t){
+    Point p;
+    FOR_ALL_I(4) p = p + cubicBernstein(i, t)*CV(i);
+    return p;
+}
+
+
+Normal CurvedEdge::computeN(Corner_p c)
+{
+    Vec3 n = c->V()->pData->N();
+    return n.z>N_MIN_Z ? n.normalize() : Vec3(n.x, n.y, N_MIN_Z).normalize();
+}
+
+Vec3 CurvedEdge::decompose(const Vec3& v, const Vec3& nx)
+{
+    Vec3 nnx = nx.normalize();
+    Vec3 nz(0, 0, 1);
+    Vec3 ny = nz%nnx;
+    return Vec3(v*nnx, v*ny, v*nz);
+}
+
+Vec3 CurvedEdge::compose(const Vec3& v, const Vec3& nx)
+{
+    Vec3 nnx = nx.normalize();
+    Vec3 nz(0,0,1);
+    Vec3 ny = nz%nnx;
+    return nnx*v.x + ny*v.y + nz*v.z;
+}
+
 
 /*
 Vec2 CurvedEdge::evalT(double t) const{
@@ -173,7 +323,7 @@ ShapeVertex_p CurvedEdge::getTangentSV(Corner_p pC){
     return pC ? getTangentSV(pC->V()->pData) : 0;
 }
 
-void CurvedEdge::computeSubdivisionCV(double t, Point newCV[])
+void CurvedEdge::computeSubdivisionCV(double t, Point newCV[], ShapeVec &vec)
  {
     newCV[0] = CV(0);
     newCV[6] = CV(3);
@@ -188,6 +338,11 @@ void CurvedEdge::computeSubdivisionCV(double t, Point newCV[])
     newCV[4] = p_12*(1-t) + newCV[5]*t;
 
     newCV[3] = newCV[2]*(1-t) + newCV[4]*t;
+
+    float fi = _size*t;
+    int i = (int)fi;
+    float ti = fi-i;
+    vec = _map[i]*(1-ti) + _map[i+1]*ti;
  }
 
 double CurvedEdge::computeDistance(const Point& p, double &t){

@@ -409,18 +409,26 @@ void Patch::render(int mode){
       for(int j=0; j < _sampleVi; j++){
         for(int i = 0; i< _sampleUi; i++)
         {
-            Point p[4];
+            ShapeVec v[4];
+            Point    p[4];
+            v[0] = get(i, j);
+            v[1] = get(i+1, j);
+            v[2] = get(i+1, j+1);
+            v[3] = get(i, j+1);
+
             p[0] = P(i, j);
             p[1] = P(i+1, j);
             p[2] = P(i+1, j+1);
             p[3] = P(i, j+1);
+
 
             if (isInSelection() || !isInRenderMode())
             {
                 selectionColor((Selectable_p)this);
                 glBegin(GL_POLYGON);
                 for(int k=0; k<4; k++){
-                    glVertex3f(p[k].x, p[k].y, 0);
+                    //Point p = v[k]._P;
+                    glVertex2f(p[k].x, p[k].y);
                 }
                 glEnd();
                 continue;
@@ -434,7 +442,7 @@ void Patch::render(int mode){
                     glColor3f(1,1,1);
                     glPointSize(4.0);
 
-                    Vec3 n = _map[ind(i, j)].value[NORMAL_CHANNEL];
+                    Vec3 n = v[0].value[NORMAL_CHANNEL];
 
                     glColor3f(1.0, 0, 0);
                     Vec3 p0 = p[0];
@@ -452,8 +460,10 @@ void Patch::render(int mode){
                 glColor3f(1.0,1.0,1.0);
                 glLineWidth(0.5);
                 glBegin(GL_LINE_LOOP);
-                for(int k=0; k<4; k++)
-                    glVertex3f(p[k].x, p[k].y, 0);
+                for(int k=0; k<4; k++){
+                    //Point p = v[k]._P;
+                    glVertex2f(p[k].x, p[k].y);
+                }
                 glEnd();
 
             }
@@ -467,8 +477,8 @@ void Patch::render(int mode){
             glBegin(GL_POLYGON);
             for(int k = 0; k < 4; k++)
             {
-                int index = ind(i + (k==1 || k==2), j + (k>1));
-                ShapeVec vec = _map[index];
+                //int index = ind(i + (k==1 || k==2), j + (k>1));
+                ShapeVec vec = v[k];
 
                 int channel = Session::channel();
                 channel = mode&DARK_MODE ? DARK_CHANNEL : (mode&BRIGHT_MODE? BRIGHT_CHANNEL : (mode&SM_MODE?NORMAL_CHANNEL : ((mode&LABELDEPTH_MODE)?DEPTH_CHANNEL:channel)) );
@@ -492,8 +502,10 @@ void Patch::render(int mode){
                     glColor4f((val.x+1)/2, (val.y+1)/2, 1.0, 1.0);
                 }else{
                     glColor4f(val.x, val.y, val.z, 1.0); //col[k].w);
+
                 }
 
+                //Point p = v[k]._P;
                 glVertex2f(p[k].x, p[k].y);
                 glTexCoord2d((p[k].x+1)/2, (p[k].y+1)/2);
             }
