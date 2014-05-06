@@ -40,7 +40,7 @@ public:
 
     int     getPattern(int i, int j) const;
 
-    inline  Point P(int i, int j)const {return _ps[i + j*_sampleU];}
+    inline  Point P(int i, int j) {return _ps[i+j*_sampleU];}
 };
 
 class UVPatternPatch:public PatternPatch
@@ -63,8 +63,6 @@ public:
     inline  Point P(int uv, int n, int i, int j=0) const {return _ps[i + (j*_sampleU) + uv*(_nU*_sampleU)*_W + n*_sampleU*_W];}
     inline  Point Pu(int n, int i, int j=0) const {return P(0,n,i,j);}
     inline  Point Pv(int n, int i, int j=0) const {return P(1,n,i,j);}
-
-
 
     UVPatternPatch(Face_p);
     //~Patch4();

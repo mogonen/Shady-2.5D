@@ -51,6 +51,7 @@ GLuint          SelectBuff[SELECT_BUFF_SIZE];
 GLdouble        MvMatrix[16];
 GLdouble        ProjMatrix[16];
 GLint           ViewPort[4];
+GLdouble        orthoview[4];
 
 bool            m_CameraChanged;
 
@@ -348,9 +349,18 @@ void GLWidget::orthoView(){
     //glOrtho(-1.0*_scale+_translate.x, 1.0*_scale+_translate.x, -1.0/_aspectR*_scale+_translate.y, 1.0/_aspectR*_scale+_translate.y, NEAR_P, FAR_P);
     double unit = width()*1.0/_width0;
     double asp = height()*1.0/width();
-    glOrtho(-unit*_scale, unit*_scale, -unit*asp*_scale, unit*asp*_scale, NEAR_P, FAR_P);
+    orthoview[0] = -unit*_scale;
+    orthoview[1] =  unit*_scale;
+    orthoview[2] = -unit*asp*_scale;
+    orthoview[3] = unit*asp*_scale;
+    glOrtho(orthoview[0], orthoview[1], orthoview[2], orthoview[3], NEAR_P, FAR_P);
+    //glOrtho(-unit*_scale, unit*_scale, -unit*asp*_scale, unit*asp*_scale, NEAR_P, FAR_P);
     //glOrtho(-1.0*_scale, 1.0*_scale, -1.0/_aspectR*_scale, 1.0/_aspectR*_scale, NEAR_P, FAR_P);
     //gluPerspective(120.0, 4.0/3.0, 0.0, 200.0);
+}
+
+double*  GLWidget::getOrthoView(){
+    return orthoview;
 }
 
 Point GLWidget::toWorld(int x, int y)

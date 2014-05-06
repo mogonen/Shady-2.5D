@@ -30,7 +30,7 @@ private:
 class ImageShape : public Shape
 {
 public:
-    ImageShape(float w=0.4, float h=0.3);
+    ImageShape(float w=1.0, float h=1.0);
     ~ImageShape();
 
     void render(int mode);
@@ -52,7 +52,7 @@ public:
 
 
 
-    enum{NO_UPDATE = 0, UPDATE_SM = 1, UPDATE_BRIGHT = 2, UPDATE_DARK = 4, UPDATE_DISP = 8} texType;
+    enum{NO_UPDATE = 0, UPDATE_SM = 1, UPDATE_DARK = 2, UPDATE_BRIGHT = 4, UPDATE_DISP = 8} texType;
     double                      m_alpha_th;
     double                      m_stretch;
     double                      m_assignedDepth;
@@ -68,7 +68,8 @@ public:
 
     QString                     m_fileName[ACTIVE_CHANNELS];
 
-   /* QString                     m_SMFile;
+   /*
+    QString                     m_SMFile;
     QString                     m_DarkFile;
     QString                     m_BrightFile;
     QString                     m_DispFile;

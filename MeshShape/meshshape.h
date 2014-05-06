@@ -4,6 +4,7 @@
 #include <string>
 #include "../Shape.h"
 #include "CMesh.h"
+#include "patch.h"
 
 //#include "MeshData.h"
 
@@ -11,9 +12,9 @@ using namespace dlfl;
 
 typedef std::map<Vertex_p, Corner_p> VertexMap;
 
+
 class MeshShape : public Shape
 {
-
 protected:
     Mesh_p _control;
 
@@ -47,6 +48,10 @@ public:
 
     //mesh operations
     static bool             isSMOOTH;
+    static Patch::PatchType PATCH_TYPE;
+
+    void                    addSurface(Face_p);
+    Patch::PatchType        _patchtype;
 
     void test();
 };

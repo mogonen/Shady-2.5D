@@ -42,9 +42,9 @@ void CurvedEdge::onUpdate(){
 
     if (_size<2)
     {
-        //resize(11);
-        int maxlod = traverseEdges(_pE->C());
-        traverseEdges(_pE->C(), maxlod);
+        resize(9);
+        //int maxlod = traverseEdges(_pE->C());
+        //traverseEdges(_pE->C(), maxlod);
     }
 
     Point K[4]{CV(0),CV(1), CV(2), CV(3)};

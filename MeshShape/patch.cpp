@@ -15,9 +15,10 @@ Patch::Patch(Face_p pF):Selectable(false)
         setRef(pF);
     }
 #ifndef SHOW_DLFL
-    setSample(0, 0);
+    //setSample(0, 0);
+    //_map = 0;
+    setSample(9, 9);
     _map = new ShapeVec[_sampleUi*_sampleVi];
-    _map = 0;
 #endif
 }
 
@@ -100,19 +101,21 @@ void Patch::updateBezierPatch(){
     computeBezierPatch(K);
 }
 
-void Patch::onUpdate()
-{
-    _pFace->update();
-
+void Patch::adjustMapSize(){
     //check samples
-    if (_sampleU != C(2)->E()->pData->size() || _sampleV != C(3)->E()->pData->size())
+    if (_sampleU != C(2)->E()->pData->size() || _sampleV != C(1)->E()->pData->size())
     {
-        setSample(C(2)->E()->pData->size(), C(3)->E()->pData->size());
+        setSample(C(2)->E()->pData->size(), C(1)->E()->pData->size());
         if (_map)
             delete _map; //array del?
         _map = new ShapeVec[_sampleUi*_sampleVi];
     }
+}
 
+void Patch::onUpdate()
+{
+    _pFace->update();
+    //adjustMapSize();
 #ifndef SHOW_DLFL
     updateBezierPatch();
     interpolateMap();
@@ -155,7 +158,7 @@ void Patch::computeBezierPatch(Point K[])
             for(int bj = 0; bj<4; bj++)
                 for(int bi = 0; bi<4; bi++)
                     p = p + cubicBernstein(bi, i*tu)*cubicBernstein(bj, j*tv)*K[bi+bj*4];
-            _map[ind(i,j)]._P = p;
+                _map[ind(i,j)]._P = p;
         }
     }
 }

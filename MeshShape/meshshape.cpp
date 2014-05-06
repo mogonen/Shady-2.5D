@@ -1,7 +1,10 @@
 #include "meshshape.h"
 #include "../curve.h"
 #include "../commands.h"
-#include "curvededge.h"
+#include "patch.h"
+#include "pattern.h"
+
+Patch::PatchType MeshShape::PATCH_TYPE = Patch::DEFAULT;
 
 MeshShape::MeshShape()
 {
@@ -10,6 +13,7 @@ MeshShape::MeshShape()
     _control->setAddFaceCB(onAddFace);
     _control->setUnsplitEdgeCB(onUnsplitEdge);
     _control->setCaller((void*)this);
+    _patchtype = PATCH_TYPE;
 }
 
 Vertex_p MeshShape::addMeshVertex(ShapeVertex_p sv){
@@ -37,4 +41,23 @@ void MeshShape::onDrag(ShapeVertex_p pSV, const Vec2& t){
         Corner_p pC = ((Edge_p)pSV->ref())->pData->getCornerByTan(pSV);
         makeSmoothCorners(pC, false, 0);
     }
+}
+
+void  MeshShape::addSurface(Face_p pF){
+
+    switch (_patchtype) {
+    case Patch::DEFAULT:
+        pF->pData = new Patch(pF);
+        break;
+
+    case Patch::GRID_PATTERN:
+        pF->pData = new GridPattern(pF);
+        break;
+
+    case Patch::UV_PATTERN:
+        pF->pData = new UVPatternPatch(pF);
+        break;
+    }
+
+
 }

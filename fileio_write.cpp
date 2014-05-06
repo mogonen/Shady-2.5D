@@ -7,6 +7,7 @@
 #include "MeshShape/cmesh.h"
 #include "MeshShape/meshshape.h"
 #include "MeshShape/curvededge.h"
+#include "MeshShape/Patch.h"
 #include "canvas.h"
 
 #ifndef MODELING_MODE
@@ -83,15 +84,8 @@ void DefaultIO::writeShapeBase(ShapeBase_p pSB, ofstream& outfile)
 
 bool DefaultIO::writeMeshShape(MeshShape * pMS, ofstream& outfile)
 {
-
     Mesh_p mesh = pMS->mesh();
-    /*
-    VertexList verts = mesh->verts();
-    FOR_ALL_ITEMS(VertexList, verts){
-        Vertex_p pV = (*it);
-        outfile<<"v "<<pV->id()<<"/"<<pV->pData->id()<<endl;
-    }
-    */
+    outfile<<"surface "<<pMS->_patchtype;
 
     mesh->enamurateFaces();
     FaceList faces = mesh->faces();

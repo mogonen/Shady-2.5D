@@ -421,7 +421,6 @@ void Patch::render(int mode){
             p[2] = P(i+1, j+1);
             p[3] = P(i, j+1);
 
-
             if (isInSelection() || !isInRenderMode())
             {
                 selectionColor((Selectable_p)this);
@@ -517,21 +516,6 @@ void Patch::render(int mode){
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -941,11 +925,15 @@ void ImageShape::render(int mode)
     if(m_texUpdate!=NO_UPDATE)
         InitializeTex();
 
+    //---
     Session::get()->glWidget()->glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_texSM);
     glDisable(GL_TEXTURE0);
     Session::get()->glWidget()->glActiveTexture(GL_TEXTURE0+1);
-    if(mode&DEFAULT_MODE||mode&DRAG_MODE&&!(mode&SM_MODE||mode&DARK_MODE||mode&BRIGHT_MODE||mode&LABELDEPTH_MODE))
+    //---
+
+    //if(mode&DEFAULT_MODE||mode&DRAG_MODE&&!(mode&SM_MODE||mode&DARK_MODE||mode&BRIGHT_MODE||mode&LABELDEPTH_MODE))
+    if( mode < SM_MODE)
     {
         int channel = Session::get()->channel();
         switch(channel)//m_curTexture)
@@ -975,19 +963,25 @@ void ImageShape::render(int mode)
             glBindTexture(GL_TEXTURE_2D, m_texDark);
         else if(mode&BRIGHT_MODE)
             glBindTexture(GL_TEXTURE_2D, m_texBright);
+        //---
         else if(mode&DISPLACE_MODE)
             glBindTexture(GL_TEXTURE_2D, m_texDisp);
+        //---
     }
-    glDisable(GL_TEXTURE0+1);
 
+    //---
+    glDisable(GL_TEXTURE0+1);
     Session::get()->glWidget()->glActiveTexture(GL_TEXTURE0);
     glDisable(GL_TEXTURE0);
-
+    //---
 
     Session::get()->glWidget()->getMShader()->bind();
     Session::get()->glWidget()->getMShader()->setUniformValue("alpha_th", (float)m_alpha_th);
+
+    //--
     Session::get()->glWidget()->getMShader()->setUniformValue("texSM", 0);
     Session::get()->glWidget()->getMShader()->setUniformValue("tex", 1);
+    //--
 
     if(mode&LABELDEPTH_MODE)
         Session::get()->glWidget()->getMShader()->setUniformValue("isLabelDepth", (float)1.0);
@@ -996,8 +990,8 @@ void ImageShape::render(int mode)
 
 
     Vec3 n = value[NORMAL_CHANNEL];
-    QVector3D layerNormal(0, 0, 1.0);//layerNormal(n.x, n.y, n.z);// = _NormalControl->Normal3D();
-    qDebug()<<layerNormal;
+    QVector3D layerNormal(n.x, n.y, n.z);// = _NormalControl->Normal3D();
+    //qDebug()<<layerNormal;
     double delta_LB2RT;
     double delta_LT2BR;
     if(layerNormal.z()>0.1)
@@ -1012,8 +1006,6 @@ void ImageShape::render(int mode)
     }
 
     double center_depth = this->m_assignedDepth;
-
-
     //1.1 is for numerical issue
     float blf = (center_depth-delta_LB2RT);
     blf = CapValue(blf,0,1);
@@ -1251,7 +1243,7 @@ void ImageShape::render(int mode)
 }
 
 
-
+/*
 void PatchN::render(int mode)
 {
     FOR_ALL_ITEMS(Patch4List, _patches)

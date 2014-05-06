@@ -186,6 +186,7 @@ QWidget* createGridOptions()
     widget->addDblSpinBoxF("Rows    Length:", 0.01, 0.5, &MeshPrimitive::GRID_N_LEN, 2, 0.01, "");
     widget->addDblSpinBoxF("Columns Length:", 0.01, 0.5, &MeshPrimitive::GRID_M_LEN, 2, 0.01, "");
     widget->addCheckBox ("Keep Tangents Smooth", &MeshShape::isSMOOTH,"");
+    widget->addRadioGrp("Surface:","ShapeMap|Grid Pattern|UV Pattern", (int*)(&MeshShape::PATCH_TYPE));
     return widget;
 }
 
@@ -197,6 +198,7 @@ QWidget* createNgonOptions()
     widget->addSpinBox("Segments:", 1, 4, &MeshPrimitive::NGON_SEG_V, 1, "Rows");
     widget->addDblSpinBoxF("Radius:", 0.01, 0.75, &MeshPrimitive::NGON_RAD, 2, 0.01, "");
     widget->addCheckBox ("Keep Tangents Smooth", &MeshShape::isSMOOTH,"");
+    widget->addRadioGrp("Surface:","ShapeMap|Grid Pattern|UV Pattern", (int*)(&MeshShape::PATCH_TYPE));
     return widget;
 }
 
@@ -205,11 +207,13 @@ QWidget* createTorusOptions()
     CustomDialog * widget = new CustomDialog("Torus Options",0, "Insert", createTorus);
     widget->addSpinBox("Sides:", 2, 24, &MeshPrimitive::TORUS_N, 1, "Sides of Torus");
     widget->addSpinBox("V Segments:", 1, 8, &MeshPrimitive::TORUS_V, 1, "Vertical Segments of The Torus");
-    widget->addCheckBox ("Keep Tangents Smooth", &MeshShape::isSMOOTH,"");
     widget->addDblSpinBoxF("Radius:", 0.01, 1.0, &MeshPrimitive::TORUS_RAD_X, 2, 0.01, "");
     widget->addDblSpinBoxF("Radius:", 0.01, 1.0, &MeshPrimitive::TORUS_RAD_Y, 2, 0.01, "");
     widget->addDblSpinBoxF("Width%:", 0.01, 1.0, &MeshPrimitive::TORUS_W, 2, 0.01, "");
     widget->addDblSpinBoxF("Arc:", 0., 1.0, &MeshPrimitive::TORUS_ARC, 2, 0.01, "");
+    widget->addCheckBox ("Keep Tangents Smooth", &MeshShape::isSMOOTH,"");
+    widget->addRadioGrp("Surface:","ShapeMap|Grid Pattern|UV Pattern", (int*)(&MeshShape::PATCH_TYPE));
+
     return widget;
 }
 
@@ -219,6 +223,7 @@ QWidget* createSpineOptions()
     widget->addDblSpinBoxF("Radius:", 0.01, 0.75, &SpineShape::RAD, 2, 0.01, "");
     widget->addCheckBox ("Triangulate Joints", &SpineShape::isTRIANGULATE_JOINTS,"");
     widget->addCheckBox ("Keep Tangents Smooth", &MeshShape::isSMOOTH,"");
+    widget->addRadioGrp("Surface:","ShapeMap|Grid Pattern|UV Pattern", (int*)(&MeshShape::PATCH_TYPE));
     return widget;
 }
 
@@ -278,7 +283,7 @@ QWidget* createImageShapeAttrWidget(ImageShape* ImgShape){
 void createShapeImage(){
     //MeshShape* pMS =ImageShape::insertGrid(Point(), MeshShape::GRID_LEN, MeshShape::GRID_M, MeshShape::GRID_N);
 #ifndef MODELING_MODE
-    ImageShape* pIS = new ImageShape(0.4, 0.3);
+    ImageShape* pIS = new ImageShape(1.0,1.0);
     Session::get()->mainWindow()->addAttrWidget(createImageShapeAttrWidget(pIS ), (void*)pIS);
 
     ShapeOrder* so = new ShapeOrder(ShapeOrder::INSERT_SHAPE);

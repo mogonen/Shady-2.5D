@@ -22,10 +22,13 @@ protected:
     Point           KVal(int ei, int i);
     Point           P(int i, int j);
 
+    void            adjustMapSize();
     void            updateBezierPatch();
     void            onUpdate();
 
 public:
+
+    enum  PatchType {DEFAULT, GRID_PATTERN, UV_PATTERN};
 
     Patch(Face_p);
     Patch(int u, int v);
@@ -43,7 +46,6 @@ public:
 
     Point           P(int i) const {return _map[i]._P;}
     Point           edgeP(int ei, int i) const;
-    inline int      ind(int i, int j){return (i-1) + (j-1)*_sampleUi;}
 
     Face_p          face() const {return _pFace;}
     void            setSample(int u, int v);
@@ -52,6 +54,8 @@ public:
 
     void            computeBezierPatch(Point K[]);
     void            interpolateMap();
+
+    inline int      ind(int i, int j){return (i-1) + (j-1)*_sampleUi;}
 
 };
 

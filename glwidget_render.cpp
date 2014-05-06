@@ -19,8 +19,34 @@ void GLWidget::renderCanvas()
 }
 #else
 
+void drawQuad(){
+
+    glColor4f(1.0, 1.0, 1.0, 1.0);
+
+    GLdouble* ortho = Session::get()->glWidget()->getOrthoView();
+
+    glBegin(GL_QUADS);
+
+    glTexCoord2d(0.0,0.0);
+    glVertex2f(ortho[0],ortho[2]);
+
+    glTexCoord2d(0.0,1.0);
+    glVertex2f(ortho[0],ortho[3]);
+
+    glTexCoord2d(1.0,1.0);
+    glVertex2f(ortho[1],ortho[3]);
+
+    glTexCoord2d(1.0,0.0);
+    glVertex2f(ortho[1], ortho[2]);
+
+    glEnd();
+}
+
 void GLWidget::preview()
 {
+    if (is(SHADOWS_ON)){
+        int a=5;
+    }
 
     glReadBuffer(GL_BACK);
     if(!_pGLSLShader_R->isSMInitialized())
@@ -67,7 +93,7 @@ void GLWidget::preview()
 
     float cur_ViewPort[4];
     glGetFloatv(GL_VIEWPORT, cur_ViewPort);
-    float asp_ratio = cur_ViewPort[3]/cur_ViewPort[2];
+    //float asp_ratio = cur_ViewPort[3]/cur_ViewPort[2];
 
     _pGLSLShader_R->m_ShadeFBO->bind();
     _pGLSLShader_R->bind();
@@ -77,17 +103,7 @@ void GLWidget::preview()
     _pGLSLShader_R->setUniformValue("toggle_ShaAmbCos", (int)(_renderFlags>>1)&7);
 
 
-    glBegin(GL_QUADS);
-    glColor4f(1.0, 1.0, 1.0, 1.0);
-    glTexCoord2d(0.0,0.0);
-    glVertex2f(-1.0, -asp_ratio);
-    glTexCoord2d(0.0,1.0);
-    glVertex2f(-1.0,asp_ratio);
-    glTexCoord2d(1.0,1.0);
-    glVertex2f(1.0,asp_ratio);
-    glTexCoord2d(1.0,0.0);
-    glVertex2f(1.0,-asp_ratio);
-    glEnd();
+    drawQuad();
 
     _pGLSLShader_R->release();
     glDisable(GL_TEXTURE_2D);
@@ -104,17 +120,7 @@ void GLWidget::preview()
         _pGLSLShader_C->setUniformValue("height", (float)height());
         _pGLSLShader_C->setUniformValue("toggle_ShaAmbCos", (int)(_renderFlags>>1)&7);
 
-        glBegin(GL_QUADS);
-        glColor4f(1.0, 1.0, 1.0, 1.0);
-        glTexCoord2d(0.0,0.0);
-        glVertex2f(-1.0, -asp_ratio);
-        glTexCoord2d(0.0,1.0);
-        glVertex2f(-1.0,asp_ratio);
-        glTexCoord2d(1.0,1.0);
-        glVertex2f(1.0,asp_ratio);
-        glTexCoord2d(1.0,0.0);
-        glVertex2f(1.0,-asp_ratio);
-        glEnd();
+        drawQuad();
 
         _pGLSLShader_C->release();
         glDisable(GL_TEXTURE_2D);
@@ -129,17 +135,7 @@ void GLWidget::preview()
     _pGLSLShader_C->setUniformValue("height", (float)height());
     _pGLSLShader_C->setUniformValue("toggle_ShaAmbCos", (int)(_renderFlags>>1)&7);
 
-    glBegin(GL_QUADS);
-    glColor4f(1.0, 1.0, 1.0, 1.0);
-    glTexCoord2d(0.0,0.0);
-    glVertex2f(-1.0, -asp_ratio);
-    glTexCoord2d(0.0,1.0);
-    glVertex2f(-1.0,asp_ratio);
-    glTexCoord2d(1.0,1.0);
-    glVertex2f(1.0,asp_ratio);
-    glTexCoord2d(1.0,0.0);
-    glVertex2f(1.0,-asp_ratio);
-    glEnd();
+    drawQuad();
 
     _pGLSLShader_C->release();
     glDisable(GL_TEXTURE_2D);

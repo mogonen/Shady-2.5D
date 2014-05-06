@@ -20,6 +20,7 @@ void PatternPatch::assignPattern(int uv, int off, int len, int * data)
 }
 
 GridPattern::GridPattern(Face_p pF):PatternPatch(pF){
+    _ps = 0;
     init(PatternPatch::NU, PatternPatch::NV);
 }
 
@@ -39,7 +40,6 @@ void GridPattern::init(int nu, int nv){
 
     if (_ps)
         delete _ps;
-
     _ps = new Point[_sampleUV];
 
 }
@@ -76,9 +76,43 @@ int GridPattern::getPattern(int i, int j) const{
 }
 
 
-void GridPattern::onUpdate(){
+void GridPattern::onUpdate()
+{
     _pFace->update();
-    updateBezierPatch();
+    Point K[16];
+
+    //init bezier surface points
+    for(int i = 0; i<4; i++)
+    {
+        K[i]    = KVal(0,i);
+        K[i+12] = KVal(2,i);
+    }
+
+    K[7]   = KVal(1,1);
+    K[11]  = KVal(1,2);
+
+    K[4]   = KVal(3,1);
+    K[8]   = KVal(3,2);
+
+    K[5]   = K[1]  + K[4]  - K[0];
+    K[6]   = K[2]  + K[7]  - K[3];
+    K[9]   = K[13] + K[8]  - K[12];
+    K[10]  = K[11] + K[14] - K[15];
+
+    double tu = 1.0 / (_sampleUi);
+    double tv = 1.0 / (_sampleVi);
+
+    for(int j = 0; j < _sampleV;j++)
+    {
+        for(int i = 0; i < _sampleU; i++)
+        {
+            Point p;
+            for(int bj = 0; bj<4; bj++)
+                for(int bi = 0; bi<4; bi++)
+                    p = p + cubicBernstein(bi, i*tu)*cubicBernstein(bj, j*tv)*K[bi+bj*4];
+            _ps[i+j*_sampleU] = p;
+        }
+    }
 }
 
 void GridPattern::render(int mode){
@@ -115,12 +149,12 @@ void GridPattern::render(int mode){
             glEnd();
         }
     }
-
 }
 
 
 UVPatternPatch::UVPatternPatch(Face_p pF):PatternPatch(pF){
     setSample(20,20);
+    _ps = 0;
     _pattern = 0;
     init(PatternPatch::NU, PatternPatch::NV);
 }
@@ -141,7 +175,6 @@ void UVPatternPatch::init(int nu, int nv)
         delete _ps;
 
     _W = (isTHICK?2:1);
-    //setN(75);
     _ps = new Point[(_nU*_sampleU + _nV*_sampleV)*_W];//
 }
 
@@ -268,11 +301,12 @@ void UVPatternPatch::onUpdate(){
                 for(int bi = 0; bi<4; bi++)
                     p = p + cubicBernstein(bi, i*T)*cubicBernstein(bj, j*T)*K[bi+bj*4];
             _ps[ind(i,j)] = p;
-        }*/
+        }
+    */
 
     double Tu = 1.0 / _nU, Tv = 1.0 /_nV;
-    double Wu = Tu*0.1;
-    double Wv = Tv*0.1;
+    double Wu = Tu*0.1*isTHICK;
+    double Wv = Tv*0.1*isTHICK;
 
     for(int u = 0; u < _nU; u++)
     {

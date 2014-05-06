@@ -211,12 +211,6 @@ void onAddFace(Face_p pF)
     if (pF->isBorder())
         return;
 
-#ifdef MODELING_MODE
-    //pF->pData = (Surface*)(new GridPattern(pF));
-    pF->pData = (Patch*)(new UVPatternPatch(pF));
-#else
-    pF->pData = new Patch(pF);
-#endif
-
+    ((MeshShape*)pF->mesh()->caller())->addSurface(pF);
 }
 

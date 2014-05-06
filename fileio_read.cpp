@@ -208,6 +208,12 @@ bool DefaultIO::parseMeshShape(MeshShape * pMS)
         split(line, ' ', toks);
         std::string label = toks[0];
 
+        if (label.compare("surface")==0){
+            int patch;
+            sscanf(toks[1].c_str(),"%d", &patch);
+            pMS->_patchtype = (Patch::PatchType) patch;
+        }
+
         if (label.compare("f")==0)
         {
             int size = toks.size()-3;

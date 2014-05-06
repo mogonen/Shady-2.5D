@@ -73,13 +73,14 @@ public:
     static void         loadCameraParameters();
 
     void                apply(const Matrix3x3& tM);
-\
+
     static bool         is(RenderSetting rs){return _renderFlags&(1<<rs);}
     void                setRender(RenderSetting rs, bool);
     void                flipDragMode();
 
     void                clear();
     void                keyPressEvent(QKeyEvent *);
+    double*             getOrthoView();
 
 protected:
     void                initializeGL();
