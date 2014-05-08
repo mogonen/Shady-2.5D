@@ -41,7 +41,7 @@ bool DefaultIO::write(Shape * pShape, ofstream &outfile)
     FOR_ALL_ITEMS(SVList, verts){
         //SKIP_DELETED_ITEM
         if ((*it)->isDeleted())
-            outfile<<"##";
+            continue;//outfile<<"##";
         writeShapeBase(*it, outfile);
     }
 
@@ -85,7 +85,7 @@ void DefaultIO::writeShapeBase(ShapeBase_p pSB, ofstream& outfile)
 bool DefaultIO::writeMeshShape(MeshShape * pMS, ofstream& outfile)
 {
     Mesh_p mesh = pMS->mesh();
-    outfile<<"surface "<<pMS->_patchtype;
+    outfile<<"surface "<<pMS->_patchtype<<endl;
 
     mesh->enamurateFaces();
     FaceList faces = mesh->faces();
@@ -107,10 +107,6 @@ bool DefaultIO::writeMeshShape(MeshShape * pMS, ofstream& outfile)
     FOR_ALL_ITEMS(EdgeList, edges){
         SKIP_DELETED_ITEM
         Edge_p pE = (*it);
-        //<<pE->C0()-F()-id()<<"/"<<pE->C0()->I()<<" "
-        /*if (pE->pData->pCurve->count()==2)
-            outfile<<"e "<<pE->C0()->F()->id()<<"/"<<pE->C0()->I()<<" "<<pE->C1()->F()->id()<<"/"<<pE->C1()->I()<<endl;
-        else*/
         outfile<<"e "<<pE->C0()->F()->id()<<"/"<<pE->C0()->I()<<" "<<pE->C1()->F()->id()<<"/"<<pE->C1()->I()<<" "<<pE->pData->getTangentSV(0)->id()<<" "<<pE->pData->getTangentSV(1)->id()<<endl;
     }
     return true;

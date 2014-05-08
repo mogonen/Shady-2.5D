@@ -84,12 +84,9 @@ MainWindow::MainWindow()
     centralWidget->setLayout(centralLayout);
     setWindowTitle(tr("Shady"));
     resize(1200, 900);
-
-
     // set the number of patch lines
     //Patch::setN(16);
 }
-
 
 void MainWindow::initScene(){
     //init scene
@@ -99,7 +96,6 @@ void MainWindow::initTools()
 {
 
     QToolBar *toolbar = addToolBar("main toolbar");
-
     QMenu *menu = new QMenu(tr("Channels"));
     menu->addAction(normalChannelAct);
     menu->addAction(darkChannelAct);
@@ -107,6 +103,7 @@ void MainWindow::initTools()
     menu->addAction(depthChannelAct);
     menu->addAction(alphaChannelAct);
     menu->addAction(glChannelAct);
+    menu->addAction(cpuShadingChannelAct);
 
     toolbar->addAction(menu->menuAction());
     toolbar->addAction(previewAct);
@@ -334,6 +331,11 @@ void MainWindow::createActions()
     glChannelAct->setCheckable(true);
     connect(glChannelAct, SIGNAL(triggered()), this, SLOT(flipChannel()));
 
+    cpuShadingChannelAct = new QAction(tr("CPU Shading"), this);
+    cpuShadingChannelAct->setShortcut(Qt::Key_9);
+    cpuShadingChannelAct->setCheckable(true);
+    connect(cpuShadingChannelAct, SIGNAL(triggered()), this, SLOT(flipChannel()));
+
     QActionGroup* channels = new QActionGroup(this);
     darkChannelAct->setActionGroup(channels);
     brightChannelAct->setActionGroup(channels);
@@ -341,7 +343,7 @@ void MainWindow::createActions()
     alphaChannelAct->setActionGroup(channels);
     depthChannelAct->setActionGroup(channels);
     glChannelAct->setActionGroup(channels);
-
+    cpuShadingChannelAct->setActionGroup(channels);
 
     //====PREVIEW OPTIONS=======================================================
     ambientOnAct = new QAction(tr("&Ambient On"), this);
@@ -395,7 +397,6 @@ void MainWindow::createActions()
     setFoldsAct->setShortcut(tr("Ctrl+P"));
     connect(setFoldsAct, SIGNAL(triggered()), this, SLOT(selectSetFoldsTool()));
 
-
     setColorToolAct = new QAction(tr("Set Color"), this);
     //shapeTransformAct->setShortcut(tr("Ctrl+T"));
     connect(setColorToolAct, SIGNAL(triggered()), this, SLOT(selectSetColorTool()));
@@ -424,7 +425,6 @@ void MainWindow::createActions()
     setFoldsAct->setActionGroup(toolset);
     setColorToolAct->setActionGroup(toolset);
 
-
     //====SHAPE ACTIONS=============================================================
     shapeInsertTorusAct = new QAction(tr("Torus"), this);
     connect(shapeInsertTorusAct, SIGNAL(triggered()), this, SLOT(newTorus()));
@@ -448,7 +448,7 @@ void MainWindow::createActions()
     connect(shapeInsertImageShapeAct, SIGNAL(triggered()), this, SLOT(newImageShape()));
 
     shapeLockAct = new QAction(tr("&Lock"), this);
-    shapeLockAct->setShortcut(tr("Ctrl+L"));
+    shapeLockAct->setShortcut(tr("L"));
     connect(shapeLockAct, SIGNAL(triggered()), this, SLOT(toggleLockShape()));
 
     shapeMoveFrontAct = new QAction(tr("Move Front"), this);
@@ -475,7 +475,6 @@ void MainWindow::createActions()
     shapeTransformAct->setShortcut(tr("Ctrl+T"));
     connect(shapeTransformAct, SIGNAL(triggered()), this, SLOT(transformShape()));
 
-
     selectNextAct = new QAction(tr("Next"), this);
     selectNextAct->setShortcut(Qt::Key_Right);
     connect(selectNextAct, SIGNAL(triggered()), this, SLOT(selectNext()));
@@ -483,8 +482,6 @@ void MainWindow::createActions()
     selectPrevAct = new QAction(tr("Previus"), this);
     selectPrevAct->setShortcut(Qt::Key_Left);
     connect(selectPrevAct, SIGNAL(triggered()), this, SLOT(selectPrev()));
-
-
 }
 
 void MainWindow::createMenus()
@@ -537,7 +534,7 @@ void MainWindow::createMenus()
     channelsMenu->addAction(alphaChannelAct);
     channelsMenu->addAction(depthChannelAct);
     channelsMenu->addAction(glChannelAct);
-
+    channelsMenu->addAction(cpuShadingChannelAct);
 
     insertMenu = menuBar()->addMenu("Create");
     insertMenu->addAction(shapeInsertEllipseAct);
@@ -576,7 +573,6 @@ void MainWindow::createMenus()
     RenderTool->addAction("Cartoon");
     RenderTool->addAction("Translucancy");
     RenderTool->addAction("SM Quality");
-
 
     selectMenu  = menuBar()->addMenu(tr("Select"));
     selectMenu->addAction(selectNextAct);
@@ -867,6 +863,9 @@ void MainWindow::flipChannel(){
 
     if (glChannelAct->isChecked())
         Session::get()->setChannel(GL_SHADING);
+
+    if (cpuShadingChannelAct->isChecked())
+        Session::get()->setChannel(CPU_SHADING);
 }
 
 #ifndef MODELING_MODE

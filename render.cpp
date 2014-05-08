@@ -468,6 +468,7 @@ void Patch::render(int mode){
             }
 
             bool isGLShading = (Session::channel() == GL_SHADING) && !Session::isRender(PREVIEW_ON);
+            bool isCPUShading = (Session::channel() == CPU_SHADING) && !Session::isRender(PREVIEW_ON);
             bool isNormalChannel =  (Session::channel() == NORMAL_CHANNEL && !mode) || (mode&SM_MODE);
 
             if (isGLShading)
@@ -496,12 +497,21 @@ void Patch::render(int mode){
                     Vec3 n =  vec.value[NORMAL_CHANNEL];
                     glNormal3f(n.x, n.y, n.z );
                 }
+                else if (isCPUShading)
+                {
+                   Vec3 n   =  vec.value[NORMAL_CHANNEL];
+                   Point lp = Session::get()->canvas()->lightPos(0);
+                   Vec2 lv  = lp-p[k];
+                   double cos = Vec3(lv.x, lv.y, 1.0).normalize()*n;
+                   double t   = (cos+1)/2.0;
+                   Vec3 val = vec.value[DARK_CHANNEL]*(1-t) + vec.value[BRIGHT_CHANNEL]*t;
+                   glColor4f(val.x, val.y, val.z, 1.0); //col[k].w);
+                }
                 else if (isNormalChannel)
                 {
                     glColor4f((val.x+1)/2, (val.y+1)/2, 1.0, 1.0);
                 }else{
                     glColor4f(val.x, val.y, val.z, 1.0); //col[k].w);
-
                 }
 
                 //Point p = v[k]._P;
@@ -690,7 +700,6 @@ void Curve::render(int mode) {
     glEnd();
 }
 
-
 void CurvedEdge::render(int mode) {
 
     Selectable::render();
@@ -712,9 +721,9 @@ void EllipseShape::render(int mode){
 
     bool isGLShading = (Session::channel() == GL_SHADING) && !Session::isRender(PREVIEW_ON);
     //bool isNormalChannel =  (Session::channel() == NORMAL_CHANNEL && !mode) || (mode&SM_MODE);
-    RGB bright = value[BRIGHT_CHANNEL];
-    RGB dark  = value[DARK_CHANNEL];
-    RGB depth  = value[DEPTH_CHANNEL];
+    RGB bright      = value[BRIGHT_CHANNEL];
+    RGB dark        = value[DARK_CHANNEL];
+    RGB depth       = value[DEPTH_CHANNEL];
 
     RGB col = value[Session::channel()<ACTIVE_CHANNELS ? Session::channel() : (ACTIVE_CHANNELS-1) ];
 
