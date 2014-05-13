@@ -131,4 +131,4 @@ OTHER_FILES += \
     Renderer/Basic.vsh \
     Renderer/Basic.fsh \
     Renderer/Modelling.fsh \
-    Renderer/Ambient.fsh
+    Renderer/Composite.fsh

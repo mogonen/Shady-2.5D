@@ -267,7 +267,7 @@ void main(void)
         float Final_Mix = cood_center.a;
         if (cood_center.b<0.001)
             Final_Mix=Final_Mix*cood_center.b;
-        gl_FragColor = vec4(mix(texture2D(tex_BG, gl_TexCoord[0].st).rgb, Fore_blend.rgb, Final_Mix), 1.0);
+        gl_FragColor = Direct_color;//vec4(mix(texture2D(tex_BG, gl_TexCoord[0].st).rgb, Fore_blend.rgb, Final_Mix), 1.0);
     }
     else if(cur_tex == 1)
             gl_FragColor = texture2D(tex_SM, gl_TexCoord[0].st);
