@@ -44,9 +44,6 @@ void drawQuad(){
 
 void GLWidget::preview()
 {
-    if (is(SHADOWS_ON)){
-        int a=5;
-    }
 
     glReadBuffer(GL_BACK);
     if(!_pGLSLShader_R->isSMInitialized())
