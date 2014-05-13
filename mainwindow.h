@@ -209,6 +209,7 @@ private:
     QAction *       depthChannelAct;
     QAction *       normalChannelAct;
     QAction *       glChannelAct;
+    QAction *       cpuShadingChannelAct;
 
     //QAction *       shapemapOnAct;
 

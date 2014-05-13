@@ -129,7 +129,7 @@ public:
     ShaderProgram*      getMShader(){return _pGLSLShader_M;}
     ShaderProgram*      getCShader(){return _pGLSLShader_C;}
 
-    void                reloadShader(){_pGLSLShader_R->ReloadShader();_pGLSLShader_M->ReloadShader();}
+    void                reloadShader(){_pGLSLShader_R->ReloadShader();_pGLSLShader_M->ReloadShader();_pGLSLShader_C->ReloadShader();}
     void                updateGLSLLight(float x, float y, float z);
 
 private:

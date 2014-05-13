@@ -22,11 +22,11 @@ uniform float Cartoon_sha=0.1;
 uniform bool toggle_Point;
 
 //the array that stores all the reflection/refraction parameters
-uniform float refvalue[10];
+uniform float refValues[10];
 uniform int refToggled[10];
 
 //the area that stores all the average normals and center positions(it is now bottom right position)
-uniform vec3 normalvalue[10];
+uniform vec3 normalValues[10];
 uniform vec3 centerDepth[10];
 //every 4 of them represent bounding value for -x,x,-y,y
 uniform float boundingbox[40];
@@ -36,53 +36,7 @@ uniform int shadowcreator[10];
 in vec4 thePosition;
 
 
-//function to calculate ambient occlusion effect of image
-void AmbientShadow(in vec4 center, out float Amb, int layerIndex)
-{
-    float i,j;
-    float max, min;
-    //    float sum = float((half_row*(half_row+1)+half_row+1)*(2*half_col+1)+(half_col*(half_col+1)+half_col+1)*(2*half_row+1));
-    float diff = 0.0;
-    float step = filter_size/2.0;
-    float amb_filter_size = filter_size/8.0;
-    float    filter_sum = 0.1;
-    float lenght;
-    if(step>0.01)
-    {
-        for(i=-(filter_size);i<(filter_size)+step/2.0;i+=step)
-            for(j=-(filter_size);j<(filter_size)+step/2.0;j+=step)
-            {
 
-                vec4 label_depth = texture2D(tex_LD, vec2(gl_TexCoord[0].s+i/width, gl_TexCoord[0].t+j/height));
-                int label = int(label_depth.b*255);
-                if(label==layerIndex)
-                {
-                    vec4 neighbor = texture2D(tex_SM, vec2(gl_TexCoord[0].s+i/width, gl_TexCoord[0].t+j/height));
-                    if((i>step/2.0||i<-step/2.0)&&(j>step/2.0||j<-step/2.0))
-                    {
-                        lenght= pow(2,-(i*i+j*j)/(filter_size*filter_size));
-                        diff = diff + dot(neighbor.rg - 0.5,vec2(i,j))*lenght*neighbor.b*neighbor.a;//sqrt(i*i+j*j)
-                        filter_sum = filter_sum+lenght*neighbor.b*neighbor.a;
-                    }
-                }
-            }
-
-    }
-    Amb = diff*center.a/filter_sum;
-
-    float c_center= 0.3*amb_strength-0.2;
-    float c_delta=Cartoon_sha;
-
-    float b=c_center+c_delta;
-    float a=c_center-c_delta;
-    if(Cartoon_sha!=0)
-        Amb=(Amb-a)/(b-a);
-    if(Amb<0.0)
-        Amb=0.0;
-    if(Amb>1.0)
-        Amb=1.0;
-
-}
 
 
 bool findLayerIntersect(in vec3 Sp, in vec3 Sv, in int LayerID, out vec3 Ip)
@@ -90,7 +44,7 @@ bool findLayerIntersect(in vec3 Sp, in vec3 Sv, in int LayerID, out vec3 Ip)
     vec3 l0 = Sp;
     vec3 l = Sv;
     vec3 P0 = centerDepth[LayerID];
-    vec3 n = normalvalue[LayerID];
+    vec3 n = normalValues[LayerID];
     float d;
     float dot_d = dot(n,l);
     if(dot_d==0)
@@ -261,7 +215,7 @@ bool checkOnline(vec2 v, vec2 w, vec2 p, float range)
 
 vec3 projectOnLayerInd(in vec3 Pp, in int LayerInd, out float height)
 {
-    vec3 LayerNormal = normalvalue[LayerInd];
+    vec3 LayerNormal = normalValues[LayerInd];
     vec3 LayerCenter = vec3(centerDepth[LayerInd].r,centerDepth[LayerInd].g,centerDepth[LayerInd].b);
     float dist = dot(Pp-LayerCenter, LayerNormal);
     height = dist;
@@ -333,7 +287,7 @@ float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
         float step_disp_intl = 0;
         int LayerInd = j;
         //if this layer is empty
-        if(length(normalvalue[LayerInd])==0)
+        if(length(normalValues[LayerInd])==0)
             break;
         //if current layer does not cast shadow
         if(shadowcreator[LayerInd]==0&&LayerInd!=Plabel)
@@ -366,7 +320,7 @@ float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
         plight_direct = plight_direct +0.005* light_length_3D*(vec3(rand(gl_TexCoord[0].st),1-rand(gl_TexCoord[0].st),1-0.5*rand(gl_TexCoord[0].st))-0.5);
 
         //layer normal - N
-        vec3 layer_normal = (normalvalue[LayerInd]);
+        vec3 layer_normal = (normalValues[LayerInd]);
 
         int i;
         //    int n_steps = 100;
@@ -544,7 +498,7 @@ float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
 //    max_shadow_strength = shadow_strength;
     float Sha ;
 
-    float c_center = 0.3*amb_strength+0.2;
+    float c_center = 0.3*amb_strength-0.7;
     float c_delta = Cartoon_sha;
 
     float b = c_center+c_delta;
@@ -581,13 +535,13 @@ void GetCenterCos(in vec3 thePos, in int LayerInd, out float center_cos)
 
     vec3 ref_eye = -2*dot(light_dir_n,est_normal)*est_normal+light_dir_n;
 //    pure_cos = 0.5*pow(-ref_eye.z,2)+0.5*dot(light_dir_n, est_normal);
-//    vec3 layer_normal = (normalvalue[LayerInd]);
+//    vec3 layer_normal = (normalValues[LayerInd]);
 //     pure_cos = (dot(est_normal.rg, (light_dir_v.rg)))*abs(dot(light_dir_v,layer_normal));
 //    pure_cos = (dot(raw_SM.rg, (light_dir_n.rg)))+length(light_dir_n);
 //    pure_cos = dot(light_dir_n.rg, est_normal.rg) + light_dir_n.b*(1-est_normal.r*est_normal.r/2-est_normal.g*est_normal.g/2);
     pure_cos = dot(light_dir_n, est_normal);
 
-    float c_center=0.3*amb_strength-0.2;
+    float c_center=0.3*amb_strength-0.5;
     float c_delta=Cartoon_sha;
 
     float b=c_center+c_delta;
@@ -603,7 +557,53 @@ void GetCenterCos(in vec3 thePos, in int LayerInd, out float center_cos)
     if(center_cos>1.0)
         center_cos=1.0;
 }
+//function to calculate ambient occlusion effect of image
+void AmbientShadow(in vec4 center, out float Amb, int layerIndex)
+{
+    float i,j;
+    float max, min;
+    //    float sum = float((half_row*(half_row+1)+half_row+1)*(2*half_col+1)+(half_col*(half_col+1)+half_col+1)*(2*half_row+1));
+    float diff = 0.0;
+    float step = filter_size/2.0;
+    float amb_filter_size = filter_size/8.0;
+    float    filter_sum = 0.1;
+    float lenght;
+    if(step>0.01)
+    {
+        for(i=-(filter_size);i<(filter_size)+step/2.0;i+=step)
+            for(j=-(filter_size);j<(filter_size)+step/2.0;j+=step)
+            {
 
+                vec4 label_depth = texture2D(tex_LD, vec2(gl_TexCoord[0].s+i/width, gl_TexCoord[0].t+j/height));
+                int label = int(label_depth.b*255);
+                if(label==layerIndex)
+                {
+                    vec4 neighbor = texture2D(tex_SM, vec2(gl_TexCoord[0].s+i/width, gl_TexCoord[0].t+j/height));
+                    if((i>step/2.0||i<-step/2.0)&&(j>step/2.0||j<-step/2.0))
+                    {
+                        lenght= pow(2,-(i*i+j*j)/(filter_size*filter_size));
+                        diff = diff + dot(neighbor.rg - 0.5,vec2(i,j))*lenght*neighbor.b*neighbor.a;//sqrt(i*i+j*j)
+                        filter_sum = filter_sum+lenght*neighbor.b*neighbor.a;
+                    }
+                }
+            }
+
+    }
+    Amb = diff*center.a/filter_sum;
+
+    float c_center= 0.3*amb_strength-0.5;
+    float c_delta=Cartoon_sha;
+
+    float b=c_center+c_delta;
+    float a=c_center-c_delta;
+    if(Cartoon_sha!=0)
+        Amb=(Amb-a)/(b-a);
+    if(Amb<0.0)
+        Amb=0.0;
+    if(Amb>1.0)
+        Amb=1.0;
+
+}
 
 void main()
 {
@@ -650,26 +650,23 @@ void main()
     new_shadow = accHeightInLayer(light_dir, true_position,label, Amb);
 //    new_shadow = accHeightInLayer(light_dir, true_position,label, Amb);
 
-
-    if(toggle_ShaAmbCos == 0)
-        center_cos = 0;
-    else if(toggle_ShaAmbCos == 1)
-        center_cos = center_cos;
-    else if(toggle_ShaAmbCos == 2)
-        center_cos = Amb;
-    else if(toggle_ShaAmbCos == 4)
-        center_cos = new_shadow;
-    else if(toggle_ShaAmbCos == 3)
-        center_cos = center_cos*Amb;
-    else if(toggle_ShaAmbCos == 5)
-        center_cos = center_cos*new_shadow*new_shadow;
-    else if(toggle_ShaAmbCos == 6)
-        center_cos=new_shadow*Amb;
-    else if(toggle_ShaAmbCos == 7)
-        center_cos=center_cos*new_shadow*Amb;
-
-
-
+//    if(toggle_ShaAmbCos == 0)
+//        center_cos = 0;
+//    else if(toggle_ShaAmbCos == 1)
+//        center_cos = center_cos;
+//    else if(toggle_ShaAmbCos == 2)
+//        center_cos = Amb;
+//    else if(toggle_ShaAmbCos == 4)
+//        center_cos = new_shadow;
+//    else if(toggle_ShaAmbCos == 3)
+//        center_cos = center_cos*Amb;
+//    else if(toggle_ShaAmbCos == 5)
+//        center_cos = center_cos*new_shadow*new_shadow;
+//    else if(toggle_ShaAmbCos == 6)
+//        center_cos=new_shadow*Amb;
+//    else if(toggle_ShaAmbCos == 7)
+//        center_cos=center_cos*new_shadow*Amb;
+center_cos=center_cos*new_shadow*Amb;
 
     gl_FragColor = mix( texture2D(tex_DI_Dark, gl_TexCoord[0].st),  texture2D(tex_DI_Bright, gl_TexCoord[0].st), (center_cos-0.5)*2);
 //    gl_FragColor = vec4(rand(gl_TexCoord[0].st));
@@ -708,7 +705,7 @@ void main()
 //    gl_FragColor = vec4(vec3(dot(-light_dir, projectOnLayerInd(-light_dir, 1))),1.0);
 
 //    int label = int(texture2D(tex_LD, gl_TexCoord[0].st).b*255);
-//    gl_FragColor = vec4(normalvalue[label],1.0);
+//    gl_FragColor = vec4(normalValues[label],1.0);
 
 //    gl_FragColor = vec4(texture2D(tex_LD, gl_TexCoord[0].st).b);
 
