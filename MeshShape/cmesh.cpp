@@ -289,6 +289,9 @@ Corner_p Mesh::splitEdge(Corner_p pC, Vertex_p pV){
     if (_splitEdgeCB)
         _splitEdgeCB(c0new);
 
+    pC->F()->update(true);
+    pC->other()->F()->update(true);
+
     return pC->next();
 }
 
@@ -525,7 +528,8 @@ void Mesh::cleanUp(bool isenamurate){
     _stack.clear();
 }
 
-void Mesh::addOperation(Operation::Type t, Corner_p c0, Corner_p c1, Edge_p e, Face_p f){
+void Mesh::addOperation(Operation::Type t, Corner_p c0, Corner_p c1, Edge_p e, Face_p f)
+{
     if (!_isstackon)
         return;
     Operation op;
@@ -603,4 +607,34 @@ int Mesh::rollback(int opid){
     return _stack.size();
 }
 
+void Mesh::faceOrder(Face_p pF, bool isup)
+{
+
+        if (!pF)
+            return;
+
+        FaceList::iterator it = std::find(_faces.begin(), _faces.end(), pF);
+        FaceList::iterator itn = it;
+
+        if (isup){
+
+            if ( itn == _faces.begin())
+                return;
+            itn--;
+            Face_p tmp = *it;
+            (*it) = *itn;
+            (*itn) = tmp;
+
+        }else{
+
+            itn++;
+            if ( itn == _faces.end())
+                return;
+
+            Face_p tmp = *it;
+            (*it) = *itn;
+            (*itn) = tmp;
+
+        }
+}
 

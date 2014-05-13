@@ -102,7 +102,6 @@ void GLWidget::preview()
     _pGLSLShader_R->setUniformValue("height", (float)height());
     _pGLSLShader_R->setUniformValue("toggle_ShaAmbCos", (int)(_renderFlags>>1)&7);
 
-
     drawQuad();
 
     _pGLSLShader_R->release();
@@ -181,14 +180,14 @@ void GLWidget::renderCanvas()
         //_pGLSLShader_R->ReleaseAllFBO();
         _pGLSLShader_R->SetSMInitialized(false);
 
-        if (Session::channel() == GL_SHADING || is(PREVIEW_ON) )
+        if (Session::channel() == GL_SHADING || Session::channel() == CPU_SHADING || is(PREVIEW_ON) )
         {
             if (is(DRAG_ON))
                 _pCanvas->_lights[0]->render(DRAG_MODE);
 
             if (isInRenderMode()){
                 Point light0_p      = Session::get()->canvas()->lightPos(0);
-                GLfloat light0_pf[] = {light0_p.x, light0_p.y, 2, 1.0 };
+                GLfloat light0_pf[] = {light0_p.x, light0_p.y, 0.1, 1.0 };
                 glLightfv(GL_LIGHT0, GL_POSITION, light0_pf);
             }
         }

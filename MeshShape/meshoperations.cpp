@@ -32,12 +32,6 @@ ShapeVec VecCache;
 void computeSubdivisionCV(Corner_p pC, double t, Point newCP[], bool isfirst=false){
     bool isforward = !pC->isC1();
     pC = pC->E()->C0();
-
-    if (pC->F())
-        pC->F()->Face::update(true);
-    if (pC->other()->F())
-        pC->other()->F()->Face::update(true);
-
     pC->E()->pData->computeSubdivisionCV(isforward? t:(1-t), newCP, VecCache);
 
 }
@@ -74,6 +68,11 @@ void applySubdivision(Corner_p pC, Point newCP[], bool haspair)
     CurvedEdge* curve1 = pC->E()->pData;
     curve1->pCV(1)->set(newCP[4]);
     curve1->pCV(2)->set(newCP[5]);
+
+    /*if (pC->F())
+        pC->F()->Face::update(true);
+    if (pC->other()->F())
+        pC->other()->F()->Face::update(true);*/
 
     for(int c=0; c<ACTIVE_CHANNELS; c++)
         pC->V()->pData->value[c] = VecCache.value[c];
@@ -174,7 +173,6 @@ void MeshOperation::insertSegment(Edge_p e, const Point & p){
 
         c1 = c1n;
     }
-
 }
 
 void MeshOperation::diagonalDivide(Corner_p c){

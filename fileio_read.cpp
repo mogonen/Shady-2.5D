@@ -73,7 +73,8 @@ bool DefaultIO::load(const char *fname)
         if (label.compare("s") == 0)
         {
             ShapeBase_p pSB = parseShapeBase(toks);
-            if (pSB->type() != SHAPE_VERTEX){
+            if (pSB->type() != SHAPE_VERTEX)
+            {
                 _pShape = (Shape_p)pSB;
                 shapes.push_back(_pShape);
             }
@@ -131,11 +132,17 @@ ShapeBase* DefaultIO::parseShapeBase(Tokens toks){
     int type = atoi(toks[1].c_str());
     ShapeBase_p pSB = 0;
     Load* load = 0;
+
+    int name, parent, pair;
+    sscanf(toks[2].c_str(),"%d/%d/%d", &name, &parent, &pair);
+
     switch(type){
 
     case SHAPE_VERTEX:{
         ShapeVertex_p sv = _pShape->addVertex();
-        load = new Load(sv);
+        if (parent)
+            sv->isNormalControl = false;
+        load = new Load(sv);            
         pSB = sv;
     }
         break;
@@ -164,8 +171,6 @@ ShapeBase* DefaultIO::parseShapeBase(Tokens toks){
 #endif
     }
 
-    int name, parent, pair;
-    sscanf(toks[2].c_str(),"%d/%d/%d", &name, &parent, &pair);
     //Load* load = new Load((Draggable_p)pSB);
     if (load){
         load->keys[Load::PARENT] = parent;
@@ -174,8 +179,8 @@ ShapeBase* DefaultIO::parseShapeBase(Tokens toks){
     }
 
     float px, py;
-    sscanf(toks[3].c_str(),"%f", &px);
-    sscanf(toks[4].c_str(),"%f", &py);
+    sscanf(toks[3].c_str(), "%f", &px);
+    sscanf(toks[4].c_str(), "%f", &py);
     pSB->_P.set(px, py);
 
     for(int c = 0; c < ACTIVE_CHANNELS; c++)

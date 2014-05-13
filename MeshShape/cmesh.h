@@ -84,7 +84,7 @@ public:
     Corner_p other(Corner_p c)  const{return (c==_c0)?_c1:_c0;}
     bool      isC1(Corner_p c)  const{return (c==_c1);}
     void       set(Corner_p, int i=-1);
-    bool  isBorder();
+    bool    isBorder();
 
     EdgeData* pData;
 };
@@ -240,6 +240,8 @@ public:
     void        buildEdges(bool isouterface = true);
     void        cleanUp(bool isenamurate = true);
 
+    void        faceOrder(Face_p , bool isup);
+
 
     //set callback functions
     void        resetCB();
@@ -253,14 +255,14 @@ public:
 
     inline void* caller() const {return _caller;}
 
-    Mesh_p deepCopy();
+    Mesh_p      deepCopy();
 
-    void ForAllEdges(void (*handler)(Edge_p),   bool isskipdeleted = true, bool isenamurate = false);
-    void ForAllFaces(void (*handler)(Face_p),   bool isskipdeleted = true, bool isenamurate = false);
-    void ForAllVerts(void (*handler)(Vertex_p), bool isskipdeleted = true, bool isenamurate = false);
+    void        ForAllEdges(void (*handler)(Edge_p),   bool isskipdeleted = true, bool isenamurate = false);
+    void        ForAllFaces(void (*handler)(Face_p),   bool isskipdeleted = true, bool isenamurate = false);
+    void        ForAllVerts(void (*handler)(Vertex_p), bool isskipdeleted = true, bool isenamurate = false);
 
-    int getOperationID(){ return _stack.size();}
-    int rollback(int op);
+    int         getOperationID(){ return _stack.size();}
+    int         rollback(int op);
 
 private:
 

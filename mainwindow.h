@@ -98,6 +98,7 @@ private slots:
     void    selectExtrudeFace();
     void    selectInsertSegment();
     void    selectDeleteFace();
+    void    selectOrderFace();
 
     void    toggleNormals();
     void    togglePathces();
@@ -144,13 +145,12 @@ private slots:
 
 private:
 
-
     CustomDialog*   _options;
 
-    void createActions();
-    void createMenus();
-    void initScene();
-    void initTools();
+    void    createActions();
+    void    createMenus();
+    void    initScene();
+    void    initTools();
 	
 	// for dockable widgets window
     void             createAllOptionsWidgets();
@@ -209,6 +209,7 @@ private:
     QAction *       depthChannelAct;
     QAction *       normalChannelAct;
     QAction *       glChannelAct;
+    QAction *       cpuShadingChannelAct;
 
     //QAction *       shapemapOnAct;
 
@@ -240,6 +241,7 @@ private:
     QAction *       extrudeFaceAct;
     QAction *       insertSegmentAct;
     QAction *       deleteFaceAct;
+    QAction *       orderFaceAct;
 
     //Shape Menu Actions
     QAction *       shapeInsertTorusAct;
@@ -279,7 +281,7 @@ private:
     //need to improve this
     struct Options
     {
-        enum OptionWidget_e {NONE, DRAG, ELLIPSE, GRID, NGON, TORUS, PIE, SPINE, IMAGE_SHAPE, EXTRUDE, INSERT_SEGMENT, DELETE_FACE, ASSIGN_PATTERN, SET_FOLDS, SET_COLOR, SEW};
+        enum OptionWidget_e {NONE, DRAG, ELLIPSE, GRID, NGON, TORUS, PIE, SPINE, IMAGE_SHAPE, EXTRUDE, INSERT_SEGMENT, DELETE_FACE, ASSIGN_PATTERN, SET_FOLDS, SET_COLOR, SEW, ORDER_FACE};
     };
 };
 

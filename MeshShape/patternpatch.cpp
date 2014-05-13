@@ -269,8 +269,8 @@ void UVPatternPatch::onUpdate(){
 void UVPatternPatch::onUpdate(){
 
     /*if (_nU != NU || _nV != NV)
-        init(NU, NV);
-*/
+        init(NU, NV);*/
+
     face()->update();
 
     Point K[16];
@@ -340,7 +340,6 @@ void UVPatternPatch::onUpdate(){
                 }
 
             _ps[ind(1,v,i,0)] = p0;
-
             if (isTHICK)
                 _ps[ind(1,v,i,1)] = p1;
         }
@@ -376,11 +375,9 @@ void UVPatternPatch::render(int mode)
                 }
                 glEnd();
             }
-
         }
 
         //glColor3f(1.0, 0, 0);
-
         for(int v=0; v < _nV; v++)
         {
             if (_pattern[_nU + v] == 1)
@@ -425,7 +422,6 @@ void UVPatternPatch::render(int mode)
         }
 
         //glColor3f(1.0, 0, 0);
-
         for(int v=0; v < _nV; v++)
         {
             if (_pattern[_nU + v] == 1)
@@ -442,11 +438,8 @@ void UVPatternPatch::render(int mode)
                 glVertex3f(p.x, p.y, 0);
             }
             glEnd();
-
         }
-
     }
-
 }
 /*
 

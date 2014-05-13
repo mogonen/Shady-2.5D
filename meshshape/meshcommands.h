@@ -9,6 +9,8 @@ using namespace dlfl;
 class MeshOperation: public Command
 {
 
+protected:
+
     Face_p              _pF;
     Edge_p              _pE;
     MeshShape*          _pMS;
@@ -16,14 +18,12 @@ class MeshOperation: public Command
 
     bool                pickElement();
 
-protected:
-
     void onClick(const Click &);
     virtual void  execOP();
 
 public:
 
-    enum OperationMode  {NONE, EXTRUDE_EDGE, EXTRUDE_FACE, DELETE_FACE, SPLIT_FACE, INSERT_SEGMENT,  ASSIGN_PATTERN, SET_FOLDS, ENDOP};
+    enum OperationMode  {NONE, EXTRUDE_EDGE, EXTRUDE_FACE, DELETE_FACE, SPLIT_FACE, INSERT_SEGMENT,  ASSIGN_PATTERN, SET_FOLDS, ORDER_FACE, ENDOP};
     enum SelectMode     {NOSELECT, EDGE, FACE, CORNER, EDGE_EDGE};
 
 
@@ -33,7 +33,7 @@ public:
 
     SelectMode getSelectMode()
     {
-        static const SelectMode MODES[] = {NOSELECT, EDGE, FACE, FACE, CORNER, EDGE, EDGE, EDGE, NOSELECT};
+        static const SelectMode MODES[] = {NOSELECT, EDGE, FACE, FACE, CORNER, EDGE, EDGE, EDGE, FACE, NOSELECT};
         if (_operation >= ENDOP)
             return NOSELECT;
         return MODES[(int)_operation];
@@ -49,7 +49,6 @@ public:
     static bool             isKEEP_TOGETHER;
     static bool             EXTRUDE_CAP;
 
-
     static void             insertSegment(Edge_p, const Point&);
     static void             diagonalDivide(Corner_p);
     static Face_p           extrude(Face_p, double);
@@ -63,6 +62,25 @@ private:
 
     //for exture edge, needs to be improved
     ShapeVertex_p           _pairs[2];
+
+};
+
+class OrderFace: public MeshOperation{
+
+    bool _isup;
+
+protected:
+    void  execOP();
+
+public:
+
+    OrderFace():MeshOperation(ORDER_FACE){
+        _isup = isUP;
+    }
+
+    Command_p       exec();
+    Command_p       unexec();
+    static bool     isUP;
 
 };
 
@@ -133,7 +151,6 @@ public:
     static string           PATTERN;
 
 };
-
 
 class Sew:public Command
 {

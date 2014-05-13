@@ -84,6 +84,13 @@ void MainWindow::selectDeleteFace()
     unselectDrag();
 }
 
+void MainWindow::selectOrderFace()
+{
+    setOptionsWidget(Options::ORDER_FACE);
+    Session::get()->setCommand(new OrderFace());
+    unselectDrag();
+}
+
 void MainWindow::selectInsertSegment()
 {
     setOptionsWidget(Options::INSERT_SEGMENT);
@@ -298,6 +305,13 @@ QWidget* createImageShapeOptions()
     return widget;
 }
 
+QWidget* createOrderFaceOptions()
+{
+    CustomDialog * widget = new CustomDialog("Face Order Options");
+    widget->addCheckBox("Move Up", &OrderFace::isUP,"");
+    return widget;
+}
+
 void MainWindow::createAllOptionsWidgets()
 {
     addOptionsWidget(new QWidget(), Options::NONE);
@@ -313,4 +327,5 @@ void MainWindow::createAllOptionsWidgets()
     addOptionsWidget(createImageShapeOptions(), Options::IMAGE_SHAPE);
     addOptionsWidget(createSetColorOptions() , Options::SET_COLOR);
     addOptionsWidget(createSewOptions() , Options::SEW);
+    addOptionsWidget(createOrderFaceOptions() , Options::ORDER_FACE);
 }

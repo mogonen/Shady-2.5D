@@ -25,6 +25,7 @@ void SpineShape::onClick(const Click& click){
         _lastV = 0;
 
     if (!pV){
+
         ShapeVertex_p pSV = addVertex(p);
         pV = new SVertex();
         pV->pSV = pSV;
@@ -88,7 +89,8 @@ MeshShape* SpineShape::buildMeshShape(bool istrianglejoints, MeshShape* pMS){
 
         //three type verts: Joint (val:3) / Bridge (val:2) / End (val:1)
         SVertex_p v = (*it);
-        if (v->val() > 2){ // a joint
+        if (v->val() > 2)
+        { // a joint
 
             SVertex_p* branches = sortLinks(v); //bok ye
 
@@ -96,16 +98,17 @@ MeshShape* SpineShape::buildMeshShape(bool istrianglejoints, MeshShape* pMS){
             int sz2 = issubdiv ? sz*2:sz;
             //Face_p fmid = istrianglejoints ? 0 : omesh->addFace(sz);
             Vertex_p vside[16];
-
             Point pmid;
             for(int i = 0; i < sz; i++)
             {
                 Point n = (branches[i]->P() - v->P()).normalize()*0.5 + (branches[(i-1+sz)%sz]->P() - v->P()).normalize()*0.5;
                 if (issubdiv){
                     vside[i*2] = pMS->addMeshVertex(v->P() + n*RAD*2);//fix it
-                    vside[i*2+1] = pMS->addMeshVertex(v->P() + (branches[i]->P() - v->P()).normalize()*RAD*2 );//fix it
-                    pmid = pmid + vside[i*2+1]->pData->P();
-                }else{
+                    //vside[i*2+1] = pMS->addMeshVertex(v->P() + (branches[i]->P() - v->P()).normalize()*RAD*2 );//fix it
+                    pmid = pmid + vside[i*2]->pData->P();
+                }
+                else
+                {
                     vside[i] = pMS->addMeshVertex(v->P() + n*RAD*2);//fix it
                     pmid = pmid + vside[i]->pData->P();
                 }
@@ -115,13 +118,14 @@ MeshShape* SpineShape::buildMeshShape(bool istrianglejoints, MeshShape* pMS){
             Vertex_p vmid = pMS->addMeshVertex(pmid);
             if (issubdiv)
             {
-                for(int i=0; i<sz; i++){
+
+                /*for(int i=0; i<sz; i++){
                     omesh->addQuad(vmid, vside[i*2], vside[(i*2+1)%sz2], vside[(i*2+2)%sz2]);
-                }
+                }*/
 
                 for(int i = 0; i< sz; i++ ){
                     Vertex_p v0 = vside[i*2];
-                    Vertex_p v1 = vside[i*2+1];
+                    Vertex_p v1 = vmid;//vside[i*2+1];
                     Vertex_p v2 = vside[(i*2+2)%sz2];
                     if (Vertex_p* vs1 = omap[edgeId(branches[i],v)]){
                         omesh->addQuad(v0, vs1[2], vs1[1], v1);
@@ -132,8 +136,9 @@ MeshShape* SpineShape::buildMeshShape(bool istrianglejoints, MeshShape* pMS){
                         omap[edgeId(v,branches[i])] = vs;
                     }
                 }
-
-            }else{
+            }
+            else
+            {
 
                 for(int i=0; i <sz; i++)
                     omesh->addTriangle(vmid, vside[i], vside[(i+1)%sz]);

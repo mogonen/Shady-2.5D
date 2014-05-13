@@ -124,11 +124,13 @@ void MainWindow::initTools()
     toolbar->addAction(extrudeFaceAct);
     toolbar->addAction(insertSegmentAct);
     toolbar->addAction(deleteFaceAct);
+    toolbar->addAction(orderFaceAct);
 
     toolbar->addSeparator();
     toolbar->addAction(assignPatternAct);
     toolbar->addAction(setFoldsAct);
     toolbar->addAction(setColorToolAct);
+    toolbar->addAction(setSewToolAct);
     toolbar->addAction(setSewToolAct);
 
     //init tool options dock
@@ -388,6 +390,10 @@ void MainWindow::createActions()
     deleteFaceAct->setShortcut(tr("Ctrl+D"));
     connect(deleteFaceAct, SIGNAL(triggered()), this, SLOT(selectDeleteFace()));
 
+    orderFaceAct = new QAction(tr("&Order Face"), this);
+    orderFaceAct->setShortcut(tr("Ctrl+O"));
+    connect(orderFaceAct, SIGNAL(triggered()), this, SLOT(selectOrderFace()));
+
 
     assignPatternAct = new QAction(tr("&Assign Pattern "), this);
     assignPatternAct->setShortcut(tr("Ctrl+P"));
@@ -424,6 +430,7 @@ void MainWindow::createActions()
     assignPatternAct->setActionGroup(toolset);
     setFoldsAct->setActionGroup(toolset);
     setColorToolAct->setActionGroup(toolset);
+    orderFaceAct->setActionGroup(toolset);
 
     //====SHAPE ACTIONS=============================================================
     shapeInsertTorusAct = new QAction(tr("Torus"), this);
@@ -867,6 +874,7 @@ void MainWindow::flipChannel(){
     if (cpuShadingChannelAct->isChecked())
         Session::get()->setChannel(CPU_SHADING);
 }
+
 
 #ifndef MODELING_MODE
 void updateGLSLLight(double x, double y, double z){

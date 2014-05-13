@@ -38,6 +38,8 @@ double          MeshPrimitive::TORUS_ARC        = 1.0;
 
 Sew::SewMode    Sew::SEW_MODE                   = Sew::SEW_EDGE;
 
+bool            OrderFace::isUP                 = true;
+
 std::map<Vertex_p, Corner_p> vertexToCornerMap;
 
 void MeshOperation::execOP(){
@@ -80,6 +82,9 @@ void MeshOperation::execOP(){
     }
         break;
 
+    case ORDER_FACE:
+        break;
+
     }
 
 }
@@ -97,7 +102,7 @@ bool MeshOperation::pickElement(){
         return false;
 
     //there might be a better way for this
-    if (_operation == EXTRUDE_EDGE || _operation == INSERT_SEGMENT || _operation == ASSIGN_PATTERN || _operation == SET_FOLDS)
+    if ( getSelectMode() == EDGE )
     {
         _pE = dynamic_cast<Edge_p>((Edge_p)obj->ref());
          if (!_pE)
@@ -105,7 +110,7 @@ bool MeshOperation::pickElement(){
          _pMS = ((MeshShape*)_pE->mesh()->caller());
          return true;
     }
-    else if (_operation == EXTRUDE_FACE || _operation == DELETE_FACE){
+    else if ( getSelectMode() == FACE){
         _pF = dynamic_cast<Face_p>((Face_p)obj->ref());
          if(!_pF)
              return false;
@@ -273,6 +278,23 @@ void Sew::sewVertex(ShapeVertex_p sv0, ShapeVertex_p sv1){
 
     sv0->outdate();
     _svcount++;
+}
+
+void OrderFace::execOP()
+{
+    _pMS->mesh()->faceOrder(_pF, _isup);
+}
+
+Command_p OrderFace::unexec()
+{
+    _pMS->mesh()->faceOrder(_pF, !_isup);
+    return 0;
+}
+
+Command_p OrderFace::exec(){
+    execOP();
+    _pMS->Renderable::update();
+    return new OrderFace(); // keep it going
 }
 
 /*
