@@ -1091,11 +1091,11 @@ void ImageShape::render(int mode)
 void Light::render(int mode) {
     Selectable::render(mode);
 
-    glColor3f(1.0, 1.0, 0);
+    glColor3f(1.0, 0.75, 0);
     glPointSize(8);
     glBegin(GL_POINTS);
-    glVertex2f(P().x, P().y);
-    //glVertex3f(P().x, P().y, 0.001);
+    //glVertex2f(P().x, P().y);
+    glVertex3f(P().x, P().y, 0.001);
     glEnd();
 }
 
