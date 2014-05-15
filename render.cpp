@@ -1094,7 +1094,11 @@ void Light::render(int mode) {
     glColor3f(1.0, 0.75, 0);
     glPointSize(8);
     glBegin(GL_POINTS);
+<<<<<<< HEAD
     //glVertex2f(P().x, P().y);
+=======
+//    glVertex2f(P().x, P().y);
+>>>>>>> 678e581be869c293f0bc98881cae07d1ebb843e7
     glVertex3f(P().x, P().y, 0.001);
     glEnd();
 }
