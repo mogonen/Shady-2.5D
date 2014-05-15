@@ -101,39 +101,39 @@ void GLWidget::preview()
 
     drawQuad();
 
-//    _pGLSLShader_R->release();
+    _pGLSLShader_R->release();
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_BLEND);
-//    _pGLSLShader_R->m_ShadeFBO->release();
+    _pGLSLShader_R->m_ShadeFBO->release();
 
-//    for(int i=0;i<2;i++)
-//    {
-//        _pGLSLShader_R->m_ShadeFBO->bind();
-//        _pGLSLShader_C->bind();
-//        _pGLSLShader_C->LoadShaperParameters(_pCanvas->_shapes);
+    for(int i=0;i<2;i++)
+    {
+        _pGLSLShader_R->m_ShadeFBO->bind();
+        _pGLSLShader_C->bind();
+        _pGLSLShader_C->LoadShaperParameters(_pCanvas->_shapes);
 
-//        _pGLSLShader_C->setUniformValue("width", (float)width());
-//        _pGLSLShader_C->setUniformValue("height", (float)height());
-//        _pGLSLShader_C->setUniformValue("toggle_ShaAmbCos", (int)(_renderFlags>>1)&7);
+        _pGLSLShader_C->setUniformValue("width", (float)width());
+        _pGLSLShader_C->setUniformValue("height", (float)height());
+        _pGLSLShader_C->setUniformValue("toggle_ShaAmbCos", (int)(_renderFlags>>1)&7);
 
-//        drawQuad();
+        drawQuad();
 
-//        _pGLSLShader_C->release();
-//        glDisable(GL_TEXTURE_2D);
-//        glDisable(GL_BLEND);
-//        _pGLSLShader_R->m_ShadeFBO->release();
-//    }
+        _pGLSLShader_C->release();
+        glDisable(GL_TEXTURE_2D);
+        glDisable(GL_BLEND);
+        _pGLSLShader_R->m_ShadeFBO->release();
+    }
 
-//    _pGLSLShader_C->bind();
-//    _pGLSLShader_C->LoadShaperParameters(_pCanvas->_shapes);
+    _pGLSLShader_C->bind();
+    _pGLSLShader_C->LoadShaperParameters(_pCanvas->_shapes);
 
-//    _pGLSLShader_C->setUniformValue("width", (float)width());
-//    _pGLSLShader_C->setUniformValue("height", (float)height());
-//    _pGLSLShader_C->setUniformValue("toggle_ShaAmbCos", (int)(_renderFlags>>1)&7);
+    _pGLSLShader_C->setUniformValue("width", (float)width());
+    _pGLSLShader_C->setUniformValue("height", (float)height());
+    _pGLSLShader_C->setUniformValue("toggle_ShaAmbCos", (int)(_renderFlags>>1)&7);
 
-//    drawQuad();
+    drawQuad();
 
-//    _pGLSLShader_C->release();
+    _pGLSLShader_C->release();
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_BLEND);
 
