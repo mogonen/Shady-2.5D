@@ -650,23 +650,23 @@ void main()
     new_shadow = accHeightInLayer(light_dir, true_position,label, Amb);
 //    new_shadow = accHeightInLayer(light_dir, true_position,label, Amb);
 
-//    if(toggle_ShaAmbCos == 0)
-//        center_cos = 0;
-//    else if(toggle_ShaAmbCos == 1)
-//        center_cos = center_cos;
-//    else if(toggle_ShaAmbCos == 2)
-//        center_cos = Amb;
-//    else if(toggle_ShaAmbCos == 4)
-//        center_cos = new_shadow;
-//    else if(toggle_ShaAmbCos == 3)
-//        center_cos = center_cos*Amb;
-//    else if(toggle_ShaAmbCos == 5)
-//        center_cos = center_cos*new_shadow*new_shadow;
-//    else if(toggle_ShaAmbCos == 6)
-//        center_cos=new_shadow*Amb;
-//    else if(toggle_ShaAmbCos == 7)
-//        center_cos=center_cos*new_shadow*Amb;
-center_cos=center_cos*new_shadow*Amb;
+    if(toggle_ShaAmbCos == 0)
+        center_cos = 0;
+    else if(toggle_ShaAmbCos == 1)
+        center_cos = center_cos;
+    else if(toggle_ShaAmbCos == 2)
+        center_cos = Amb;
+    else if(toggle_ShaAmbCos == 4)
+        center_cos = new_shadow;
+    else if(toggle_ShaAmbCos == 3)
+        center_cos = (center_cos+Amb)/2;
+    else if(toggle_ShaAmbCos == 5)
+        center_cos = (center_cos+new_shadow)/2;
+    else if(toggle_ShaAmbCos == 6)
+        center_cos=(new_shadow+Amb)/2;
+    else if(toggle_ShaAmbCos == 7)
+        center_cos=(center_cos+new_shadow+Amb)/3;
+//center_cos=center_cos*new_shadow*Amb;
 
     gl_FragColor = mix( texture2D(tex_DI_Dark, gl_TexCoord[0].st),  texture2D(tex_DI_Bright, gl_TexCoord[0].st), (center_cos-0.5)*2);
 //    gl_FragColor = vec4(rand(gl_TexCoord[0].st));

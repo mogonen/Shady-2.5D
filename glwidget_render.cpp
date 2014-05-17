@@ -88,8 +88,11 @@ void GLWidget::preview()
         _pGLSLShader_R->SetTextureToShader();
     }
 
-    float cur_ViewPort[4];
-    glGetFloatv(GL_VIEWPORT, cur_ViewPort);
+    //float cur_ViewPort[4];
+    //glGetFloatv(GL_VIEWPORT, cur_ViewPort);
+
+    //GLdouble* ortho = Session::get()->glWidget()->getOrthoView();
+
     //float asp_ratio = cur_ViewPort[3]/cur_ViewPort[2];
 
 //    _pGLSLShader_R->m_ShadeFBO->bind();
