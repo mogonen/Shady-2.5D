@@ -33,7 +33,7 @@ public:
     ImageShape(float w=1.0, float h=1.0);
     ~ImageShape();
 
-    void render(int mode);
+    void                        render(int mode);
     //void calAverageNormal();
 
     void                        InitializeTex();
@@ -48,9 +48,6 @@ public:
     ShapeType                   type() const {return IMAGE_SHAPE;}
 
     ImageShapeCustomDialog*     GetPenal(){return m_penal;}
-
-
-
 
     enum{NO_UPDATE = 0, UPDATE_SM = 1, UPDATE_DARK = 2, UPDATE_BRIGHT = 4, UPDATE_DISP = 8} texType;
     double                      m_alpha_th;
@@ -68,12 +65,12 @@ public:
 
     QString                     m_fileName[ACTIVE_CHANNELS];
 
-   /*
+    /*
     QString                     m_SMFile;
     QString                     m_DarkFile;
     QString                     m_BrightFile;
     QString                     m_DispFile;
-*/
+    */
 
     //shape map image will be saved for further use
     QImage                      m_SMimg;

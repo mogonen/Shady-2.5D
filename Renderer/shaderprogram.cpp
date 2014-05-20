@@ -741,7 +741,7 @@ void ShaderProgram::LoadShaperParameters(ShapeList Shapes)
 //        normalvalue[m] = QVector3D(Param.m_trueNormal/2,0.0)+QVector3D(0.5,0.5,0.0);
         normalvalue[m] = Param.m_trueNormal;
         centerDepth[m] = Param.m_centerDepth;
-        shadowcreator[m] = Param.m_shadowcreator;
+        shadowcreator[m] = true;//Param.m_shadowcreator;
         qDebug()<<"passed to shader center"<<m<<centerDepth[m];
         qDebug()<<"passed to shader normal"<<m<<normalvalue[m];
         BBox bbox;
