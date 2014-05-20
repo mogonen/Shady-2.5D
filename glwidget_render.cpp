@@ -95,7 +95,7 @@ void GLWidget::preview()
 
     //float asp_ratio = cur_ViewPort[3]/cur_ViewPort[2];
 
-//    _pGLSLShader_R->m_ShadeFBO->bind();
+    _pGLSLShader_R->m_ShadeFBO->bind();
     _pGLSLShader_R->bind();
     _pGLSLShader_R->LoadShaperParameters(_pCanvas->_shapes);
     _pGLSLShader_R->setUniformValue("width", (float)width());
