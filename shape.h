@@ -46,15 +46,15 @@ struct BBox{
 
 class SVCache{
 
-    ShapeVertex_p _sv, _pair, _parent;
-    DraggableList _childs;
+    ShapeVertex_p       _sv, _pair, _parent;
+    DraggableList       _childs;
 
-    Point  _P;
-    Normal _N;
+    Point               _P;
+    Normal              _N;
 
 public:
     SVCache(ShapeVertex_p sv);
-    void restore();
+    void                restore();
 };
 
 //should better have a ShapeVec instead
@@ -74,8 +74,8 @@ public:
 
     //ShapeVec           data;
 
-    //RGB                  value[ACTIVE_CHANNELS];
-    //Point                _P; //this could be a channel too?
+    //RGB                value[ACTIVE_CHANNELS];
+    //Point              _P; //this could be a channel too?
 
     inline Normal        N()    const {return  value[NORMAL_CHANNEL];}  //_N;}
     inline Normal_p      pN()   {return &value[NORMAL_CHANNEL];} //_N;}//;}
@@ -107,8 +107,8 @@ protected:
 
 public:
 
-    unsigned long       flag;
-    bool                isPositionControl, isNormalControl;
+    unsigned long        flag;
+    bool                 isPositionControl, isNormalControl;
 
     void                 setPair(ShapeVertex_p sv, bool isSetTangent =false , bool isSetNormal = false);
     void                 unpair();
@@ -136,7 +136,7 @@ private:
     friend class SVCache;
 
     Shape_p             _pShape;
-    //Point               _P;
+    //Point             _P;
     //Normal            _N;
 
     ControlNormal*      _pControlN;
@@ -174,12 +174,12 @@ public:
 class Shape:public Draggable, public ShapeBase{
 
     //Point                _t0;
-    Matrix3x3            _tM; //the transform matrix
-    Point                _piv;
+    Matrix3x3           _tM; //the transform matrix
+    Point               _piv;
 
-    unsigned int         _flags;
-    SVList               _vertices;
-    //Shader*            _pShader;
+    unsigned int        _flags;
+    SVList              _vertices;
+    //Shader*           _pShader;
 
 protected:
     virtual void        onDrag(const Vec2&){}
@@ -249,8 +249,13 @@ public:
     textureInfo         m_darkTex;
     textureInfo         m_smTex;
 
+    double              m_alpha_th;
+    double              m_stretch;
+    double              m_assignedDepth;
+    bool                m_shadowCreator;
+
     //protected:
-    ShaderParameters         _shaderParam;
+    ShaderParameters    _shaderParam;
 
 
 #endif

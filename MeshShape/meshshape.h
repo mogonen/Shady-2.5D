@@ -19,16 +19,15 @@ protected:
     Mesh_p _control;
 
     //overridden functions
-    void render(int mode = 0);
-    void onUpdate();
-    void onEnsureUpToDate();
-    void onDrag(ShapeVertex_p, const Vec2&);
+    void                    render(int mode = 0);
+    void                    onUpdate();
+    void                    onEnsureUpToDate();
+    void                    onDrag(ShapeVertex_p, const Vec2&);
 
     //void onOutdate();
-
-    friend class SpineShape;
-    friend class MeshOperation;
-    friend class MeshPrimitive;
+    friend class            SpineShape;
+    friend class            MeshOperation;
+    friend class            MeshPrimitive;
 
 public:
 
@@ -56,11 +55,11 @@ public:
     void test();
 };
 
-//Callbacks
-void                        onInsertEdge(Edge_p);
-void                        onUnsplitEdge(Corner_p pC);
-void                        onAddFace(Face_p);
-void                        initCurve(Corner_p);
+    //Callbacks
+    void                    onInsertEdge(Edge_p);
+    void                    onUnsplitEdge(Corner_p pC);
+    void                    onAddFace(Face_p);
+    void                    initCurve(Corner_p);
 
 //helper functions
 

@@ -77,7 +77,6 @@ void GLWidget::preview()
         renderShapes(DISPLACE_MODE);
         _pGLSLShader_R->m_DispFBO->release();
 
-
         _pCanvas->updateDepth();
         _pGLSLShader_R->m_LDFBO->bind();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

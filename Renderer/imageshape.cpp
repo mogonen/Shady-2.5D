@@ -4,8 +4,9 @@
 
 #include "imageshape.h"
 
+
 ImageShapeCustomDialog::ImageShapeCustomDialog(ImageShape* imgS, QString title, QWidget *parent, char* execLabel, void (*callback)(), bool * ischeck)
-    : CustomDialog(title, parent, execLabel,callback,ischeck)
+    :PreviewAttrDialog(imgS, title, parent, execLabel, callback, ischeck)
 {
     m_imgShape = imgS;
     m_imgShape->SetPenal(this);
@@ -14,15 +15,10 @@ ImageShapeCustomDialog::ImageShapeCustomDialog(ImageShape* imgS, QString title, 
 
 void ImageShapeCustomDialog::Initialize()
 {
-    m_returnWidth = this->addDblSpinBoxF("Width:", 0, 2, &m_imgShape->m_width, 2);
-    m_returnHeight = this->addDblSpinBoxF("Height:", 0,2, &m_imgShape->m_height, 2);
-    this->addDblSpinBoxF("AlphaTh:", 0, 1, &m_imgShape->m_alpha_th, 2);
-    this->addDblSpinBoxF("Strech:", -10, 10, &m_imgShape->m_stretch, 1);
-    this->addDblSpinBoxF("Depth:", 0, 1, &m_imgShape->m_assignedDepth, 2);
-    this->addDblSpinBoxF("Refract:", -1, 1, &m_imgShape->_shaderParam.m_alphaValue, 2);
-    this->addCheckBox("Shadow Creator:", &m_imgShape->_shaderParam.m_shadowcreator);
-    this->addCheckBox("Toggled Reflection:", &m_imgShape->_shaderParam.m_reflectToggled);
-    //this->addComboBox("Cur Texture", "ShapeMape|Dark|Bright|Label|Displacement", &m_imgShape->m_curTexture);
+    //m_returnWidth = this->addDblSpinBoxF("Width:", 0, 2, &m_imgShape->m_width, 2);
+    //m_returnHeight = this->addDblSpinBoxF("Height:", 0,2, &m_imgShape->m_height, 2);
+    PreviewAttrDialog::Initialize();
+
     QPushButton *texButton = new QPushButton("Set Texture");
     layoutNextElement->addWidget(texButton);
     connect(texButton,SIGNAL(clicked()),this,SLOT(LoadTextureImage()));
@@ -79,11 +75,6 @@ ImageShape::ImageShape(float w, float h)
     m_height = h;
     m_texUpdate = UPDATE_SM|UPDATE_DARK|UPDATE_BRIGHT;
     m_curTexture = 0;
-    m_alpha_th = 0.1;
-    m_stretch = 0;
-    m_assignedDepth = 0.5;
-    m_penal = NULL;
-    m_shadowCreator = true;
 }
 
 ImageShape::~ImageShape()
@@ -99,7 +90,8 @@ void ImageShape::getBBox(BBox& bbox) const{
     bbox.P[1].set(m_width, m_height); //_radX>0?_radX:-_radX, _radY>0?_radY:-_radY);
 }
 
-void ImageShape::onApplyT(const Matrix3x3& tM){
+void ImageShape::onApplyT(const Matrix3x3& tM)
+{
     Vec3 v = tM*Vec3(m_width, m_height, 0);
     m_width = v.x;
     m_height = v.y;

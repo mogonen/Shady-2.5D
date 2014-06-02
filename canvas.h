@@ -52,7 +52,7 @@ public:
 
     bool            readFromFile(const string &fname);
     QImage*         image() {return &_img;}
-    QRgb            getColor(const Point& p) const;
+    QRgb            getColor(const Point& p, double rad=0, int type=0) const;
 
     bool            hasTexture() const;
 

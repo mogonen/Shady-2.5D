@@ -50,12 +50,11 @@ ShapeVertex::ShapeVertex(Shape_p pS, bool isP, bool isN):ControlPoint(&_P), Shap
     value[BRIGHT_CHANNEL]    = _pShape->value[BRIGHT_CHANNEL];
     value[DARK_CHANNEL]      = _pShape->value[DARK_CHANNEL];
     value[DEPTH_CHANNEL]     = _pShape->value[DEPTH_CHANNEL];
-    //value[ALPHA_CHANNEL].set(1.0,1.0,1.0);
     isNormalControl = isN;
     if (isN){
         adopt(pControlN());
     }
-
+    //value[ALPHA_CHANNEL].set(1.0,1.0,1.0);
 #endif
 
     flag = 0x00;
@@ -202,7 +201,6 @@ void SVCache::restore(){
             _sv->adopt(child);
         }
     }
-
     //_sv->isNormalControl = _sv->isParent();
 }
 
@@ -246,6 +244,13 @@ Shape::Shape():Draggable(false, &_P), ShapeBase(true)
 {
     _flags = 0;
     _tM.identity();
+
+#ifndef MODELING_MODE
+    m_alpha_th      = 0.1;
+    m_stretch       = 0;
+    m_assignedDepth = 0.5;
+    m_shadowCreator = true;
+#endif
 
 }
 
@@ -376,7 +381,6 @@ Point ControlNormal::P() const
 void ControlNormal::onDrag(const Point &t, int button){
     _pShapeBase->dragNormal(t);
 }
-
 
 void SBCache::set(ShapeBase_p pSB){
     _pSB = pSB;

@@ -29,7 +29,8 @@ HEADERS += glwidget.h \
     ref.h \
     meshshape/curvededge.h \
     meshshape/pattern.h \
-    EPSPlot.h
+    EPSPlot.h \
+    Renderer/PreviewAttrDialog.h
 
 SOURCES += glwidget.cpp \
     main.cpp \
@@ -64,7 +65,8 @@ SOURCES += glwidget.cpp \
     fileio_write.cpp \
     fileio_read.cpp \
     meshshape/patch.cpp \
-    EPSExporter.cpp
+    EPSExporter.cpp \
+    Renderer/previewattr.cpp
 
 
 QT           += opengl widgets
@@ -97,7 +99,7 @@ FACIAL_SHAPE{
     FacialShape/symmetryquad.cpp \
     FacialShape/featurequads.cpp \
     FacialShape/shadingcolorextractor.cpp
-}
+ }
 
 
 #MODELING_MODE{
@@ -113,7 +115,8 @@ SOURCES +=
     Renderer/renderoptionspenal.h \
     Renderer/imageshape.h \
     Renderer/layernormalcontrol.h \
-    Renderer/framebufferwrapper.h
+    Renderer/framebuffe
+rwrapper.h
 
     SOURCES += Renderer/qsliderspinbox.cpp \
     Renderer/shaderprogram.cpp \

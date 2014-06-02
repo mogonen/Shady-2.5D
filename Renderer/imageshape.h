@@ -5,10 +5,10 @@
 #include <qgl.h>
 
 #include "./Shape.h"
-#include "./customdialog.h"
+#include "./PreviewAttrDialog.h"
 
 class ImageShape;
-class ImageShapeCustomDialog : public CustomDialog
+class ImageShapeCustomDialog : public PreviewAttrDialog
 {
     Q_OBJECT
 public:
@@ -25,7 +25,6 @@ private:
     QDoubleSpinBox*             m_returnWidth;
     QDoubleSpinBox*             m_returnHeight;
 };
-
 
 class ImageShape : public Shape
 {
@@ -46,18 +45,14 @@ public:
     void                        onApplyT(const Matrix3x3& tM);
 
     ShapeType                   type() const {return IMAGE_SHAPE;}
-
     ImageShapeCustomDialog*     GetPenal(){return m_penal;}
 
     enum{NO_UPDATE = 0, UPDATE_SM = 1, UPDATE_DARK = 2, UPDATE_BRIGHT = 4, UPDATE_DISP = 8} texType;
-    double                      m_alpha_th;
-    double                      m_stretch;
-    double                      m_assignedDepth;
 
     double                      m_width;
     double                      m_height;
     int                         m_texUpdate;
-    bool                        m_shadowCreator;
+
     GLuint                      m_texSM;
     GLuint                      m_texDark;
     GLuint                      m_texBright;
@@ -71,8 +66,8 @@ public:
     QString                     m_BrightFile;
     QString                     m_DispFile;
     */
-
     //shape map image will be saved for further use
+
     QImage                      m_SMimg;
     int                         m_curTexture;
     ImageShapeCustomDialog*     m_penal;

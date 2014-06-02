@@ -178,11 +178,24 @@ void ImagePlane::render()
     glDisable(GL_TEXTURE_2D);
 }
 
-QRgb ImagePlane::getColor(const Point &p) const{
+QRgb ImagePlane::getColor(const Point &p, double rad, int type) const{
+
     double w = 2.0*_aspect;
     double h = 2.0;
     int x = (int)(_img.width()*(p.x + _aspect)/w);
     int y = (int)(_img.height()*(p.y + 1.0)/h);
+
+    int ww = _img.width()*rad;
+    int hh = _img.height()*rad;
+
+    /*for(int j = 0; j < hh; j++)
+    {
+        for(int i = 0; i < ww; i++)
+        {
+            i + j;
+        }
+    }*/
+
     return  _img.pixel(x, y);
 }
 
