@@ -77,10 +77,12 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
 
 
     m_AmbSliderSpinbox = new QSliderSpinBox();
-    m_AmbSliderSpinbox->SetRatio(10000);
-    m_AmbSliderSpinbox->SetChangeRange(-50000, 50000);
+//    m_AmbSliderSpinbox->SetRatio(10000);
+//    m_AmbSliderSpinbox->SetChangeRange(-50000, 50000);
+    m_AmbSliderSpinbox->SetRatio(1000);
+    m_AmbSliderSpinbox->SetChangeRange(0, 1000);
     m_AmbSliderSpinbox->SetChangeStep(0.01);
-    m_AmbValue = new QLabel("Shadow Size");
+    m_AmbValue = new QLabel("Min Value");
 
 
     m_LODSliderSpinbox = new QSliderSpinBox();
@@ -99,7 +101,7 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
     m_CartoonShaSpinbox->SetRatio(1000);
     m_CartoonShaSpinbox->SetChangeRange(1, 1000);
     m_CartoonShaSpinbox->SetChangeStep(0.01);
-    m_CartoonShaValue = new QLabel("Cartoon");
+    m_CartoonShaValue = new QLabel("Max Value");
 
 
     m_SurfDispSpinbox = new QSliderSpinBox();

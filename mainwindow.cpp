@@ -852,7 +852,8 @@ void MainWindow::insertEllipse(){
     Session::get()->exec(so);
 }
 
-void MainWindow::flipChannel(){
+void MainWindow::flipChannel()
+{
     if (darkChannelAct->isChecked())
         Session::get()->setChannel(DARK_CHANNEL);
 
@@ -874,7 +875,6 @@ void MainWindow::flipChannel(){
     if (cpuShadingChannelAct->isChecked())
         Session::get()->setChannel(CPU_SHADING);
 }
-
 
 #ifndef MODELING_MODE
 void updateGLSLLight(double x, double y, double z){

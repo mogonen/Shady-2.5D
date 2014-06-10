@@ -35,10 +35,6 @@ uniform int shadowcreator[10];
 
 in vec4 thePosition;
 
-
-
-
-
 bool findLayerIntersect(in vec3 Sp, in vec3 Sv, in int LayerID, out vec3 Ip)
 {
     vec3 l0 = Sp;
@@ -215,8 +211,11 @@ bool checkOnline(vec2 v, vec2 w, vec2 p, float range)
 
 vec3 projectOnLayerInd(in vec3 Pp, in int LayerInd, out float height)
 {
-    vec3 LayerNormal = normalValues[LayerInd];
-    vec3 LayerCenter = vec3(centerDepth[LayerInd].r,centerDepth[LayerInd].g,centerDepth[LayerInd].b);
+   vec3 LayerNormal = normalValues[LayerInd];
+   vec3 LayerCenter = vec3(centerDepth[LayerInd].r,centerDepth[LayerInd].g,centerDepth[LayerInd].b);
+
+//    vec3 LayerNormal = vec3(0,0,1);
+//    vec3 LayerCenter = vec3(0.5,0.5,0.5);
     float dist = dot(Pp-LayerCenter, LayerNormal);
     height = dist;
     return Pp-dist*LayerNormal;
@@ -249,7 +248,6 @@ void getCurLabelDepth(in vec3 p, out int label, out float depth)
     label = int(label_depth.b*255+0.1);
     depth = label_depth.g;
 }
-
 
 float colorTest(vec3 Pp, int Tlabel)
 {
@@ -299,7 +297,6 @@ float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
         //projected point position
         float pHeight; //point distance to this layer plain
         vec3 Ppp = projectOnLayerInd(Pp, LayerInd, pHeight);
-
 
         float old_length = length(Lpp-Ppp);
         vec3 plight_direct = (Lpp-Ppp)/old_length;
@@ -495,19 +492,12 @@ float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
 
     max_shadow_strength = thin_film/(shadow_strength+thin_film);
 
-//    max_shadow_strength = shadow_strength;
     float Sha ;
 
-    float c_center = 0.3*amb_strength-0.7;
-    float c_delta = Cartoon_sha;
+    float b=Cartoon_sha;
+    float a=amb_strength;
 
-    float b = c_center+c_delta;
-    float a = c_center-c_delta;
-//    if(a>0)
-//        a = 0;
-
-    if(Cartoon_sha!=0)
-//        Sha=(b-2*max_shadow_strength-a)/(b-a);
+   if(b-a>0)
         Sha=(max_shadow_strength-a)/(b-a);
     else
         Sha = max_shadow_strength;
@@ -517,7 +507,7 @@ float accHeightInLayer(vec3 Lp, vec3 Pp, int Plabel, float amb)
     if(Sha>1.0)
         Sha=1.0;
     return (Sha);
-//    return int_length/2;
+
 }
 
 
@@ -539,15 +529,12 @@ void GetCenterCos(in vec3 thePos, in int LayerInd, out float center_cos)
 //     pure_cos = (dot(est_normal.rg, (light_dir_v.rg)))*abs(dot(light_dir_v,layer_normal));
 //    pure_cos = (dot(raw_SM.rg, (light_dir_n.rg)))+length(light_dir_n);
 //    pure_cos = dot(light_dir_n.rg, est_normal.rg) + light_dir_n.b*(1-est_normal.r*est_normal.r/2-est_normal.g*est_normal.g/2);
-    pure_cos = dot(light_dir_n, est_normal);
+    pure_cos = 0.5*(dot(light_dir_n, est_normal)+1);
 
-    float c_center=0.3*amb_strength-0.5;
-    float c_delta=Cartoon_sha;
+    float b=Cartoon_sha;
+    float a=amb_strength;
 
-    float b=c_center+c_delta;
-    float a=c_center-c_delta;
-
-    if(Cartoon_sha!=0)
+    if(b-a>0)
         center_cos=(pure_cos-a)/(b-a);
     else
         center_cos = pure_cos;
@@ -556,6 +543,7 @@ void GetCenterCos(in vec3 thePos, in int LayerInd, out float center_cos)
         center_cos=0.0;
     if(center_cos>1.0)
         center_cos=1.0;
+
 }
 //function to calculate ambient occlusion effect of image
 void AmbientShadow(in vec4 center, out float Amb, int layerIndex)
@@ -573,10 +561,9 @@ void AmbientShadow(in vec4 center, out float Amb, int layerIndex)
         for(i=-(filter_size);i<(filter_size)+step/2.0;i+=step)
             for(j=-(filter_size);j<(filter_size)+step/2.0;j+=step)
             {
-
                 vec4 label_depth = texture2D(tex_LD, vec2(gl_TexCoord[0].s+i/width, gl_TexCoord[0].t+j/height));
                 int label = int(label_depth.b*255);
-                if(label==layerIndex)
+                if(label == layerIndex)
                 {
                     vec4 neighbor = texture2D(tex_SM, vec2(gl_TexCoord[0].s+i/width, gl_TexCoord[0].t+j/height));
                     if((i>step/2.0||i<-step/2.0)&&(j>step/2.0||j<-step/2.0))
@@ -587,16 +574,14 @@ void AmbientShadow(in vec4 center, out float Amb, int layerIndex)
                     }
                 }
             }
-
     }
-    Amb = diff*center.a/filter_sum;
+    Amb =1.5*(diff*center.a/filter_sum +0.5);
+            Amb=pow(Amb,0.5);
 
-    float c_center= 0.3*amb_strength-0.5;
-    float c_delta=Cartoon_sha;
+    float b=Cartoon_sha;
+    float a=amb_strength;
 
-    float b=c_center+c_delta;
-    float a=c_center-c_delta;
-    if(Cartoon_sha!=0)
+   if(b-a>0)
         Amb=(Amb-a)/(b-a);
     if(Amb<0.0)
         Amb=0.0;
@@ -645,73 +630,83 @@ void main()
     float h;
     vec3 pLight1 = projectOnLayerInd(light_dir, 1, h);
     vec3 pLight2 = projectOnLayerInd(light_dir, 2, h);
-
-
     new_shadow = accHeightInLayer(light_dir, true_position,label, Amb);
-//    new_shadow = accHeightInLayer(light_dir, true_position,label, Amb);
 
-//    if(toggle_ShaAmbCos == 0)
-//        center_cos = 0;
-//    else if(toggle_ShaAmbCos == 1)
-//        center_cos = center_cos;
-//    else if(toggle_ShaAmbCos == 2)
-//        center_cos = Amb;
-//    else if(toggle_ShaAmbCos == 4)
-//        center_cos = new_shadow;
-//    else if(toggle_ShaAmbCos == 3)
-//        center_cos = (center_cos+Amb)/2;
-//    else if(toggle_ShaAmbCos == 5)
-//        center_cos = (center_cos+new_shadow)/2;
-//    else if(toggle_ShaAmbCos == 6)
-//        center_cos=(new_shadow+Amb)/2;
-//    else if(toggle_ShaAmbCos == 7)
-//        center_cos=(center_cos+new_shadow+Amb)/3;
-center_cos=new_shadow;
+    //    new_shadow = accHeightInLayer(light_dir, true_position,label, Amb);
+    //    if(toggle_ShaAmbCos == 0)
+    //        center_cos = 0;
+    //    else if(toggle_ShaAmbCos == 1)
+    //        center_cos = center_cos;
+    //    else if(toggle_ShaAmbCos == 2)
+    //        center_cos = Amb;
+    //    else if(toggle_ShaAmbCos == 4)
+    //        center_cos = new_shadow;
+    //    else if(toggle_ShaAmbCos == 3)
+    //        center_cos = (center_cos+Amb)/2;
+    //    else if(toggle_ShaAmbCos == 5)
+    //        center_cos = (center_cos+new_shadow)/2;
+    //    else if(toggle_ShaAmbCos == 6)
+    //        center_cos=(new_shadow+Amb)/2;
+    //    else if(toggle_ShaAmbCos == 7)
+    //        center_cos=(center_cos+new_shadow+Amb)/3;
 
-    gl_FragColor = mix( texture2D(tex_DI_Dark, gl_TexCoord[0].st),  texture2D(tex_DI_Bright, gl_TexCoord[0].st), (center_cos-0.5)*2);
-//    gl_FragColor = texture2D(tex_SM, gl_TexCoord[0].st).bbbb;
+    center_cos = (1.0*center_cos+1.0*new_shadow+1*Amb)/3.;
+
+
+    //center_cos = center_cos;
+    //center_cos = new_shadow;
+
+    //gl_FragColor = mix( texture2D(tex_DI_Dark, gl_TexCoord[0].st),  texture2D(tex_DI_Bright, gl_TexCoord[0].st), (center_cos-0.5)*2);
+    //
+
+    //----- HERE we write the color from normal for debugging purposes. It's all 0
+    gl_FragColor = vec4(normalValues[label].r, normalValues[label].g, normalValues[label].b, 1.0);
+
+    //gl_FragColor = vec4(centerDepth[label].r,centerDepth[label].g,centerDepth[label].b,1.0);
+
+    //    gl_FragColor = texture2D(tex_SM, gl_TexCoord[0].st).bbbb;
 
     //    gl_FragColor = vec4(rand(gl_TexCoord[0].st));
 
-//    gl_FragColor = vec4(1.0,0.0,1.0,1.0);
+    //    gl_FragColor = vec4(1.0,0.0,1.0,1.0);
 
 
-//    vec3 Ppp =  projectOnLayerInd(thePosition.rgb, 1);
-//    if(Ppp.x<-1||Ppp.x>1||Ppp.y<-1||Ppp.y>1)
-//        gl_FragColor = vec4(1.0,1.0,0.0,1.0);
-//    else
-//        gl_FragColor = (thePosition+1)/2;
+    //    vec3 Ppp =  projectOnLayerInd(thePosition.rgb, 1);
+    //    if(Ppp.x<-1||Ppp.x>1||Ppp.y<-1||Ppp.y>1)
+    //        gl_FragColor = vec4(1.0,1.0,0.0,1.0);
+    //    else
+    //        gl_FragColor = (thePosition+1)/2;
 
 
-//    gl_FragColor = vec4(vec3(((thePosition.rg+1)/2-gl_TexCoord[0].st),0.0),1.0);
-//    gl_FragColor = texture2D(tex_SM,(thePosition.rg+1)/2);
+    //    gl_FragColor = vec4(vec3(((thePosition.rg+1)/2-gl_TexCoord[0].st),0.0),1.0);
+    //    gl_FragColor = texture2D(tex_SM,(thePosition.rg+1)/2);
 
-//      gl_FragColor = accHeightInLayer(-vec3(light_dir.rg,-light_dir.b), vec3(thePosition.rg,0.0), 1);
-//    float ht = dot(-vec3(light_dir.rg,-light_dir.b), thePosition.rgb);
-//    gl_FragColor = vec4((getShapeMapNormal(thePosition.rg)/2+0.5),1.0);
+    //      gl_FragColor = accHeightInLayer(-vec3(light_dir.rg,-light_dir.b), vec3(thePosition.rg,0.0), 1);
+    //    float ht = dot(-vec3(light_dir.rg,-light_dir.b), thePosition.rgb);
+    //    gl_FragColor = vec4((getShapeMapNormal(thePosition.rg)/2+0.5),1.0);
 
-//    vec3 pLight = projectOnLayerInd(-vec3(light_dir.rg,-light_dir.b), 1);
-//    if(checkEqual(pLight.xy, thePosition.rg,0.01))
-//            gl_FragColor = vec4(0.5,0.5,0.5,1.0);
-//    if(checkOnline(pLight.xy, vec2(0.0,0.0), thePosition.rg,0.01))
-//        gl_FragColor = vec4(0.5,0.5,0.0,1.0);
+    //    vec3 pLight = projectOnLayerInd(-vec3(light_dir.rg,-light_dir.b), 1);
+    //    if(checkEqual(pLight.xy, thePosition.rg,0.01))
+    //            gl_FragColor = vec4(0.5,0.5,0.5,1.0);
+    //    if(checkOnline(pLight.xy, vec2(0.0,0.0), thePosition.rg,0.01))
+    //        gl_FragColor = vec4(0.5,0.5,0.0,1.0);
 
-//    pLight = projectOnLayerInd(-light_dir, 2);
-//    if(checkEqual(pLight.xy, thePosition.rg,0.01))
-//            gl_FragColor = vec4(0.5,0.5,0.5,1.0);
-//    if(checkOnline(pLight.xy, vec2(0.0,0.0), thePosition.rg,0.01))
-//        gl_FragColor = vec4(0,0.5,0.5,1.0);
+    //    pLight = projectOnLayerInd(-light_dir, 2);
+    //    if(checkEqual(pLight.xy, thePosition.rg,0.01))
+    //            gl_FragColor = vec4(0.5,0.5,0.5,1.0);
+    //    if(checkOnline(pLight.xy, vec2(0.0,0.0), thePosition.rg,0.01))
+    //        gl_FragColor = vec4(0,0.5,0.5,1.0);
 
-//    gl_FragColor = vec4((thePosition/2+0.5).rg,0.0,1.0);
-//    gl_FragColor = gl_TexCoord[0];
-//    gl_FragColor = vec4(vec3(dot(-light_dir, projectOnLayerInd(-light_dir, 1))),1.0);
+    //    gl_FragColor = vec4((thePosition/2+0.5).rg,0.0,1.0);
+    //    gl_FragColor = gl_TexCoord[0];
+    //    gl_FragColor = vec4(vec3(dot(-light_dir, projectOnLayerInd(-light_dir, 1))),1.0);
 
-//    int label = int(texture2D(tex_LD, gl_TexCoord[0].st).b*255);
-//    gl_FragColor = vec4(normalValues[label],1.0);
+    //    int label = int(texture2D(tex_LD, gl_TexCoord[0].st).b*255);
+    //    gl_FragColor = vec4(normalValues[label],1.0);
 
-//    gl_FragColor = vec4(texture2D(tex_LD, gl_TexCoord[0].st).b);
+    //    gl_FragColor = vec4(texture2D(tex_LD, gl_TexCoord[0].st).b);
 
-//        gl_FragColor = vec4(1.0)*Sha;
-    //    gl_FragColor = vec4(1.0)*Spe;
-//    gl_FragColor = vec4(1.0,1.0,0.0,1.0);
+    //        gl_FragColor = vec4(1.0)*Sha;
+        //    gl_FragColor = vec4(1.0)*Spe;
+    //    gl_FragColor = vec4(1.0,1.0,0.0,1.0);
 }

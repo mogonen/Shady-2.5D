@@ -214,8 +214,6 @@ void GLWidget::renderCanvas()
 #endif
 
 
-
-
 void GLWidget::renderShapes(int mode){
     FOR_ALL_CONST_ITEMS(ShapeList,_pCanvas->_shapes){ //need to add layers
         Shape_p s = *it;
@@ -236,7 +234,7 @@ void GLWidget::render(Shape_p pShape, int mode)
 
     apply(pShape->getTransform());
     glMultMatrixd((double*)&tM);
-\
+
     pShape->Shape::render(mode);
     pShape->render(mode);
 
@@ -272,9 +270,6 @@ void GLWidget::apply(const Matrix3x3& M){
     tM[14] = 0;
     tM[15] = 1;
 }
-
-
-
 
 /*
 void GLWidget::renderCanvas()

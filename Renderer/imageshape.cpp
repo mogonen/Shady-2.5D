@@ -10,7 +10,7 @@ ImageShapeCustomDialog::ImageShapeCustomDialog(ImageShape* imgS, QString title, 
 {
     m_imgShape = imgS;
     m_imgShape->SetPenal(this);
-    Initialize();
+    //Initialize();
 }
 
 void ImageShapeCustomDialog::Initialize()
