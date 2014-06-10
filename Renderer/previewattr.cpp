@@ -3,6 +3,7 @@
 PreviewAttrDialog::PreviewAttrDialog(Shape_p pShape, QString title, QWidget *parent, char* execLabel, void (*callback)(), bool * ischeck):CustomDialog(title, parent, execLabel,callback,ischeck)
 {
     _pShape = pShape;
+    Initialize();
 }
 
 void PreviewAttrDialog::Initialize()

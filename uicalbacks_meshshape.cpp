@@ -16,6 +16,14 @@ void exec(){
     Session::get()->exec();
 }
 
+QWidget* createShapePreviewAttrWidget(Shape* pShape){
+#ifndef MODELING_MODE
+    CustomDialog * widget = new PreviewAttrDialog(pShape, "Shape Attr"); //, 0, "Set Texture", ImgShape->LoadTextureImage());
+    QObject::connect(widget,SIGNAL(ValueUpdated()),Session::get()->glWidget(), SLOT(updateGLSM()));
+    return widget;
+#endif
+}
+
 QWidget* createAttrWidget(Shape_p pShape)
 {    
     //widget->addSpinBox("test:", 1, 8, &MeshShape::GRID_N, 1, "Rows");
@@ -36,12 +44,14 @@ void createGrid()
 {
     Session::get()->setCommand(new MeshPrimitive(MeshPrimitive::GRID));
     Session::get()->exec();
+    Session::get()->mainWindow()->addAttrWidget(createShapePreviewAttrWidget(Session::get()->theShape()), (void*)Session::get()->theShape());
 }
 
 void createNGon()
 {
     Session::get()->setCommand(new MeshPrimitive(MeshPrimitive::TWO_NGON));
     Session::get()->exec();
+
 }
 
 void createTorus(){
