@@ -573,9 +573,10 @@ void AmbientShadow(in vec4 center, out float Amb, int layerIndex)
         for(i=-(filter_size);i<(filter_size)+step/2.0;i+=step)
             for(j=-(filter_size);j<(filter_size)+step/2.0;j+=step)
             {
+
                 vec4 label_depth = texture2D(tex_LD, vec2(gl_TexCoord[0].s+i/width, gl_TexCoord[0].t+j/height));
                 int label = int(label_depth.b*255);
-                if(label == layerIndex)
+                if(label==layerIndex)
                 {
                     vec4 neighbor = texture2D(tex_SM, vec2(gl_TexCoord[0].s+i/width, gl_TexCoord[0].t+j/height));
                     if((i>step/2.0||i<-step/2.0)&&(j>step/2.0||j<-step/2.0))
@@ -586,6 +587,7 @@ void AmbientShadow(in vec4 center, out float Amb, int layerIndex)
                     }
                 }
             }
+
     }
     Amb = diff*center.a/filter_sum;
 
@@ -648,24 +650,24 @@ void main()
     new_shadow = accHeightInLayer(light_dir, true_position,label, Amb);
 //    new_shadow = accHeightInLayer(light_dir, true_position,label, Amb);
 
-    if(toggle_ShaAmbCos == 0)
-        center_cos = 0;
-    else if(toggle_ShaAmbCos == 1)
-        center_cos = center_cos;
-    else if(toggle_ShaAmbCos == 2)
-        center_cos = Amb;
-    else if(toggle_ShaAmbCos == 4)
-        center_cos = new_shadow;
-    else if(toggle_ShaAmbCos == 3)
-        center_cos = (center_cos+Amb)/2;
-    else if(toggle_ShaAmbCos == 5)
-        center_cos = (center_cos+new_shadow)/2;
-    else if(toggle_ShaAmbCos == 6)
-        center_cos=(new_shadow+Amb)/2;
-    else if(toggle_ShaAmbCos == 7)
-        center_cos=(center_cos+new_shadow+Amb)/3;
+//    if(toggle_ShaAmbCos == 0)
+//        center_cos = 0;
+//    else if(toggle_ShaAmbCos == 1)
+//        center_cos = center_cos;
+//    else if(toggle_ShaAmbCos == 2)
+//        center_cos = Amb;
+//    else if(toggle_ShaAmbCos == 4)
+//        center_cos = new_shadow;
+//    else if(toggle_ShaAmbCos == 3)
+//        center_cos = (center_cos+Amb)/2;
+//    else if(toggle_ShaAmbCos == 5)
+//        center_cos = (center_cos+new_shadow)/2;
+//    else if(toggle_ShaAmbCos == 6)
+//        center_cos=(new_shadow+Amb)/2;
+//    else if(toggle_ShaAmbCos == 7)
+//        center_cos=(center_cos+new_shadow+Amb)/3;
+center_cos=new_shadow;
 
-   //center_cos = (center_cos+new_shadow+Amb)/3;
     gl_FragColor = mix( texture2D(tex_DI_Dark, gl_TexCoord[0].st),  texture2D(tex_DI_Bright, gl_TexCoord[0].st), (center_cos-0.5)*2);
 //    gl_FragColor = texture2D(tex_SM, gl_TexCoord[0].st).bbbb;
 

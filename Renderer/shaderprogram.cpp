@@ -59,6 +59,7 @@ ShaderProgram::~ShaderProgram()
         delete m_DispFBO;
 }
 
+
 void ShaderProgram::GrabResultsTes()
 {
     //    glBindTexture(GL_TEXTURE_2D, m_resTexture);
@@ -237,6 +238,8 @@ void ShaderProgram::ReloadShader()
     LoadShader();
     SetParametersToShader();
 }
+
+
 
 void ShaderProgram::LoadShader(const QString& vshader,const QString& fshader)
 {
@@ -730,19 +733,15 @@ void ShaderProgram::LoadShaperParameters(ShapeList Shapes)
     //position 0 is (0,0,0),
     //since shader takes 0 as background
     int m=1;
-
     FOR_ALL_CONST_ITEMS(ShapeList, Shapes)
     {
         ShaderParameters Param = (*it)->getShaderParam();
-        refvalue[m]     = Param.m_alphaValue;
-        reflToggled[m]  = Param.m_reflectToggled;
-
-//      normalvalue[m] = QVector3D(Param.m_trueNormal/2,0.0)+QVector3D(0.5,0.5,0.0);
-
-        normalvalue[m]  = Param.m_trueNormal;
-        centerDepth[m]  = Param.m_centerDepth;
+        refvalue[m] = Param.m_alphaValue;
+        reflToggled[m] = Param.m_reflectToggled;
+//        normalvalue[m] = QVector3D(Param.m_trueNormal/2,0.0)+QVector3D(0.5,0.5,0.0);
+        normalvalue[m] = Param.m_trueNormal;
+        centerDepth[m] = Param.m_centerDepth;
         shadowcreator[m] = true;//Param.m_shadowcreator;
-
         qDebug()<<"passed to shader center"<<m<<centerDepth[m];
         qDebug()<<"passed to shader normal"<<m<<normalvalue[m];
         BBox bbox;
@@ -754,13 +753,12 @@ void ShaderProgram::LoadShaperParameters(ShapeList Shapes)
             boundingbox[m*4+i] = bb[i];//Param.m_boundingbox[i];
         m++;
     }
-
     this->setUniformValueArray("refValues", refvalue, 10,1);
     this->setUniformValueArray("normalValues", normalvalue, 10);
     this->setUniformValueArray("centerDepth", centerDepth, 10);
     this->setUniformValueArray("boundingbox", boundingbox, 40,1);
-    this->setUniformValueArray("shadowcreator", shadowcreator,10);
-    this->setUniformValueArray("refToggled", reflToggled,10);
+    this->setUniformValueArray("shadowcreator",shadowcreator,10);
+    this->setUniformValueArray("refToggled",reflToggled,10);
 
 }
 

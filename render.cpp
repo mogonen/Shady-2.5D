@@ -68,6 +68,7 @@ inline bool selectionColor(Selectable_p pSel){
 
 void SampleShape::render(int mode)
 {
+
     glColor3f(1.0, 0, 0);
     glBegin(GL_POLYGON);
     /*for(int i = 0; i < 4; i++)
@@ -78,6 +79,7 @@ void SampleShape::render(int mode)
 void ControlPoint::render(int mode){
 
     Selectable::render(mode);
+
     if (!Session::isRender(NORMALS_ON) && isChild() && !isActive())
         return;
 
@@ -383,6 +385,8 @@ void MeshShape::render(int mode)
                 (*it)->pData->render(mode);
         }
     }
+
+
 }
 
 void Patch::render(int mode){
@@ -522,6 +526,9 @@ void Patch::render(int mode){
         }
     }
 }
+
+
+
 
 /*void Patch::render(int mode){
 
@@ -877,8 +884,8 @@ void ImageShape::InitializeTex()
             //calAverageNormal();
         }
         m_texSM = Session::get()->glWidget()->bindTexture(loadedImage, GL_TEXTURE_2D);
-       /* if(GetPenal())
-            GetPenal()->SetNewSize(m_width,m_height);*/
+        if(GetPenal())
+            GetPenal()->SetNewSize(m_width,m_height);
     }
 
     if(m_texUpdate&UPDATE_DARK)
@@ -932,10 +939,9 @@ void ImageShape::render(int mode)
     glBindTexture(GL_TEXTURE_2D, m_texSM);
     glDisable(GL_TEXTURE0);
     Session::get()->glWidget()->glActiveTexture(GL_TEXTURE0+1);
-
     //---
-    //if(mode&DEFAULT_MODE||mode&DRAG_MODE&&!(mode&SM_MODE||mode&DARK_MODE||mode&BRIGHT_MODE||mode&LABELDEPTH_MODE))
 
+    //if(mode&DEFAULT_MODE||mode&DRAG_MODE&&!(mode&SM_MODE||mode&DARK_MODE||mode&BRIGHT_MODE||mode&LABELDEPTH_MODE))
     if( mode < SM_MODE)
     {
         int channel = Session::get()->channel();
@@ -997,11 +1003,10 @@ void ImageShape::render(int mode)
     //qDebug()<<layerNormal;
     double delta_LB2RT;
     double delta_LT2BR;
-
     if(layerNormal.z()>0.1)
     {
-        delta_LB2RT = -(layerNormal.x()*m_width + layerNormal.y()*m_height)/layerNormal.z();
-        delta_LT2BR = -(layerNormal.x()*m_width - layerNormal.y()*m_height)/layerNormal.z();
+        delta_LB2RT = -(layerNormal.x()*m_width+layerNormal.y()*m_height)/layerNormal.z();
+        delta_LT2BR = -(layerNormal.x()*m_width-layerNormal.y()*m_height)/layerNormal.z();
     }
     else
     {
@@ -1021,26 +1026,26 @@ void ImageShape::render(int mode)
     brf = CapValue(brf,0,1);
 
     glBegin(GL_QUADS);
-    glColor4f(center_depth, blf, ((float)_shaderParam.m_layerLabel + 1.01)/255.0, 1.0);
+    glColor4f(center_depth,blf,((float)_shaderParam.m_layerLabel+1.01)/255.0,1.0);
     glTexCoord2d(0.0, 0.0);
     glVertex3f(-m_width,-m_height,blf);
     QVector3D bl(-m_width,-m_height,blf);
-    //glVertex3f(-m_width,-m_height,0.5);
+//    glVertex3f(-m_width,-m_height,0.5);
 
-    glColor4f(center_depth, tlf, ((float)_shaderParam.m_layerLabel + 1.01)/255.0, 1.0);
+    glColor4f(center_depth,tlf,((float)_shaderParam.m_layerLabel+1.01)/255.0,1.0);
     glTexCoord2d(0.0, 1.0);
     glVertex3f(-m_width,m_height,tlf);
     QVector3D tl(-m_width,m_height,tlf);
-    //glVertex3f(-m_width,m_height,0.5);
+//    glVertex3f(-m_width,m_height,0.5);
 
-    glColor4f(center_depth, trf, ((float)_shaderParam.m_layerLabel + 1.01)/255.0, 1.0);
+    glColor4f(center_depth,trf,((float)_shaderParam.m_layerLabel+1.01)/255.0,1.0);
     glTexCoord2d(1.0, 1.0);
-    glVertex3f(m_width,m_height, trf);
-    QVector3D tr(m_width,m_height, trf);
+    glVertex3f(m_width,m_height,trf);
+    QVector3D tr(m_width,m_height,trf);
 
-    //glVertex3f(m_width,m_height,0.5);
+//    glVertex3f(m_width,m_height,0.5);
 
-    glColor4f(center_depth, brf, ((float)_shaderParam.m_layerLabel + 1.01)/255.0, 1.0);
+    glColor4f(center_depth,brf,((float)_shaderParam.m_layerLabel+1.01)/255.0,1.0);
     glTexCoord2d(1.0, 0.0);
     glVertex3f(m_width,-m_height,brf);
     QVector3D br(m_width,-m_height,brf);
@@ -1068,23 +1073,19 @@ void ImageShape::render(int mode)
 //    glDepthMask(GL_TRUE);
     Session::get()->glWidget()->getMShader()->release();
     glDisable(GL_TEXTURE_2D);
-    _shaderParam.m_centerDepth       = QVector3D(m_width+P().x, -m_height+P().y, brf);
-    _shaderParam.m_boundingbox[0]    = -m_width + P().x;
-    _shaderParam.m_boundingbox[1]    = m_width + P().x;
-    _shaderParam.m_boundingbox[2]    = -m_height + P().y;
-    _shaderParam.m_boundingbox[3]    = m_height + P().y;
+    _shaderParam.m_centerDepth = QVector3D(m_width+P().x,-m_height+P().y,brf);
+    _shaderParam.m_boundingbox[0] = -m_width+P().x;
+    _shaderParam.m_boundingbox[1] = m_width+P().x;
+    _shaderParam.m_boundingbox[2] = -m_height+P().y;
+    _shaderParam.m_boundingbox[3] = m_height+P().y;
 
-    _shaderParam.m_shadowcreator     = this->m_shadowCreator;
-    _shaderParam.m_trueNormal        = QVector3D(n1.x(),n1.y(), n1.z()).normalized();
-    _shaderParam.m_centerDepth       = QVector3D(m_width+P().x,-m_height+P().y,brf);
+//    glMatrixMode(GL_MODELVIEW);
+//    glLoadIdentity();
+//    glBegin(GL_POINTS);
+//    glColor3f(1.0,1.0,0.0);
+//    glVertex3f(_shaderParam.m_centerDepth.x(),_shaderParam.m_centerDepth.y(),0.0);
+//    glEnd();
 
-    //*/
-    //    glMatrixMode(GL_MODELVIEW);
-    //    glLoadIdentity();
-    //    glBegin(GL_POINTS);
-    //    glColor3f(1.0,1.0,0.0);
-    //    glVertex3f(_shaderParam.m_centerDepth.x(),_shaderParam.m_centerDepth.y(),0.0);
-    //    glEnd();
 }
 
 void Light::render(int mode) {
@@ -1099,9 +1100,9 @@ void Light::render(int mode) {
     glEnd();
 }
 
-void LayerNormalControl::render(int mode)
-{
+void LayerNormalControl::render(int mode) {
     //Point p0 = _pShape->P();
+
     if(Session::isRender(NORMALS_ON)&&!(Session::isRender(PREVIEW_ON)||Session::isRender(AMBIENT_ON)||Session::isRender(SHADOWS_ON)))
     {
         Draggable::render(mode);
