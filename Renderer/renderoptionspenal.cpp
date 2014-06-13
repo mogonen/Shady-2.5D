@@ -82,8 +82,8 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
     m_AmbSliderSpinbox->SetRatio(1000);
     m_AmbSliderSpinbox->SetChangeRange(0, 1000);
     m_AmbSliderSpinbox->SetChangeStep(0.01);
+    m_AmbSliderSpinbox->SetValue(0.0);
     m_AmbValue = new QLabel("Min Value");
-
 
     m_LODSliderSpinbox = new QSliderSpinBox();
     m_LODSliderSpinbox->SetRatio(1000);
@@ -101,6 +101,7 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
     m_CartoonShaSpinbox->SetRatio(1000);
     m_CartoonShaSpinbox->SetChangeRange(1, 1000);
     m_CartoonShaSpinbox->SetChangeStep(0.01);
+    m_CartoonShaSpinbox->SetValue(1.0);
     m_CartoonShaValue = new QLabel("Max Value");
 
 
@@ -244,10 +245,10 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
     m_AlphaSliderSpinbox->setValue(1);
     m_DepthSliderSpinbox->setValue(0);
     m_FilterSliderSpinbox->setValue(2);
-    m_AmbSliderSpinbox->setValue(0.25);
+    m_AmbSliderSpinbox->setValue(0);
     m_LODSliderSpinbox->setValue(0);
     m_SMQualitySpinbox->setValue(0.5);
-    m_CartoonShaSpinbox->setValue(0.1);
+    m_CartoonShaSpinbox->setValue(1.0);
     m_SurfDispSpinbox->setValue(0.1);
 
     m_FileDir = NULL;

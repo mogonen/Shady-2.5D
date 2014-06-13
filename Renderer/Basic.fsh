@@ -609,7 +609,6 @@ void main()
 
     vec3 light_dir_n = normalize(light_dir);
 
-
     int label;
     vec3 true_position = thePosition.rgb;
     float new_shadow;
@@ -632,35 +631,35 @@ void main()
     vec3 pLight2 = projectOnLayerInd(light_dir, 2, h);
     new_shadow = accHeightInLayer(light_dir, true_position,label, Amb);
 
-    //    new_shadow = accHeightInLayer(light_dir, true_position,label, Amb);
-    //    if(toggle_ShaAmbCos == 0)
-    //        center_cos = 0;
-    //    else if(toggle_ShaAmbCos == 1)
-    //        center_cos = center_cos;
-    //    else if(toggle_ShaAmbCos == 2)
-    //        center_cos = Amb;
-    //    else if(toggle_ShaAmbCos == 4)
-    //        center_cos = new_shadow;
-    //    else if(toggle_ShaAmbCos == 3)
-    //        center_cos = (center_cos+Amb)/2;
-    //    else if(toggle_ShaAmbCos == 5)
-    //        center_cos = (center_cos+new_shadow)/2;
-    //    else if(toggle_ShaAmbCos == 6)
-    //        center_cos=(new_shadow+Amb)/2;
-    //    else if(toggle_ShaAmbCos == 7)
-    //        center_cos=(center_cos+new_shadow+Amb)/3;
+    new_shadow = accHeightInLayer(light_dir, true_position,label, Amb);
+    if(toggle_ShaAmbCos == 0)
+        center_cos = 0;
+    else if(toggle_ShaAmbCos == 1)
+        center_cos = center_cos;
+    else if(toggle_ShaAmbCos == 2)
+        center_cos = Amb;
+    else if(toggle_ShaAmbCos == 4)
+        center_cos = new_shadow;
+    else if(toggle_ShaAmbCos == 3)
+        center_cos = (center_cos+Amb)/2;
+    else if(toggle_ShaAmbCos == 5)
+        center_cos = (center_cos+new_shadow)/2;
+    else if(toggle_ShaAmbCos == 6)
+        center_cos=(new_shadow+Amb)/2;
+    else if(toggle_ShaAmbCos == 7)
+        center_cos=(center_cos+new_shadow+Amb)/3;
 
-    center_cos = (1.0*center_cos+1.0*new_shadow+1*Amb)/3.;
-
-
+    //center_cos = (1.0*center_cos+1.0*new_shadow+1*Amb)/3.;
     //center_cos = center_cos;
     //center_cos = new_shadow;
 
-    //gl_FragColor = mix( texture2D(tex_DI_Dark, gl_TexCoord[0].st),  texture2D(tex_DI_Bright, gl_TexCoord[0].st), (center_cos-0.5)*2);
-    //
-
     //----- HERE we write the color from normal for debugging purposes. It's all 0
-    gl_FragColor = vec4(normalValues[label].r, normalValues[label].g, normalValues[label].b, 1.0);
+//    if(toggle_ShaAmbCos == 8){
+//        gl_FragColor = vec4(normalValues[label].r, normalValues[label].g, normalValues[label].b, 1.0);
+//    }else if(toggle_ShaAmbCos == 16){
+//        gl_FragColor = vec4(centerDepth[label].r,centerDepth[label].g,centerDepth[label].b,1.0);
+//    }else
+        gl_FragColor = mix( texture2D(tex_DI_Dark, gl_TexCoord[0].st),  texture2D(tex_DI_Bright, gl_TexCoord[0].st), (center_cos-0.5)*2);
 
     //gl_FragColor = vec4(centerDepth[label].r,centerDepth[label].g,centerDepth[label].b,1.0);
 

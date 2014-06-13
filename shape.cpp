@@ -395,3 +395,14 @@ void SBCache::restore(){
     _pSB->_P = _p;
     _pSB->outdate();
 }
+
+#ifndef MODELING_MODE
+
+void Shape::assignDepthValues()
+{
+    FOR_ALL_ITEMS(SVList, _vertices){
+        //  glColor4f(center_depth, blf, ((float)_shaderParam.m_layerLabel + 1.01)/255.0, 1.0);
+        (*it)->value[DEPTH_CHANNEL] = Vec3(m_assignedDepth, m_assignedDepth, ((float)_shaderParam.m_layerLabel + 1.01)/255.0);
+    }
+}
+#endif

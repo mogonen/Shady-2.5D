@@ -10,14 +10,6 @@ ImageShapeCustomDialog::ImageShapeCustomDialog(ImageShape* imgS, QString title, 
 {
     m_imgShape = imgS;
     m_imgShape->SetPenal(this);
-    //Initialize();
-}
-
-void ImageShapeCustomDialog::Initialize()
-{
-    //m_returnWidth = this->addDblSpinBoxF("Width:", 0, 2, &m_imgShape->m_width, 2);
-    //m_returnHeight = this->addDblSpinBoxF("Height:", 0,2, &m_imgShape->m_height, 2);
-    PreviewAttrDialog::Initialize();
 
     QPushButton *texButton = new QPushButton("Set Texture");
     layoutNextElement->addWidget(texButton);

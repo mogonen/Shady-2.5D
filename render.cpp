@@ -387,6 +387,8 @@ void MeshShape::render(int mode)
 
 void Patch::render(int mode){
 
+    //MeshShape* pMS = (MeshShape*)this->face()->mesh()->caller();
+
     if (!Session::isRender(DRAG_ON) && Session::selectMode() != SELECT_SHAPE)
         Selectable::render(mode);
 
@@ -460,7 +462,6 @@ void Patch::render(int mode){
                     glVertex2f(p[k].x, p[k].y);
                 }
                 glEnd();
-
             }
 
             bool isGLShading        =   (Session::channel() == GL_SHADING) && !Session::isRender(PREVIEW_ON);

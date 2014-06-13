@@ -14,7 +14,6 @@ class ImageShapeCustomDialog : public PreviewAttrDialog
 public:
     ImageShapeCustomDialog(ImageShape* imgS, QString title, QWidget *parent = 0, char* execLabel = 0, void (*callback)()=0, bool * ischeck = 0);
 
-    void                        Initialize();
     void                        SetNewSize(double w, double h);
 private slots:
     void                        LoadTextureImage(int );

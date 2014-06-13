@@ -91,7 +91,6 @@ void GLWidget::preview()
     //glGetFloatv(GL_VIEWPORT, cur_ViewPort);
 
     //GLdouble* ortho = Session::get()->glWidget()->getOrthoView();
-
     //float asp_ratio = cur_ViewPort[3]/cur_ViewPort[2];
 
     _pGLSLShader_R->m_ShadeFBO->bind();
@@ -99,7 +98,7 @@ void GLWidget::preview()
     _pGLSLShader_R->LoadShaperParameters(_pCanvas->_shapes);
     _pGLSLShader_R->setUniformValue("width", (float)width());
     _pGLSLShader_R->setUniformValue("height", (float)height());
-    _pGLSLShader_R->setUniformValue("toggle_ShaAmbCos", (int)(_renderFlags>>1)&7);
+    //_pGLSLShader_R->setUniformValue("toggle_ShaAmbCos", (int)(_renderFlags>>1)&7);
 
     drawQuad();
 
@@ -116,7 +115,7 @@ void GLWidget::preview()
 
         _pGLSLShader_C->setUniformValue("width", (float)width());
         _pGLSLShader_C->setUniformValue("height", (float)height());
-        _pGLSLShader_C->setUniformValue("toggle_ShaAmbCos", (int)(_renderFlags>>1)&7);
+        //_pGLSLShader_C->setUniformValue("toggle_ShaAmbCos", (int)(_renderFlags>>1)&7);
 
         drawQuad();
 
@@ -131,7 +130,7 @@ void GLWidget::preview()
 
     _pGLSLShader_C->setUniformValue("width", (float)width());
     _pGLSLShader_C->setUniformValue("height", (float)height());
-    _pGLSLShader_C->setUniformValue("toggle_ShaAmbCos", (int)(_renderFlags>>1)&7);
+    //_pGLSLShader_C->setUniformValue("toggle_ShaAmbCos", (int)(_renderFlags>>1)&7);
 
     drawQuad();
 
@@ -145,7 +144,8 @@ void GLWidget::preview()
         _pCanvas->_lights[0]->render(DRAG_MODE);
         if(is(NORMALS_ON))
         {
-            FOR_ALL_CONST_ITEMS(ShapeList, _pCanvas->_shapes){ //need to add layers
+            FOR_ALL_CONST_ITEMS(ShapeList, _pCanvas->_shapes)
+            { //need to add layers
                 Shape_p pShape = *it;
                 glPushMatrix();
                 Point p = pShape->P();
@@ -214,7 +214,8 @@ void GLWidget::renderCanvas()
 #endif
 
 
-void GLWidget::renderShapes(int mode){
+void GLWidget::renderShapes(int mode)
+{
     FOR_ALL_CONST_ITEMS(ShapeList,_pCanvas->_shapes){ //need to add layers
         Shape_p s = *it;
         if (!s->isChild())

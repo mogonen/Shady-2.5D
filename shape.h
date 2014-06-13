@@ -85,7 +85,8 @@ public:
 
 } * ShapeBase_p;
 
-class SBCache{
+class SBCache
+{
 
     ShapeBase_p         _pSB;
     RGB                 _value[ACTIVE_CHANNELS];
@@ -95,7 +96,6 @@ public:
 
     void set(ShapeBase_p pSB);
     void restore();
-
 };
 
 class ShapeVertex:public ControlPoint, public ShapeBase
@@ -118,7 +118,6 @@ public:
 
 
     inline Shape_p       shape()        const {return _pShape;}
-
 
     inline ShapeVertex_p pair()         const {return _pair;}
     inline int           id()           const {return name();}
@@ -243,7 +242,10 @@ public:
     //Shader related funcs --> actually should not be here
     virtual void        calAverageNormal(){_shaderParam.m_averageNormal = QVector2D(0.0,0.0);}
     ShaderParameters    getShaderParam(){return _shaderParam;}
-    void                setLayerLabel(unsigned char dep = 0){_shaderParam.m_layerLabel = dep;}
+    void                setLayerLabel(unsigned char dep = 0){
+        _shaderParam.m_layerLabel = dep;
+        update();
+    }
 
     textureInfo         m_brightTex;
     textureInfo         m_darkTex;
@@ -256,7 +258,7 @@ public:
 
     //protected:
     ShaderParameters    _shaderParam;
-
+    void                assignDepthValues();
 
 #endif
 

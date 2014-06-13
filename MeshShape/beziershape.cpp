@@ -69,6 +69,7 @@ void ensureUpToDateSurface(Face_p pF){
 }
 
 void MeshShape::onUpdate(){
+    assignDepthValues();
     _control->ForAllEdges(updateCurve);
     _control->ForAllFaces(updateSurface);
 }
