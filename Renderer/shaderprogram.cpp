@@ -115,6 +115,7 @@ void ShaderProgram::InitializeParameters()
     m_ShadeFBO = NULL;
     m_DispFBO = NULL;
     m_isFBOInitialized = false;
+    m_toggle_ShaAmbCos = 7;
 }
 
 void ShaderProgram::SetParametersToShader()
@@ -146,6 +147,8 @@ void ShaderProgram::SetParametersToShader()
 
     this->setUniformValue("LOD", (float)m_LOD);
     this->setUniformValue("toggle_Mirror", m_toggle_Mirror);
+    this->setUniformValue("toggle_ShaAmbCos", (int)m_toggle_ShaAmbCos);
+
     this->setUniformValue("SM_Quality", (float)m_SM_Quality);
 
 }
