@@ -368,42 +368,42 @@ public:
     Command_p           theCommand()    const {return _pTheCommand;}
     Shape*              theShape()      const {return _pTheShape;}
 
-    void                activate(Shape*);
-    Shape*              deactivate();
-    void                insertShape(Shape*, bool isactivate=true);
-    void                removeShape(Shape*);
-    void                removeActiveShape();
-    void                moveActiveDown();
-    void                moveActiveUp();
-    void                sendActiveBack();
-    void                sendActiveFront();
-    void                selectNext();
-    void                selectPrev();
+    void                    activate(Shape*);
+    Shape*                  deactivate();
+    void                    insertShape(Shape*, bool isactivate=true);
+    void                    removeShape(Shape*);
+    void                    removeActiveShape();
+    void                    moveActiveDown();
+    void                    moveActiveUp();
+    void                    sendActiveBack();
+    void                    sendActiveFront();
+    void                    selectNext();
+    void                    selectPrev();
 
-    static void         init(MainWindow*);
+    static void             init(MainWindow*);
 
-    static Session*     get(){return _pSession;}
-    static bool         isRender(RenderSetting rs);
-    static Channel      channel();
-    static SelectionMode selectMode();
+    static Session*         get(){return _pSession;}
+    static bool             isRender(RenderSetting rs);
+    static Channel          channel();
+    static SelectionMode    selectMode();
 
-    void                open(const char *fname);
-    void                saveAs(const char* fname);
-    void                exportShape(const char *fname, int exporterid);
-    int                 save();
-    void                reset();
-    void                setBG(const char *fname);
+    void                    open(const char *fname);
+    void                    saveAs(const char* fname);
+    void                    exportShape(const char *fname, int exporterid);
+    int                     save();
+    void                    reset();
+    void                    setBG(const char *fname);
 
     //Manage Commands
-    void                setCommand(Command_p);
-    void                exec(Command_p pCommand = 0);
-    int                 undo();
-    int                 redo();
-    void                cancel();
+    void                    setCommand(Command_p);
+    void                    exec(Command_p pCommand = 0);
+    int                     undo();
+    int                     redo();
+    void                    cancel();
 
-    void                sendClick(const Click&);
+    void                    sendClick(const Click&);
 
-    void                setChannel(Channel channel);
+    void                    setChannel(Channel channel);
 
 
 };

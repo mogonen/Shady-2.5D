@@ -72,7 +72,8 @@ ShapeVec Patch::get(int i, int j){
         return _map[ind(i,j)];
 }
 
-Point Patch::P(int i, int j) {
+Point Patch::P(int i, int j)
+{
     return get(i,j)._P;
 }
 
@@ -163,7 +164,8 @@ void Patch::computeBezierPatch(Point K[])
     }
 }
 
-Point Patch::KVal(int ei, int i){
+Point Patch::KVal(int ei, int i)
+{
 
     Corner* ci = C(ei);
     if (face()->size() == 3){

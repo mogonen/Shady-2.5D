@@ -40,6 +40,7 @@ bool isSelectMode(MeshOperation::SelectMode eMode){
    return pMO->getSelectMode() == eMode;
 }
 
+
 void Selectable::render(int mode)
 {
     if (!isInRenderMode()){
@@ -75,7 +76,8 @@ void SampleShape::render(int mode)
     glEnd();
 }
 
-void ControlPoint::render(int mode){
+void ControlPoint::render(int mode)
+{
 
     Selectable::render(mode);
     if (!Session::isRender(NORMALS_ON) && isChild() && !isActive())
@@ -101,7 +103,22 @@ void ControlPoint::render(int mode){
     }
 }
 
-void Shape::render(int mode)
+void ControlNormal::render(int m)
+{
+    ControlPoint::render(m);
+    if (!isChild() && isInRenderMode())
+    {
+        glBegin(GL_LINES);
+        Point p0 = P();
+        Point p1;
+        glVertex3f(p0.x, p0.y, 0);
+        glVertex3f(p1.x, p1.y, 0);
+        glEnd();
+    }
+}
+
+void
+Shape::render(int mode)
 {
     if(Session::isRender(DRAG_ON) && this == theSHAPE && !Session::isRender(PREVIEW_ON))
        Session::get()->controller()->renderControls((Shape_p)this);
@@ -128,7 +145,7 @@ void ShapeControl::renderControls(Shape_p shape)
             continue;
 
         if (Session::isRender(NORMALS_ON) && sv->isNormalControl)
-                (sv)->pControlN()->render();
+            (sv)->pControlN()->render();
 
         sv->render();
     }
@@ -184,7 +201,8 @@ void ShapeControl::renderControls(Shape_p shape)
     }*/
 }
 
-void SpineShape::render(int mode){
+void SpineShape::render(int mode)
+{
 
     if(isInRenderMode()){
         glColor3f(0,0,0);
@@ -711,7 +729,8 @@ void CurvedEdge::render(int mode) {
     glEnd();
 }
 
-void EllipseShape::render(int mode){
+void EllipseShape::render(int mode)
+{
 
     bool isGLShading = (Session::channel() == GL_SHADING) && !Session::isRender(PREVIEW_ON);
     //bool isNormalChannel =  (Session::channel() == NORMAL_CHANNEL && !mode) || (mode&SM_MODE);
@@ -992,7 +1011,6 @@ void ImageShape::render(int mode)
     else
         Session::get()->glWidget()->getMShader()->setUniformValue("isLabelDepth", (float)0.0);
 
-
     Vec3 n = value[NORMAL_CHANNEL];
     QVector3D layerNormal(n.x, n.y, n.z);// = _NormalControl->Normal3D();
     //qDebug()<<layerNormal;
@@ -1012,14 +1030,16 @@ void ImageShape::render(int mode)
 
     double center_depth = this->m_assignedDepth;
     //1.1 is for numerical issue
-    float blf = (center_depth-delta_LB2RT);
+    float blf = (center_depth - delta_LB2RT);
     blf = CapValue(blf,0,1);
-    float tlf = (center_depth-delta_LT2BR);
+    float tlf = (center_depth - delta_LT2BR);
     tlf = CapValue(tlf,0,1);
-    float trf = (center_depth+delta_LB2RT);
+    float trf = (center_depth + delta_LB2RT);
     trf = CapValue(trf,0,1);
-    float brf = (center_depth+delta_LT2BR);
+    float brf = (center_depth + delta_LT2BR);
     brf = CapValue(brf,0,1);
+
+    //blf = tlf = trf = brf = 0;
 
     glBegin(GL_QUADS);
     glColor4f(center_depth, blf, ((float)_shaderParam.m_layerLabel + 1.01)/255.0, 1.0);
@@ -1067,9 +1087,6 @@ void ImageShape::render(int mode)
 
     //    qDebug()<<n1;
 
-
-
-
     Session::get()->glWidget()->getMShader()->release();
     glDisable(GL_TEXTURE_2D);
     _shaderParam.m_centerDepth       = QVector3D(m_width+P().x, -m_height+P().y, brf);
@@ -1099,7 +1116,7 @@ void Light::render(int mode) {
     glPointSize(8);
     glBegin(GL_POINTS);
     //glVertex2f(P().x, P().y);
-//    glVertex2f(P().x, P().y);
+    //glVertex2f(P().x, P().y);
     glVertex3f(P().x, P().y, 0.001);
     glEnd();
 }
@@ -1114,7 +1131,7 @@ void LayerNormalControl::render(int mode)
         glPointSize(8);
         glBegin(GL_POINTS);
         glVertex3f(P().x, P().y, 1.005);
-        //    glVertex3f(EndPoint.x, EndPoint.y, 1.005);
+        //glVertex3f(EndPoint.x, EndPoint.y, 1.005);
         glEnd();
         glBegin(GL_LINES);
         glVertex3f(0.0, 0.0, 1.005);

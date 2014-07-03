@@ -52,7 +52,7 @@ public:
 
     bool            readFromFile(const string &fname);
     QImage*         image() {return &_img;}
-    QRgb            getColor(const Point& p, double rad=0, int type=0) const;
+    QColor          getColor(const Point& p, double rad=0, int type=0) const;
 
     bool            hasTexture() const;
 
@@ -97,7 +97,7 @@ public:
     Point lightPos(int i)const {return _lights[i]->P();}
     Canvas(){
         _lights[0]  = new Light(-0.5, 0.5, 1.0);
-        _pBGImage   =  new ImagePlane();
+        _pBGImage   = new ImagePlane();
     }
 private:
     Light_p         _lights[MAX_LIGHTS];

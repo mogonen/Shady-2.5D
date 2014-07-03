@@ -64,7 +64,8 @@ public:
        // _rotHandle  = new ControlPoint(&_rot, this);
     }
 
-    void setShape(Shape_p pShape){
+    void setShape(Shape_p pShape)
+    {
         _pShape = pShape;
         _pShape->pTransform()->identity();
         _pShape->centerPivot();
@@ -77,6 +78,7 @@ public:
     void apply(){
         if (_pShape){
             _pShape->frezeT();
+                    _pShape->centerPivot();
             //_pShape->pP()->set();
         }
         _pShape = 0;
@@ -96,7 +98,7 @@ public:
 
 class ShapeControl: public Draggable{
 
-    Point _t0;
+    Point                   _t0;
     ShapeVertex_p           _theSelected;
     bool                    isNormalControl;
 

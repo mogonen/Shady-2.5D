@@ -212,16 +212,17 @@ ShapeBase::ShapeBase(bool isN){
     value[DARK_CHANNEL].set(0.0, 0.0, 0.0);
     value[DEPTH_CHANNEL].set(0.5, 0.5, 0.5);
 
-    if (isN)
+    if (isN){
         _pControlN = new ControlNormal(this);
-    else
+    }else
         _pControlN = 0;
 
 
 #endif
 }
 
-void ShapeBase::dragNormal(const Vec2 &t){
+void ShapeBase::dragNormal(const Vec2 &t)
+{
 #ifdef RENDERING_MODE
     double r = NORMAL_RAD*2;
     Vec2 v = (Vec2(value[NORMAL_CHANNEL].x*r, value[NORMAL_CHANNEL].y*r) + t);
@@ -230,11 +231,14 @@ void ShapeBase::dragNormal(const Vec2 &t){
         v = v.normalize()*r;
         l = r;
     }
+
     double h = sqrt(r*r - l*l);
     if (h < 0)
         h = 0;
+
     value[NORMAL_CHANNEL].set(Vec3(v.x, v.y, h).normalize());
     outdate();
+
 #endif
 }
 
@@ -246,10 +250,16 @@ Shape::Shape():Draggable(false, &_P), ShapeBase(true)
     _tM.identity();
 
 #ifndef MODELING_MODE
+
     m_alpha_th      = 0.1;
     m_stretch       = 0;
     m_assignedDepth = 0.5;
     m_shadowCreator = true;
+
+    pControlN()->_color[0] = 1.0;
+    pControlN()->_color[1] = 1.0;
+    pControlN()->_color[2] = 0.0;
+
 #endif
 
 }
@@ -282,7 +292,8 @@ void Shape::removeVertex(ShapeVertex_p sv){
     //delete sv;
 }
 
-Point Shape::gT(){
+Point Shape::gT()
+{
     if (!parent())
         return _P;
     return _P + ((Shape_p)parent())->gT();
@@ -373,9 +384,11 @@ void Shape::centerPivot(){
 Point ControlNormal::P() const
 {
    Point p;
-   if (parent())
-       p = parent()->P();
-   return p + Point(_pShapeBase->N()*NORMAL_RAD);
+   if (parent()){
+        p = parent()->P();
+        return p + Point(_pShapeBase->N()*NORMAL_RAD);
+   }
+   return Point(_pShapeBase->N()*NORMAL_RAD*2);
 }
 
 void ControlNormal::onDrag(const Point &t, int button){
@@ -397,12 +410,100 @@ void SBCache::restore(){
 }
 
 #ifndef MODELING_MODE
-
 void Shape::assignDepthValues()
 {
-    FOR_ALL_ITEMS(SVList, _vertices){
-        //  glColor4f(center_depth, blf, ((float)_shaderParam.m_layerLabel + 1.01)/255.0, 1.0);
-        (*it)->value[DEPTH_CHANNEL] = Vec3(m_assignedDepth, m_assignedDepth, ((float)_shaderParam.m_layerLabel + 1.01)/255.0);
+    BBox bbox;
+    getBBox(bbox);
+
+    FOR_ALL_ITEMS(SVList, _vertices)
+    {
+        //  glColor4f(c, blf, ((float)_shaderParam.m_layerLabel + 1.01)/255.0, 1.0);
+        ShapeVertex* pSV = *it;
+        Point p = pSV->_P;
+
+        Vec2 v = (p - bbox.P[0]);
+        double x = v.x / bbox.diag().x,  y = v.y / bbox.diag().y;
+        double zb = cornerz[0] * (1-x) + cornerz[1]*x;
+        double zt = cornerz[2] * (1-x) + cornerz[3]*x;
+
+        double z = zb*(1-y) + zt*y;
+
+        //double z = ;
+        (*it)->value[DEPTH_CHANNEL] = Vec3(m_assignedDepth, z, ((float)_shaderParam.m_layerLabel + 1.01)/255.0);
     }
 }
+
+Matrix3x3 Shape::getPreviewM()
+{
+
+    Vec3 n = value[NORMAL_CHANNEL];
+    //qDebug()<<layerNormal;
+    double d0;
+    double d1;
+
+    BBox bbox;
+    getBBox(bbox);
+
+    if(n.z>0.1)
+    {
+        d0 = -(n.x*bbox.diag().x + n.y*bbox.diag().y) / n.z;
+        d1 = -(n.x*bbox.diag().x - n.y*bbox.diag().y) / n.z;
+    }
+    else
+    {
+        d0 = 1;
+        d1 = 1;
+    }
+
+    double c = this->m_assignedDepth;
+
+    cornerz[0] = (c - d0);
+    cornerz[1] = (c + d1);
+
+    cornerz[2] = (c - d1);
+    cornerz[3] = (c + d0);
+
+    //1.1 is for numerical issue
+    //float blf = (c - d0);
+    //float brf = (c + d1);
+
+    //float tlf = (c - d1);
+    //float trf = (c + d0);
+
+    //trf = CapValue(trf,0,1);
+    //brf = CapValue(brf,0,1);
+    //tlf = CapValue(tlf,0,1);
+    //blf = CapValue(blf,0,1);
+
+    double yy = (d0 - d1);
+    double xx = (- d1 - d0);
+
+    //double yy = (CLAMP(c - d1, 0, 1) + CLAMP(c + d0, 0, 1))/2.0 - c; //(d0 - d1);
+    //double xx = (CLAMP(c - d0, 0, 1) + CLAMP(c - d1, 0, 1))/2.0 - c;//( - d1 - d0);
+
+    double y = yy / bbox.diag().y;
+    double x = xx / bbox.diag().x;
+
+    Matrix3x3 m;
+    m.set(1,0,0, 0,1,0, -x, y, 1);
+    //m.set(1,0,x, 0,1,y, 0, 0, 1);
+    return m;
+}
+
+
+void Shape::getPrevParam(double * val){
+
+    val[0] = m_alpha_th;
+    val[1] = m_stretch;
+    val[2] = m_assignedDepth;
+    val[3] = m_shadowCreator;
+}
+
+void Shape::setPrevParam(double * val){
+    m_alpha_th      = val[0];
+    m_stretch       = val[1];
+    m_assignedDepth = val[2];
+    m_shadowCreator = val[3];
+}
+
 #endif

@@ -73,6 +73,7 @@ public:
     static void         loadCameraParameters();
 
     void                apply(const Matrix3x3& tM);
+    void                apply(const Matrix3x3& tM, const Vec3& t);
 
     static bool         is(RenderSetting rs){return _renderFlags&(1<<rs);}
     void                setRender(RenderSetting rs, bool);

@@ -11,29 +11,32 @@ uniform float width, height;
 
 //const float half_col = 3, half_row = 3;
 uniform float filter_size;
-uniform float amb_strength;
+
 
 
 //varying float filter_sum;
-uniform vec3 light_dir;
-uniform int toggle_ShaAmbCos;
-uniform float SM_Quality;
-uniform float Cartoon_sha=0.1;
-uniform bool toggle_Point;
+uniform vec3    light_dir;
+uniform int     toggle_ShaAmbCos;
+uniform float   SM_Quality;
+uniform bool    toggle_Point;
+
+uniform float   amb_strength  = 0.0;
+uniform float   Cartoon_sha   = 1.0;
 
 //the array that stores all the reflection/refraction parameters
-uniform float refValues[10];
-uniform int refToggled[10];
+uniform float   refValues[10];
+uniform int     refToggled[10];
 
 //the area that stores all the average normals and center positions(it is now bottom right position)
-uniform vec3 normalValues[10];
-uniform vec3 centerDepth[10];
-//every 4 of them represent bounding value for -x,x,-y,y
-uniform float boundingbox[40];
-//whether this layer can cast shadow on other layer
-uniform int shadowcreator[10];
+uniform vec3    normalValues[10];
+uniform vec3    centerDepth[10];
 
-in vec4 thePosition;
+//every 4 of them represent bounding value for -x,x,-y,y
+uniform float   boundingbox[40];
+//whether this layer can cast shadow on other layer
+uniform int     shadowcreator[10];
+
+in vec4         thePosition;
 
 bool findLayerIntersect(in vec3 Sp, in vec3 Sv, in int LayerID, out vec3 Ip)
 {
@@ -631,7 +634,6 @@ void main()
     vec3 pLight2 = projectOnLayerInd(light_dir, 2, h);
     new_shadow = accHeightInLayer(light_dir, true_position,label, Amb);
 
-    new_shadow = accHeightInLayer(light_dir, true_position,label, Amb);
     if(toggle_ShaAmbCos == 0)
         center_cos = 0;
     else if(toggle_ShaAmbCos == 1)
@@ -654,11 +656,11 @@ void main()
     //center_cos = new_shadow;
 
     //----- HERE we write the color from normal for debugging purposes. It's all 0
-//    if(toggle_ShaAmbCos == 8){
-//        gl_FragColor = vec4(normalValues[label].r, normalValues[label].g, normalValues[label].b, 1.0);
-//    }else if(toggle_ShaAmbCos == 16){
-//        gl_FragColor = vec4(centerDepth[label].r,centerDepth[label].g,centerDepth[label].b,1.0);
-//    }else
+    if(toggle_ShaAmbCos == 8){
+        gl_FragColor = vec4(normalValues[label].r, normalValues[label].g, normalValues[label].b, 1.0);
+    }else if(toggle_ShaAmbCos == 16){
+        gl_FragColor = vec4(centerDepth[label].r, centerDepth[label].g,centerDepth[label].b,1.0);
+    }else
         gl_FragColor = mix( texture2D(tex_DI_Dark, gl_TexCoord[0].st),  texture2D(tex_DI_Bright, gl_TexCoord[0].st), (center_cos-0.5)*2);
 
     //gl_FragColor = vec4(centerDepth[label].r,centerDepth[label].g,centerDepth[label].b,1.0);

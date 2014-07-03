@@ -25,7 +25,8 @@ Command_p Drag::exec(){
     return 0;
 }
 
-Command_p Drag::unexec(){
+Command_p Drag::unexec()
+{
     if (_pObj)
         _pObj->drag(-_t);
 
@@ -145,9 +146,16 @@ void SetColor::setColor(ShapeBase_p pSB, const RGB &rgb, bool isbg)
 
     if (isbg && Session::get()->canvas()->bgImage())
     {
-        QColor col(Session::get()->canvas()->bgImage()->getColor(pSB->_P));
+        QColor col = Session::get()->canvas()->bgImage()->getColor(pSB->_P, 0.05);
         //rgb order is flipped, don't know why...
-        pSB->value[(int)_channel] = RGB(col.blueF(), col.greenF(),col.redF());
+        //pSB->value[(int)_channel] = RGB(col.blueF(), col.greenF(),col.redF());
+        QColor bcol, dcol;
+        bcol.setHsv(col.hue(), col.lightness(), 100);
+        dcol.setHsv(col.hue(), col.lightness(), 20);
+
+        pSB->value[BRIGHT_CHANNEL]  = RGB(bcol.blueF(), bcol.greenF(), bcol.redF());
+        pSB->value[DARK_CHANNEL]    = RGB(dcol.blueF(), dcol.greenF(), dcol.redF());
+
     }else
         pSB->value[(int)_channel] = rgb;
 

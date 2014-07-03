@@ -296,8 +296,7 @@ void ShaderProgram::LoadShader(const QString& vshader,const QString& fshader)
 
     if(!this->link())
     {
-        QMessageBox::critical(0, "GLSL Shader Program Linker Error",
-                              QString("GLSL ")+this->log());
+        QMessageBox::critical(0, "GLSL Shader Program Linker Error", QString("GLSL ")+this->log());
     }
     else this->bind();
 
@@ -673,7 +672,7 @@ void ShaderProgram::SetSurfDisp(double Disp)
 
 void ShaderProgram::ToggleCos(bool info)
 {
-    m_toggle_ShaAmbCos &= 0xe;
+    m_toggle_ShaAmbCos &= 0x1e;
     if(info)
         m_toggle_ShaAmbCos += 1;
     this->setUniformValue("toggle_ShaAmbCos", (int)m_toggle_ShaAmbCos);
@@ -681,7 +680,7 @@ void ShaderProgram::ToggleCos(bool info)
 
 void ShaderProgram::ToggleAmb(bool info)
 {
-    m_toggle_ShaAmbCos &= 0xd;
+    m_toggle_ShaAmbCos &= 0x1d;
     if(info)
         m_toggle_ShaAmbCos += 2;
     this->setUniformValue("toggle_ShaAmbCos", (int)m_toggle_ShaAmbCos);
@@ -689,9 +688,26 @@ void ShaderProgram::ToggleAmb(bool info)
 
 void ShaderProgram::ToggleSha(bool info)
 {
-    m_toggle_ShaAmbCos &= 0xb;
+    m_toggle_ShaAmbCos &= 0x1b;
     if(info)
         m_toggle_ShaAmbCos += 4;
+    this->setUniformValue("toggle_ShaAmbCos", (int)m_toggle_ShaAmbCos);
+}
+
+
+void ShaderProgram::ToggleNormal(bool info)
+{
+    m_toggle_ShaAmbCos &= 0x17;
+    if(info)
+        m_toggle_ShaAmbCos += 8;
+    this->setUniformValue("toggle_ShaAmbCos", (int)m_toggle_ShaAmbCos);
+}
+
+void ShaderProgram::ToggleCenter(bool info)
+{
+    m_toggle_ShaAmbCos &= 0xf;
+    if(info)
+        m_toggle_ShaAmbCos += 16;
     this->setUniformValue("toggle_ShaAmbCos", (int)m_toggle_ShaAmbCos);
 }
 

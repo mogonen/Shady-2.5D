@@ -3,6 +3,7 @@
 
 #include "fileio.h"
 #include "shape.h"
+#include "mainwindow.h"
 #include "MeshShape/cmesh.h"
 #include "MeshShape/meshshape.h"
 #include "MeshShape/curvededge.h"
@@ -10,6 +11,7 @@
 
 #ifndef MODELING_MODE
 #include "Renderer/imageshape.h"
+#include "Renderer/renderoptionspenal.h"
 #endif
 
 struct SVLoad{
@@ -40,7 +42,6 @@ typedef std::map<int, SVLoad*>          SVLoadMap;
 typedef std::map<int, Vertex_p>         VertexLoadMap;
 typedef std::map<int, Edge_p>           EdgeLoadMap;
 typedef std::map<int, Face_p>           FaceLoadMap;
-
 
 void split(const std::string &s, char delim, Tokens &elems)
 {
@@ -78,7 +79,28 @@ bool DefaultIO::load(const char *fname)
                 _pShape = (Shape_p)pSB;
                 shapes.push_back(_pShape);
             }
-        }else if (_pShape && label.compare("#shapedata") == 0){
+        }else if (label.compare("preview") == 0)
+        {
+            double val[ROP_VALUES];
+            for(int i = 0; i<ROP_VALUES; i++){
+                float f;
+                sscanf(toks[i+1].c_str(), "%f", &f);
+                val[i] = f;
+            }
+            Session::get()->mainWindow()->previewSettingsPanel->setValues(val);
+
+        }
+        else if (_pShape && label.compare("#preview") == 0)
+        {
+            double prev_val[PREV_PARAM];
+            for(int i=0; i<PREV_PARAM; i++){
+                float f;
+                sscanf(toks[i+1].c_str(), "%f", &f);
+                prev_val[i] = f;
+            }
+            _pShape->setPrevParam(prev_val);
+        }
+        else if (_pShape && label.compare("#shapedata") == 0){
             switch(_pShape->type())
             {
             case MESH_SHAPE:

@@ -69,6 +69,8 @@ public:
     void SetCurTex(int index);
     void SetLightPos(QVector3D light_pos);
 
+    void ToggleNormal(bool info);
+    void ToggleCenter(bool info);
 
 //    void GetMyTexture();
 //    void SetDepthValue(double dep);

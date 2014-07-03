@@ -54,6 +54,8 @@ class QSlider;
 QT_END_NAMESPACE
 
 class GLWidget;
+class Shape;
+class RenderOptionsPenal;
 
 class MainWindow : public QMainWindow
 {
@@ -61,17 +63,21 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow();
-    void  keyPressEvent(QKeyEvent *event);
+    void    keyPressEvent(QKeyEvent *event);
 
-    int  addOptionsWidget(QWidget* widget, int key);
-    void setOptionsWidget(int);
+    int     addOptionsWidget(QWidget* widget, int key);
+    void    setOptionsWidget(int);
 
-    int  addAttrWidget(QWidget* widget, void* key);
-    void removeAttrWidget(void*);
-    void setAttrWidget(void *);
+    int     addAttrWidget(QWidget* widget, void* key);
+    void    removeAttrWidget(void*);
+    void    setAttrWidget(void *);
 
-    static void updateGL();
-    static GLWidget        *glWidget;
+    void    insertShape(Shape*);
+
+    static  void updateGL();
+    static  GLWidget        *glWidget;
+
+    RenderOptionsPenal*      previewSettingsPanel;
 
 private slots:
 

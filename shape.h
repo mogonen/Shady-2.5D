@@ -43,8 +43,8 @@ struct BBox{
     Point               pivot() const {return (P[0]+P[1])*0.5;}
 };
 
-
-class SVCache{
+class SVCache
+{
 
     ShapeVertex_p       _sv, _pair, _parent;
     DraggableList       _childs;
@@ -63,7 +63,7 @@ typedef class ShapeBase:public ShapeVec{
     ControlNormal*       _pControlN;
     bool                 isN;
 
-    friend class SBCache;
+    friend class         SBCache;
 
 public:
 
@@ -100,7 +100,6 @@ public:
 
 class ShapeVertex:public ControlPoint, public ShapeBase
 {
-
 protected:
 
     void onDrag(const Point &, int button);
@@ -143,7 +142,7 @@ private:
     ShapeVertex(Shape_p pS, bool isP = true, bool isN = true);
     ~ShapeVertex();
 
-    ShapeVertex_p _pair;
+    ShapeVertex_p       _pair;
     //color
     //preview implementation
 };
@@ -158,7 +157,7 @@ protected:
     void onDrag(const Point &t, int button);
 
 public:
-
+    void render(int m=0);
     ControlNormal(ShapeBase_p pSB):ControlPoint(0){
         _color[0] = 1.0;
         _pShapeBase = pSB;
@@ -169,10 +168,10 @@ public:
 
 };
 
+class Shape:public Draggable, public ShapeBase
+{
 
-class Shape:public Draggable, public ShapeBase{
-
-    //Point                _t0;
+    //Point             _t0;
     Matrix3x3           _tM; //the transform matrix
     Point               _piv;
 
@@ -181,6 +180,7 @@ class Shape:public Draggable, public ShapeBase{
     //Shader*           _pShader;
 
 protected:
+
     virtual void        onDrag(const Vec2&){}
     virtual void        onRotate(double ang){}
     virtual void        onScale(const Vec2&){}
@@ -202,7 +202,7 @@ public:
     ShapeVertex_p       addVertex();
     ShapeVertex_p       addVertex(const Point& p, ShapeVertex_p parent = 0, bool isPositionControl = true, bool isNormalControl = true);
     void                removeVertex(ShapeVertex_p sv);
-    //void                removeVertex(Point_p pP);
+    //void              removeVertex(Point_p pP);
     SVList              getVertices() const {return _vertices;}
 
     void                outdate(){Renderable::outdate();}
@@ -236,13 +236,14 @@ public:
     //for now
     //QColor diffuse;
 
-
 #ifndef MODELING_MODE
+
     //These eventually need to move out
     //Shader related funcs --> actually should not be here
     virtual void        calAverageNormal(){_shaderParam.m_averageNormal = QVector2D(0.0,0.0);}
     ShaderParameters    getShaderParam(){return _shaderParam;}
-    void                setLayerLabel(unsigned char dep = 0){
+    void                setLayerLabel(unsigned char dep = 0)
+    {
         _shaderParam.m_layerLabel = dep;
         update();
     }
@@ -259,6 +260,15 @@ public:
     //protected:
     ShaderParameters    _shaderParam;
     void                assignDepthValues();
+
+    Matrix3x3           getPreviewM();
+
+    double              cornerz[4];
+
+#define PREV_PARAM  4
+
+    void                getPrevParam(double * val);
+    void                setPrevParam(double * val);
 
 #endif
 

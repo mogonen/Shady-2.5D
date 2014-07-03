@@ -49,6 +49,8 @@
 #include "commands.h"
 
 #ifndef MODELING_MODE
+#include "Renderer/imageshape.h"
+#include "Renderer/PreviewAttrDialog.h"
 #include "Renderer/renderoptionspenal.h"
 #endif
 
@@ -148,8 +150,9 @@ void MainWindow::initTools()
     this->setDockOptions(!QMainWindow::AllowTabbedDocks);
 
 #ifndef MODELING_MODE
-    rendererDockWidget = new QDockWidget(QString("Preview"), this);
-    rendererDockWidget->setWidget(new RenderOptionsPenal(this, glWidget));
+    rendererDockWidget   = new QDockWidget(QString("Preview"), this);
+    previewSettingsPanel = new RenderOptionsPenal(this, glWidget);
+    rendererDockWidget->setWidget(previewSettingsPanel);
     this->addDockWidget(Qt::LeftDockWidgetArea, rendererDockWidget);
 #endif
 
@@ -876,11 +879,36 @@ void MainWindow::flipChannel()
         Session::get()->setChannel(CPU_SHADING);
 }
 
+
+QWidget* createImageShapeAttrWidget(ImageShape* ImgShape){
+#ifndef MODELING_MODE
+    CustomDialog * widget = new ImageShapeCustomDialog(ImgShape, "Shape Attr");//, 0, "Set Texture", ImgShape->LoadTextureImage());
+    QObject::connect(widget,SIGNAL(ValueUpdated()),Session::get()->glWidget(),SLOT(updateGLSM()));
+    return widget;
+#endif
+}
+
+QWidget* createShapePreviewAttrWidget(Shape* pShape){
+#ifndef MODELING_MODE
+    CustomDialog * widget = new PreviewAttrDialog(pShape, "Shape Attr"); //, 0, "Set Texture", ImgShape->LoadTextureImage());
+    QObject::connect(widget,SIGNAL(ValueUpdated()),Session::get()->glWidget(), SLOT(updateGLSM()));
+    return widget;
+#endif
+}
+
+void MainWindow::insertShape(Shape* pShape){
+
+    ImageShape* pIS = dynamic_cast<ImageShape*>(pShape);
+    if (pIS){
+        addAttrWidget(createImageShapeAttrWidget(pIS), (void*)pIS);
+    }
+    else
+        addAttrWidget(createShapePreviewAttrWidget(pShape), (void*)pShape);
+}
+
 #ifndef MODELING_MODE
 void updateGLSLLight(double x, double y, double z){
     MainWindow::glWidget->updateGLSLLight(x,y,z);
 }
-
-
 
 #endif

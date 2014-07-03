@@ -156,14 +156,13 @@ void GLWidget::preview()
                 glPopMatrix();
             }
         }
-        //glColor3f(1.0, 1.0, 0);
-        //QFont m_font;
-        //m_font.setPointSize(15);
-        //QVector3D mousePos = _pGLSLShader_R->m_MousePos;
-        //QString z_pos = QString("pos: %1 %2 %3").arg(mousePos.x(),0,'f',3).arg(mousePos.y(),0,'f',3).arg(mousePos.z(),0,'f',3);
-        //renderText(10, 20, z_pos, m_font);
+        glColor3f(0.9, 0, 0);
+        QFont m_font;
+        m_font.setPointSize(15);
+        QVector3D mousePos = _pGLSLShader_R->m_MousePos;
+        QString z_pos = QString("pos: %1 %2 %3").arg(mousePos.x(),0,'f',3).arg(mousePos.y(),0,'f',3).arg(mousePos.z(),0,'f',3);
+        renderText(10, 20, z_pos, m_font);
     }
-
 }
 
 void GLWidget::renderCanvas()
@@ -194,7 +193,6 @@ void GLWidget::renderCanvas()
         if (is(SHOW_ISOLATED) && Session::get()->theShape())
         {
            render(Session::get()->theShape());
-
         }
         else
         {
@@ -225,15 +223,15 @@ void GLWidget::renderShapes(int mode)
 
 void GLWidget::render(Shape_p pShape, int mode)
 {
-
     glPushMatrix();
     Point p = pShape->P();
-    glTranslatef(p.x, p.y, 0);
+    //glTranslatef(p.x, p.y, pShape->m_assignedDepth);
 
     if (pShape == Session::get()->theShape() && mode==DEFAULT_MODE)
         Session::get()->controller()->renderHandler();
 
-    apply(pShape->getTransform());
+    //apply(pShape->getTransform(), Vec3(p.x, p.y, pShape->m_assignedDepth));
+    apply(pShape->getPreviewM(), Vec3(p.x, p.y, pShape->m_assignedDepth));
     glMultMatrixd((double*)&tM);
 
     pShape->Shape::render(mode);
@@ -251,14 +249,18 @@ void GLWidget::render(Shape_p pShape, int mode)
 }
 
 void GLWidget::apply(const Matrix3x3& M){
+    apply(M, Vec3(0, 0, 0));
+}
+
+void GLWidget::apply(const Matrix3x3& M, const Vec3& t){
     tM[0] = M[0].x;
     tM[1] = M[1].x;
-    tM[2] = 0;
+    tM[2] = M[2].x;
     tM[3] = 0;
 
     tM[4] = M[0].y;
     tM[5] = M[1].y;
-    tM[6] = 0;
+    tM[6] = M[2].y;
     tM[7] = 0;
 
     tM[8]  = 0;
@@ -266,9 +268,9 @@ void GLWidget::apply(const Matrix3x3& M){
     tM[10] = 1;
     tM[11] = 0;
 
-    tM[12] = M[0].z;
-    tM[13] = M[1].z;
-    tM[14] = 0;
+    tM[12] = M[0].z + t.x;
+    tM[13] = M[1].z + t.y;
+    tM[14] = M[2].z + t.z;
     tM[15] = 1;
 }
 

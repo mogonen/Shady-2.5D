@@ -48,6 +48,7 @@ void Session::insertShape(Shape* pShape, bool isactivate){
     if (!pShape)
         return;
     _pCanvas->insert(pShape);
+    _pMainWindow->insertShape(pShape);
     if (isactivate)
         activate(pShape);
     _pGlWidget->updateGL();

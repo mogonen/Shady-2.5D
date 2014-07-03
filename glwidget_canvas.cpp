@@ -1,3 +1,4 @@
+#include <QColor>
 #include "glwidget.h"
 #include "canvas.h"
 
@@ -150,7 +151,7 @@ bool ImagePlane::readFromFile(const string &filename){
     return true;
 }
 
-bool  ImagePlane::hasTexture() const{ return !_img.isNull();}
+bool ImagePlane::hasTexture() const{ return !_img.isNull();}
 
 
 void ImagePlane::render()
@@ -178,25 +179,37 @@ void ImagePlane::render()
     glDisable(GL_TEXTURE_2D);
 }
 
-QRgb ImagePlane::getColor(const Point &p, double rad, int type) const{
+QColor ImagePlane::getColor(const Point &p, double rad, int type) const
+{
 
     double w = 2.0*_aspect;
     double h = 2.0;
     int x = (int)(_img.width()*(p.x + _aspect)/w);
     int y = (int)(_img.height()*(p.y + 1.0)/h);
 
-    int ww = _img.width()*rad;
-    int hh = _img.height()*rad;
-
-    /*for(int j = 0; j < hh; j++)
+    if (rad>0)
     {
-        for(int i = 0; i < ww; i++)
-        {
-            i + j;
-        }
-    }*/
+        float r, g, b;
+        r = g = b = 0;
 
-    return  _img.pixel(x, y);
+        int ww = _img.width()*rad;
+        int hh = _img.height()*rad;
+
+        for(int j = 0; j < hh; j++)
+        {
+            for(int i = 0; i < ww; i++)
+            {
+                 QColor col = QColor(_img.pixel( x - (ww/2) + i,  y - (hh/2) + j ));
+                 r+= col.redF();
+                 g+= col.greenF();
+                 b+= col.blueF();
+            }
+        }
+        int n = ww*hh;
+        return QColor((r/n*255), (g/n*255), (b/n*255));
+    }
+
+    return  QColor(_img.pixel(x, y));
 }
 
 void Canvas::updateDepth()

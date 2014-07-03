@@ -1,8 +1,10 @@
 #include <string>
 #include <sstream>
 
+
 #include "fileio.h"
 #include "shape.h"
+#include "mainwindow.h"
 #include "ellipseshape.h"
 #include "MeshShape/cmesh.h"
 #include "MeshShape/meshshape.h"
@@ -12,6 +14,7 @@
 
 #ifndef MODELING_MODE
 #include "Renderer/imageshape.h"
+#include "Renderer/renderoptionspenal.h"
 #endif
 
 typedef std::vector<std::string>        StringVec;
@@ -24,10 +27,27 @@ bool DefaultIO::save(const char *fname)
     outfile.open (fname);
 
     //if (Session::get()->canvas()->bgImage()->hasTexture())
-    ShapeList shapes = Session::get()->canvas()->shapes();
-    FOR_ALL_ITEMS(ShapeList, shapes){
+    /*FOR_ALL_ITEMS(ShapeList, shapes){
         write((Shape*)(*it), outfile);
+     }
+    */
+
+    ShapeList shapes = Session::get()->canvas()->shapes();
+    for(ShapeList::reverse_iterator rit = shapes.rbegin(); rit != shapes.rend(); ++rit)
+    {
+        write((Shape*)(*rit), outfile);
     }
+
+#ifndef MODELING_MODE
+
+    double val[ROP_VALUES];
+    Session::get()->mainWindow()->previewSettingsPanel->getValues(val);
+    outfile<<"preview ";
+    for(int i=0; i<ROP_VALUES; i++)
+        outfile<<val[i]<<" ";
+    outfile<<endl;
+
+#endif
 
     outfile.close();
     return true;
@@ -45,7 +65,19 @@ bool DefaultIO::write(Shape * pShape, ofstream &outfile)
         writeShapeBase(*it, outfile);
     }
 
+#ifndef MODELING_MODE
+
+    double prev_val[PREV_PARAM];
+    pShape->getPrevParam(prev_val);
+    outfile<<"#preview ";
+    for(int i = 0; i < PREV_PARAM; i++)
+        outfile<<prev_val[i]<<" ";
+    outfile<<endl;
+
+#endif
+
     outfile<<"#shapedata "<<pShape->name()<<endl;
+
     switch(pShape->type())
     {
         case MESH_SHAPE:

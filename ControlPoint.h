@@ -15,7 +15,7 @@ class ControlPoint: public Draggable{
 protected:
 
     Renderable_p _pControlled;
-    float        _color[3];
+
 
     void onDown(){
         if (isChild())
@@ -36,11 +36,13 @@ public:
         _color[0] = _color[1] = _color[2] = 0.0;
     }
 
-    void render(int mode = 0);
+    virtual void render(int mode = 0);
     bool isActive() const {return (_pTheActive == this) || (_pTheActive == this->parent());}
 
     static bool IsThereActive() {return _pTheActive != 0;}
     static void Deactivate() {_pTheActive = 0;}
+
+    float        _color[3];
 };
 
 #endif // CONTROLPOINT_H

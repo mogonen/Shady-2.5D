@@ -21,16 +21,18 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
     //set m_ini m_ap labe
      m_MiniMap = new QLabel();
 
-
     QGridLayout *mainLayout = new QGridLayout();
 //    //set all buttons
 //    //image related
     m_ButtonSetBG = new QPushButton("Set BG Image");
     connect(m_ButtonSetBG, SIGNAL(clicked()), this, SLOT(GetBG()));
+
 //    m_ButtonSetLense = new QPushButton("Set Shape m_ap");
 //    connect(m_ButtonSetLense, SIGNAL(clicked()), this, SLOT(GetLense()));
+
     m_ButtonSetEnv = new QPushButton("Set Enviroment");
     connect(m_ButtonSetEnv, SIGNAL(clicked()), this, SLOT(GetEnv()));
+
 //    m_ButtonSetDIDark = new QPushButton("Set Diffusion(Dark)");
 //    connect(m_ButtonSetDIDark, SIGNAL(clicked()), this, SLOT(GetDIDark()));
 //    m_ButtonSetDIBright = new QPushButton("Set Diffusion(Bright)");
@@ -47,11 +49,13 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
 //    connect(m_ButtonLoadProj, SIGNAL(clicked()), this, SLOT(LoadProject()));
 //    m_ButtonSaveProj = new QPushButton("Save Project");
 //    connect(m_ButtonSaveProj, SIGNAL(clicked()), this, SLOT(SaveProject()));
+
     m_ButtonSave = new QPushButton("Save Image");
     connect(m_ButtonSave, SIGNAL(clicked()), this, SLOT(SaveImage()));
 
     m_ReloadShader = new QPushButton("Reload Shader");
     connect(m_ReloadShader, SIGNAL(clicked()), this, SLOT(ReloadShader()));
+
 //    m_ButtonAbout = new QPushButton("About");
 //    connect(m_ButtonAbout, SIGNAL(clicked()), this, SLOT(About()));
 
@@ -61,7 +65,7 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
     m_DepthSliderSpinbox->SetChangeRange(-4999, 4999);
     m_DepthSliderSpinbox->SetChangeStep(0.01);
 
-    m_DepthValue = new QLabel("Refraction:");
+    m_DepthValue         = new QLabel("Refraction:");
 
     m_AlphaSliderSpinbox = new QSliderSpinBox();
     m_AlphaSliderSpinbox->SetRatio(10000);
@@ -75,10 +79,10 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
     m_FilterSliderSpinbox->SetChangeStep(0.01);
     m_FilterValue = new QLabel("Filter Size");
 
-
     m_AmbSliderSpinbox = new QSliderSpinBox();
-//    m_AmbSliderSpinbox->SetRatio(10000);
-//    m_AmbSliderSpinbox->SetChangeRange(-50000, 50000);
+    //m_AmbSliderSpinbox->SetRatio(10000);
+    //m_AmbSliderSpinbox->SetChangeRange(-50000, 50000);
+
     m_AmbSliderSpinbox->SetRatio(1000);
     m_AmbSliderSpinbox->SetChangeRange(0, 1000);
     m_AmbSliderSpinbox->SetChangeStep(0.01);
@@ -128,11 +132,11 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
 //    mainLayout->addWidget(m_ButtonLoadProj,2,3,1,3);
 //    mainLayout->addWidget(m_ButtonSaveProj,3,3,1,3);
 
-    mainLayout->addWidget(m_ButtonSave,9,3,1,3);
+    mainLayout->addWidget(m_ButtonSave,12,3,1,3);
 
 
 //    mainLayout->addWidget(m_ButtonAbout,5,3,1,3);
-    mainLayout->addWidget(m_ReloadShader,8,3,1,3);
+    mainLayout->addWidget(m_ReloadShader,11,3,1,3);
     int SliderStart_pos = 0;
 
     mainLayout->addWidget(m_DepthSliderSpinbox->m_Slider,SliderStart_pos,0,1,1);
@@ -160,7 +164,6 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
     mainLayout->addWidget(m_CartoonShaValue,SliderStart_pos+4,1,1,1);
     connect(m_CartoonShaSpinbox, SIGNAL(SliderSpinboxValueChange(double)), this, SLOT(SetCartoonSha(double)));
 
-
     mainLayout->addWidget(m_LODSliderSpinbox->m_Slider,SliderStart_pos+5,0,1,1);
     mainLayout->addWidget(m_LODSliderSpinbox,SliderStart_pos+5,2,1,1);
     mainLayout->addWidget(m_LODValue,SliderStart_pos+5,1,1,1);
@@ -175,7 +178,6 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
     mainLayout->addWidget(m_SurfDispSpinbox,SliderStart_pos+7,2,1,1);
     mainLayout->addWidget(m_SurfDispValue,SliderStart_pos+7,1,1,1);
     connect(m_SurfDispSpinbox, SIGNAL(SliderSpinboxValueChange(double)), this, SLOT(SetSurfDisplacement(double)));
-
 
     //add check box
     m_ShowLight = new QCheckBox();
@@ -207,24 +209,34 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
     mainLayout->addWidget(new QLabel("Toggle Point"),SliderStart_pos+4,4,1,2);
     connect(m_ShowPoint, SIGNAL(toggled(bool)), this, SLOT(TogglePoint(bool)));
 
-
     m_ShowMirror = new QCheckBox();
     m_ShowMirror->setChecked(false);
     mainLayout->addWidget(m_ShowMirror,SliderStart_pos+5,3,1,1, Qt::AlignRight);
     mainLayout->addWidget(new QLabel("Toggle m_irror"),SliderStart_pos+5,4,1,2);
     connect(m_ShowMirror, SIGNAL(toggled(bool)), this, SLOT(ToggleMirror(bool)));
 
+    m_ShowNormal = new QCheckBox();
+    m_ShowNormal->setChecked(true);
+    mainLayout->addWidget(m_ShowNormal,SliderStart_pos+6,3,1,1, Qt::AlignRight);
+    mainLayout->addWidget(new QLabel("Toggle Normal"),SliderStart_pos+6,4,1,2);
+    connect(m_ShowNormal, SIGNAL(toggled(bool)), this, SLOT(ToggleNormal(bool)));
 
-    mainLayout->addWidget(m_ButtonSetBG,SliderStart_pos+6,3,1,2);
+    m_ShowDepth = new QCheckBox();
+    m_ShowDepth->setChecked(true);
+    mainLayout->addWidget(m_ShowDepth, SliderStart_pos+7,3,1,1, Qt::AlignRight);
+    mainLayout->addWidget(new QLabel("Toggle Depth"),SliderStart_pos+7,4,1,2);
+    connect(m_ShowDepth, SIGNAL(toggled(bool)), this, SLOT(ToggleCenter(bool)));
+
+    mainLayout->addWidget(m_ButtonSetBG, SliderStart_pos+8,3,1,2);
     mainLayout->setAlignment(Qt::AlignTop);
 
-    mainLayout->addWidget(m_ButtonSetEnv,SliderStart_pos+7,3,1,2);
+    mainLayout->addWidget(m_ButtonSetEnv, SliderStart_pos+9,3,1,2);
     mainLayout->setAlignment(Qt::AlignTop);
 
     m_ShowTex = new QComboBox();
     m_ShowTex->addItems(QString("None|ShapeMap|Dark|Bright|Background|Label|Depth|Enviroment|Displacement").split("|", QString::SkipEmptyParts));
-    mainLayout->addWidget(m_ShowTex,SliderStart_pos+8,0,1,1, Qt::AlignRight);
-    mainLayout->addWidget(new QLabel("Current Tex"),SliderStart_pos+8,1,1,2);
+    mainLayout->addWidget(m_ShowTex,SliderStart_pos+10,0,1,1, Qt::AlignRight);
+    mainLayout->addWidget(new QLabel("Current Tex"),SliderStart_pos+10,1,1,2);
     connect(m_ShowTex,SIGNAL(currentIndexChanged(int)), this, SLOT(SetCurTex(int)));
 
     //set m_ain layout
@@ -269,6 +281,30 @@ RenderOptionsPenal::RenderOptionsPenal(QWidget *parent, GLWidget *program) :
 //    pol.setHeightForWidth(true);
 //    m_RenderWindow->setSizePolicy(pol);
 //    m_MiniMap->setScaledContents(true);
+}
+
+void    RenderOptionsPenal::setValues(double *val)
+{
+    m_AlphaSliderSpinbox->setValue(val[0]);
+    m_DepthSliderSpinbox->setValue(val[1]);
+    m_FilterSliderSpinbox->setValue(val[2]);
+    m_AmbSliderSpinbox->setValue(val[3]);
+    m_LODSliderSpinbox->setValue(val[4]);
+    m_SMQualitySpinbox->setValue(val[5]);
+    m_CartoonShaSpinbox->setValue(val[6]);
+    m_SurfDispSpinbox->setValue(val[7]);
+}
+
+void  RenderOptionsPenal::getValues(double *val)
+{
+   val[0] = m_AlphaSliderSpinbox->GetDoubleValue();
+   val[1] = m_DepthSliderSpinbox->GetDoubleValue();
+   val[2] = m_FilterSliderSpinbox->GetDoubleValue();
+   val[3] = m_AmbSliderSpinbox->GetDoubleValue();
+   val[4] = m_LODSliderSpinbox->GetDoubleValue();
+   val[5] = m_SMQualitySpinbox->GetDoubleValue();
+   val[6] = m_CartoonShaSpinbox->GetDoubleValue();
+   val[7] = m_SurfDispSpinbox->GetDoubleValue();
 }
 
 void RenderOptionsPenal::SetFolder()
@@ -388,7 +424,6 @@ void RenderOptionsPenal::SaveProject()
     QString fileName = QFileDialog::getSaveFileName(this, tr("Open File"),
                                                     "/home/Desktop/myShapeMapProj.smp",
                                                     tr("Files (*.smp *.smf)"));
-
 
     //try to open file as read m_ode
     if(!fileName.isNull())
@@ -915,6 +950,32 @@ void RenderOptionsPenal::ToggleSha(bool info)
 
 }
 
+
+void RenderOptionsPenal::ToggleCenter(bool info)
+{
+    ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+    if(ShaderP&&ShaderP->isInitialized())
+    {
+        ShaderP->bind();
+        ShaderP->ToggleCenter(info);
+    }
+    m_RenderWindow->updateGL();
+
+}
+
+void RenderOptionsPenal::ToggleNormal(bool info)
+{
+    ShaderProgram *ShaderP = m_RenderWindow->getRShader();
+    if(ShaderP&&ShaderP->isInitialized())
+    {
+        ShaderP->bind();
+        ShaderP->ToggleNormal(info);
+    }
+    m_RenderWindow->updateGL();
+
+}
+
+
 void RenderOptionsPenal::ToggleMirror(bool info)
 {
     ShaderProgram *ShaderP = m_RenderWindow->getRShader();
@@ -924,7 +985,6 @@ void RenderOptionsPenal::ToggleMirror(bool info)
         ShaderP->ToggleMirror(info);
     }
     m_RenderWindow->updateGL();
-
 }
 
 void RenderOptionsPenal::TogglePoint(bool info)

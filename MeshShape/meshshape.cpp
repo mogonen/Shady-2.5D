@@ -43,7 +43,8 @@ void MeshShape::onDrag(ShapeVertex_p pSV, const Vec2& t){
     }
 }
 
-void  MeshShape::addSurface(Face_p pF){
+void  MeshShape::addSurface(Face_p pF)
+{
 
     switch (_patchtype) {
     case Patch::DEFAULT:
