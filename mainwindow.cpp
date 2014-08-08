@@ -59,7 +59,6 @@ ControlPoint_p          ControlPoint::_pTheActive = 0;
 
 MainWindow::MainWindow()
 {
-
     Session::init(this);
 
     centralWidget = new QWidget;
@@ -237,6 +236,9 @@ void MainWindow::createActions()
 
     fileExportEPSAct = new QAction(tr("Export EPS"), this);
     connect(fileExportEPSAct, SIGNAL(triggered()), this, SLOT(exportEPS()));
+
+    fileExportISAct = new QAction(tr("Export IS"), this);
+    connect(fileExportISAct, SIGNAL(triggered()), this, SLOT(exportIS()));
 
     fileSetBGImageAct = new QAction(tr("Set Background Image"), this);
     connect(fileSetBGImageAct, SIGNAL(triggered()), this, SLOT(setBackgroundImage()));
@@ -506,6 +508,7 @@ void MainWindow::createMenus()
     fileMenu->addAction("Import");
     fileMenu->addAction(fileExportINPAct);
     fileMenu->addAction(fileExportEPSAct);
+    fileMenu->addAction(fileExportISAct);
 
     fileMenu->addAction(fileSetBGImageAct);
 
@@ -682,6 +685,10 @@ void MainWindow::exportEPS(){
     Session::get()->exportShape(fname.toUtf8().constData(), 1);
 }
 
+void MainWindow::exportIS(){
+    QString fname = QFileDialog::getSaveFileName(this,"Export IS");
+    Session::get()->exportScene(fname.toUtf8().constData(), 2);
+}
 
 void MainWindow::undo(){
     Session::get()->undo();

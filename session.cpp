@@ -29,6 +29,7 @@ void Session::init(MainWindow * pMW){
 
     _pSession->_pExporters[0]   = new INPExporter();
     _pSession->_pExporters[1]   = new EPSExporter();
+    _pSession->_pExporters[2]   = new ISExporter();
 }
 
 void Session::activate(Shape_p sp){
@@ -85,8 +86,12 @@ void Session::saveAs(const char *fname){
 void Session::exportShape(const char *fname, int exporterid){
     if (!_pTheShape)
         return;
+    _pExporters[exporterid]->exportShape(_pTheShape, fname);
+}
+
+void Session::exportScene(const char *fname, int exporterid){
     _filename = fname;
-    _pExporters[exporterid]->exportShape(_pTheShape, _filename);
+    _pExporters[exporterid]->exportScene(fname);
 }
 
 

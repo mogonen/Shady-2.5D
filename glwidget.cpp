@@ -87,7 +87,7 @@ void GLWidget::setRender(RenderSetting rs, bool set)
         _renderFlags |= (1 << (int)rs);
     else
         _renderFlags &=~(1 << (int)rs);
-//bool isrender = isInRenderMode();
+    //bool isrender = isInRenderMode();
     updateGL();
     //isrender = isInRenderMode();
 }

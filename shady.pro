@@ -66,7 +66,8 @@ SOURCES += glwidget.cpp \
     fileio_read.cpp \
     meshshape/patch.cpp \
     EPSExporter.cpp \
-    Renderer/previewattr.cpp
+    Renderer/previewattr.cpp \
+    ISExporter.cpp
 
 
 QT           += opengl widgets

@@ -42,7 +42,11 @@ void drawQuad(){
     glEnd();
 }
 
-void GLWidget::preview()
+void GLWidget::renderPreviewTextures(){
+    preview(false);
+}
+
+void GLWidget::preview(bool isscreen)
 {
 
     glReadBuffer(GL_BACK);
@@ -124,6 +128,9 @@ void GLWidget::preview()
         glDisable(GL_BLEND);
         _pGLSLShader_R->m_ShadeFBO->release();
     }
+
+    if (!isscreen)
+        return;
 
     _pGLSLShader_C->bind();
     _pGLSLShader_C->LoadShaperParameters(_pCanvas->_shapes);

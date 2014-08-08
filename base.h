@@ -54,8 +54,8 @@ typedef Vec3*   Normal_p;
 typedef Vec4    RGBA;
 typedef Vec4*   RGBA_p;
 
-
-
+typedef unsigned char       Byte;
+typedef unsigned char*      Byte_p;
 
 typedef std::list<Point>   PointList;
 typedef std::list<Point_p> Point_pList;
@@ -333,40 +333,42 @@ public:
 class Exporter {
 
 public:
+
     virtual bool exportShape(Shape*, const char * fname) = 0;
+    virtual void exportScene(const char * fname){}
 };
 
 
 class Session{
 
-    GLWidget*           _pGlWidget;
-    Canvas*             _pCanvas;
-    SelectionManager*   _pSelectionMan;
-    ShapeControl*       _pController;
-    MainWindow*         _pMainWindow;
-    FileIO*             _pFileIO; //default;
-    Exporter*           _pExporters[10];
+    GLWidget*               _pGlWidget;
+    Canvas*                 _pCanvas;
+    SelectionManager*       _pSelectionMan;
+    ShapeControl*           _pController;
+    MainWindow*             _pMainWindow;
+    FileIO*                 _pFileIO; //default;
+    Exporter*               _pExporters[10];
 
-    const char*         _filename;
+    const char*             _filename;
 
-    CommandList         _commands;
-    Command_p           _pTheCommand;
-    Shape*              _pTheShape;
-    Channel             _channel;
+    CommandList             _commands;
+    Command_p               _pTheCommand;
+    Shape*                  _pTheShape;
+    Channel                 _channel;
 
 
-    static Session*     _pSession;
+    static Session*         _pSession;
 
 public:
 
-    GLWidget*           glWidget()      const {return _pGlWidget;}
-    Canvas*             canvas()        const {return _pCanvas;}
-    SelectionManager*   selectionMan()  const {return _pSelectionMan;}
-    ShapeControl*       controller()    const {return _pController;}
-    MainWindow*         mainWindow()    const {return _pMainWindow;}
-    FileIO*             fileIO()        const {return _pFileIO;}
-    Command_p           theCommand()    const {return _pTheCommand;}
-    Shape*              theShape()      const {return _pTheShape;}
+    GLWidget*               glWidget()      const {return _pGlWidget;}
+    Canvas*                 canvas()        const {return _pCanvas;}
+    SelectionManager*       selectionMan()  const {return _pSelectionMan;}
+    ShapeControl*           controller()    const {return _pController;}
+    MainWindow*             mainWindow()    const {return _pMainWindow;}
+    FileIO*                 fileIO()        const {return _pFileIO;}
+    Command_p               theCommand()    const {return _pTheCommand;}
+    Shape*                  theShape()      const {return _pTheShape;}
 
     void                    activate(Shape*);
     Shape*                  deactivate();
@@ -390,6 +392,8 @@ public:
     void                    open(const char *fname);
     void                    saveAs(const char* fname);
     void                    exportShape(const char *fname, int exporterid);
+    void                    exportScene(const char *fname, int exporterid);
+
     int                     save();
     void                    reset();
     void                    setBG(const char *fname);
@@ -402,10 +406,26 @@ public:
     void                    cancel();
 
     void                    sendClick(const Click&);
-
     void                    setChannel(Channel channel);
 
-
 };
+
+
+typedef class BitMap{
+
+    Byte_p _data;
+    int _w, _h, _c;
+
+public:
+
+    BitMap(int w, int h, int c, Byte_p data=0);
+
+    int     W() const {return  _w;}
+    int     H() const {return  _h;}
+    int     C() const {return  _c;}
+    Byte    val(int i, int j, int c) const {return _data[(i + j*_w)*_c + c];}
+    Byte_p  data(int i=0, int j=0, int c=0) const {return _data + ((i + j*_w)*_c + c);}
+
+}* BitMap_p;
 
 #endif

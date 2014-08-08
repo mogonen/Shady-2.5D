@@ -83,6 +83,8 @@ public:
     void                keyPressEvent(QKeyEvent *);
     double*             getOrthoView();
 
+    void                renderPreviewTextures();
+
 protected:
     void                initializeGL();
     void                paintGL();
@@ -96,7 +98,7 @@ protected:
 private:
 
     void                renderCanvas();
-    void                preview();
+    void                preview(bool isrender=true);
 
     void                render(Shape*, int mode=0);
     void                renderShapes(int mode=0);
@@ -125,7 +127,7 @@ private:
 #ifndef MODELING_MODE
 //************************ NOW PREVIEW STUFF ***********************************
 public:
-    Shape*              removeActive();
+
     ShaderProgram*      getRShader(){return _pGLSLShader_R;}
     ShaderProgram*      getMShader(){return _pGLSLShader_M;}
     ShaderProgram*      getCShader(){return _pGLSLShader_C;}
@@ -138,7 +140,6 @@ private:
     ShaderProgram       *_pGLSLShader_M;
     ShaderProgram       *_pGLSLShader_C;
 
-    QVector2D           _mousePressPosition;
     QVector3D           _rotationAxis;
     qreal               _angularChange;
     QQuaternion         _rotation;

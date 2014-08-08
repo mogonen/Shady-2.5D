@@ -74,4 +74,11 @@ public:
 };
 
 
+class ISExporter:public Exporter{
+
+public:
+    bool exportShape(Shape *, const char *fname);
+    void exportScene(const char *fname);
+};
+
 #endif // FILEIO_H

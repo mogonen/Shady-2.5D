@@ -24,6 +24,16 @@ struct SVLoad{
     }
 };
 
+BitMap::BitMap(int w, int h, int c, Byte_p data)
+{
+    _w = w;
+    _h = h;
+    _c = c;
+    _data = data;
+    if (!_data)
+        _data = new Byte[_w*_h*_c];
+}
+
 struct EdgeLoad
 {
     Edge_p e;

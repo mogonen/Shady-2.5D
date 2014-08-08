@@ -157,6 +157,8 @@ public:
 
     SHADER_TYPE m_type;
 
+    FrameBufferWrapper* frameBuffers[ACTIVE_CHANNELS];
+
 private:
     QGLShader *m_VertexShader;
     QGLShader *m_FragmentShader;

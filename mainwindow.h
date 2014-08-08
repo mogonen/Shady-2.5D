@@ -88,6 +88,7 @@ private slots:
 
     void    exportINP();
     void    exportEPS();
+    void    exportIS();
 
     void    undo();
     void    redo();
@@ -227,6 +228,7 @@ private:
 
     QAction *       fileExportINPAct;
     QAction *       fileExportEPSAct;
+    QAction *       fileExportISAct;
 
     QAction *       fileSetBGImageAct;
 
@@ -287,7 +289,7 @@ private:
     //need to improve this
     struct Options
     {
-        enum OptionWidget_e {NONE, DRAG, ELLIPSE, GRID, NGON, TORUS, PIE, SPINE, IMAGE_SHAPE, EXTRUDE, INSERT_SEGMENT, DELETE_FACE, ASSIGN_PATTERN, SET_FOLDS, SET_COLOR, SEW, ORDER_FACE};
+        enum OptionWidget_e {NONE, DRAG, ELLIPSE, GRID, NGON, TORUS, PIE, SPINE, IMAGE_SHAPE, EXTRUDE, INSERT_SEGMENT, DELETE_FACE, ASSIGN_PATTERN, SET_FOLDS, SET_COLOR, SEW, ORDER_FACE, EXPORT_IS};
     };
 };
 
