@@ -25,7 +25,7 @@ private:
     int         m_width;
     int         m_height;
 
-    GLuint*     _map;
+    GLubyte*     _map;
 };
 
 #endif // FRAMEBUFFERWRAPPER_H

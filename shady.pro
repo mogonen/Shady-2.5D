@@ -30,7 +30,8 @@ HEADERS += glwidget.h \
     meshshape/curvededge.h \
     meshshape/pattern.h \
     EPSPlot.h \
-    Renderer/PreviewAttrDialog.h
+    Renderer/PreviewAttrDialog.h \
+    Renderer/framebufferwrapper.h
 
 SOURCES += glwidget.cpp \
     main.cpp \

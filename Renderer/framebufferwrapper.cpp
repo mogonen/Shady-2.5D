@@ -26,8 +26,7 @@ FrameBufferWrapper::FrameBufferWrapper(int w, int h)
     //-------------------------
     //Attach depth buffer to FBO
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depth_rb);
-
-    _map = new GLuint[m_width*m_height];
+    _map = new GLubyte[m_width*m_height*4];
 }
 
 void FrameBufferWrapper::bind()
@@ -37,7 +36,8 @@ void FrameBufferWrapper::bind()
 
 void FrameBufferWrapper::release()
 {
-    glReadPixels(0,0,m_width, m_height, GL_RGBA8, GL_UNSIGNED_INT_8_8_8_8, _map);
+    glReadPixels(0,0,m_width, m_height, GL_RGBA, GL_UNSIGNED_BYTE, _map);
+    QImage((uchar*)_map, m_width, m_height, QImage::Format_RGBA8888).mirrored(false,true).save("tst.jpg");
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
