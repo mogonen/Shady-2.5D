@@ -78,7 +78,7 @@ GLWidget::GLWidget(Canvas * pCanvas, QWidget *parent)
     setRender(SURFACES_ON, true);
     setRender(CURVES_ON, true);
 
-    _width0  = width();
+
 }
 
 void GLWidget::setRender(RenderSetting rs, bool set)
@@ -102,7 +102,8 @@ void GLWidget::initializeGL()
      //glDepthRange(0.0, 1.0);
      //glClearColor(0.0,0.0,0.0,0.0);
 
-     glClearColor(0.96,0.96,0.96,0.0);
+     //glClearColor(0.96,0.96,0.96,0.0);
+     glClearColor(0.96, 0.96, 0.96, 0.0);
 
      glEnable(GL_DEPTH_TEST);
      glEnable(GL_NORMALIZE);
@@ -147,7 +148,7 @@ void GLWidget::initializeGL()
      _pGLSLShader_C->Initialize();
      m_CameraChanged = true;
 #endif
-
+    _width0  = width();
 }
 
 void GLWidget::paintGL()

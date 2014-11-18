@@ -77,6 +77,7 @@ public:
 class ISExporter:public Exporter{
 
 public:
+    void init();
     bool exportShape(Shape *, const char *fname);
     void exportScene(const char *fname);
 };

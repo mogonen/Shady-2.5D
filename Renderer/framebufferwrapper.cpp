@@ -1,3 +1,4 @@
+#include <QDebug>
 #include "framebufferwrapper.h"
 
 FrameBufferWrapper::FrameBufferWrapper(int w, int h)
@@ -36,33 +37,26 @@ void FrameBufferWrapper::bind()
 
 void FrameBufferWrapper::release()
 {
+
     glReadPixels(0,0,m_width, m_height, GL_RGBA, GL_UNSIGNED_BYTE, _map);
-    QImage((uchar*)_map, m_width, m_height, QImage::Format_RGBA8888).mirrored(false,true).save("tst.jpg");
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 GLubyte* FrameBufferWrapper::getData()
-{
-    glBindTexture(GL_TEXTURE_2D, m_texture);
-    GLubyte* map = new GLubyte[m_width*m_height*4];
-    glGetTexImage(GL_TEXTURE_2D,0,GL_RGBA8, GL_UNSIGNED_BYTE, map);
-    return map;
+{   
+    return _map;
 }
 
-QImage* FrameBufferWrapper::genQImage()
+QImage FrameBufferWrapper::genQImage()
 {
-    //glBindTexture(GL_TEXTURE_2D, m_texture);
-    //GLuint* map = new GLuint[m_width*m_height];
-    //glGetTexImage(GL_TEXTURE_2D,0, GL_RGBA8, GL_UNSIGNED_INT_8_8_8_8, map);
-    //swap alpha bits
+    //reverese channels for qimage
     int size = m_width*m_height;
     for(int i = 0; i < size; i++)
     {
-        unsigned int val = _map[i];
-        if (val){
-            _map[i] = (val << 24) | (val >> 8); //(val << 24) | (val >> 8);
-        }
+        unsigned char r = _map[i*4];
+        _map[i*4] = _map[i*4 + 2];
+        _map[i*4 + 2] = r;
     }
 
-    return new QImage((uchar*)_map, m_width, m_height, QImage::Format_ARGB32);
+    return QImage((uchar*)_map, m_width, m_height, QImage::Format_ARGB32).mirrored(false, true);
 }

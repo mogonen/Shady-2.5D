@@ -334,6 +334,10 @@ class Exporter {
 
 public:
 
+    Exporter(){init();}
+
+    virtual void init(){}
+
     virtual bool exportShape(Shape*, const char * fname) = 0;
     virtual void exportScene(const char * fname){}
 };

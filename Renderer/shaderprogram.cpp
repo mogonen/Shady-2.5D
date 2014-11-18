@@ -114,6 +114,7 @@ void ShaderProgram::InitializeParameters()
     m_LDFBO = NULL;
     m_ShadeFBO = NULL;
     m_DispFBO = NULL;
+    m_BgFBO = NULL;
     m_isFBOInitialized = false;
     m_toggle_ShaAmbCos = 7;
 }
@@ -198,6 +199,13 @@ void ShaderProgram::initialiFBO(int w, int h)
         delete m_DispFBO;
     }
     m_DispFBO = new FrameBufferWrapper(w,h);
+
+    if(m_BgFBO)
+    {
+        m_BgFBO->release();
+        delete m_BgFBO;
+    }
+    m_BgFBO = new FrameBufferWrapper(w,h);
 
     m_isFBOInitialized = true;
 }

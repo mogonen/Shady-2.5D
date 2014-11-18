@@ -117,8 +117,7 @@ SOURCES +=
     Renderer/renderoptionspenal.h \
     Renderer/imageshape.h \
     Renderer/layernormalcontrol.h \
-    Renderer/framebuffe
-rwrapper.h
+    Renderer/framebufferwrapper.h
 
     SOURCES += Renderer/qsliderspinbox.cpp \
     Renderer/shaderprogram.cpp \

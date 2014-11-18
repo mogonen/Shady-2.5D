@@ -32,6 +32,9 @@ public:
         _p0.set(x,y);
         _z = z;
     }
+
+    Vec3 P3D() const { return Vec3(_p0.x, _p0.y, _z);}
+
     float _z;
     void render(int mode = 0);
 
@@ -45,6 +48,7 @@ class ImagePlane
     unsigned int    _tex;
     QImage          _img;
     double          _aspect;
+    double          _scale;
 
 public:
 
@@ -94,7 +98,9 @@ public:
 
 #ifndef MODELING_MODE
 
-    Point lightPos(int i)const {return _lights[i]->P();}
+    Point lightPos(int i=0)    const {return _lights[i]->P();}
+    Vec3  lightPos3D(int i=0)  const {return _lights[i]->P3D();}
+
     Canvas(){
         _lights[0]  = new Light(-0.5, 0.5, 1.0);
         _pBGImage   = new ImagePlane();

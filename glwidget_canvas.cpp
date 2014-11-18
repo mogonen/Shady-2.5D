@@ -148,6 +148,7 @@ bool ImagePlane::readFromFile(const string &filename){
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _img.width(), _img.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _img.bits() );
     _aspect = (_img.width()*1.0) / _img.height();
+    _scale  = 1.0; // Session::get()->glWidget()->width()*1.0 / _img.width();
     return true;
 }
 
@@ -163,10 +164,10 @@ void ImagePlane::render()
     // Draw a textured quad
     glColor4f(1, 1, 1, 1);
     glBegin(GL_QUADS);
-    glTexCoord2f(0, 0); glVertex2f(-1.0*_aspect, -1.0);
-    glTexCoord2f(0, 1); glVertex2f(-1.0*_aspect, 1.0);
-    glTexCoord2f(1, 1); glVertex2f( 1.0*_aspect, 1.0);
-    glTexCoord2f(1, 0); glVertex2f( 1.0*_aspect, -1.0);
+    glTexCoord2f(0, 0); glVertex2f(-1.0*_aspect*_scale, -1.0*_scale);
+    glTexCoord2f(0, 1); glVertex2f(-1.0*_aspect*_scale, 1.0*_scale);
+    glTexCoord2f(1, 1); glVertex2f( 1.0*_aspect*_scale, 1.0*_scale);
+    glTexCoord2f(1, 0); glVertex2f( 1.0*_aspect*_scale, -1.0*_scale);
     glEnd();
 
     /*glBegin(GL_QUADS);
@@ -182,8 +183,8 @@ void ImagePlane::render()
 QColor ImagePlane::getColor(const Point &p, double rad, int type) const
 {
 
-    double w = 2.0*_aspect;
-    double h = 2.0;
+    double w = 2.0*_aspect*_scale;
+    double h = 2.0*_scale;
     int x = (int)(_img.width()*(p.x + _aspect)/w);
     int y = (int)(_img.height()*(p.y + 1.0)/h);
 

@@ -525,6 +525,7 @@ void Patch::render(int mode){
                 else if (isNormalChannel)
                 {
                     glColor4f((val.x+1)/2, (val.y+1)/2, 1.0, 1.0);
+                    //glColor4f(val.x, val.y, val.z, 1.0);
                 }else{
                     glColor4f(val.x, val.y, val.z, 1.0); //col[k].w);
                 }

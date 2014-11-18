@@ -87,6 +87,7 @@ MainWindow::MainWindow()
     resize(1200, 900);
     // set the number of patch lines
     //Patch::setN(16);
+    //Session::get()->setBG("c:/temp/bg.jpg");
 }
 
 void MainWindow::initScene(){

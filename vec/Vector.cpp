@@ -424,6 +424,12 @@ void Vec3::set(const Vec3 &v)
   y = v.y;
   z = v.z;
 }
+void Vec3::set(const Vec4 &v)
+{
+  x = v.x/v.w;
+  y = v.y/v.w;
+  z = v.z/v.w;
+}
 void Vec4::set(double vx, double vy, double vz, double vw)
 {
   x = vx;

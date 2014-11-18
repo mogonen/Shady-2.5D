@@ -13,7 +13,7 @@ public:
     GLuint      texture(){return m_texture;}
 
     GLubyte*    getData();
-    QImage*     genQImage();
+    QImage      genQImage();
 
     int         width() const {return m_width;}
     int         height() const{return m_height;}

@@ -140,6 +140,9 @@ public:
     FrameBufferWrapper *m_ShapeMapFBO;
     //background image
     GLuint m_BG;
+
+    FrameBufferWrapper *m_BgFBO;
+
     //label-depth image
     FrameBufferWrapper *m_LDFBO;
     //label-depth image

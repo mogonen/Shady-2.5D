@@ -91,6 +91,7 @@ public:
 
   void set(double vx = 0, double vy = 0, double vz = 0); // set
   void set(const Vec3 &v);
+  void set(const Vec4 &v);
   void reset(){set();}
 
   /* Vec3 operator prototypes */

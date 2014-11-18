@@ -87,6 +87,11 @@ void GLWidget::preview(bool isscreen)
         renderShapes(LABELDEPTH_MODE);
         _pGLSLShader_R->m_LDFBO->release();
 
+        _pGLSLShader_R->m_BgFBO->bind();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        _pCanvas->bgImage()->render();
+        _pGLSLShader_R->m_BgFBO->release();
+
         //_pGLSLShader_R->GrabLDMap();
         _pGLSLShader_R->SetTextureToShader();
     }

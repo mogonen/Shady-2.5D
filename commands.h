@@ -84,7 +84,11 @@ private:
     RGB                 _col;
     Channel             _channel;
 
+    static double       K_dark;
+
     void                setColor(ShapeBase_p, const RGB &col, bool isbg=false);
+
+    static void         setChannelsByBG(Shape_p);
 };
 
 #endif // COMMANDS_H
